@@ -28,6 +28,11 @@ type StepUpRequiredError struct{ *APIError }
 
 func (e *StepUpRequiredError) Unwrap() error { return e.APIError }
 
+// ReauthRequiredError is the `reauth_required` error (HTTP 401). Match it with errors.As.
+type ReauthRequiredError struct{ *APIError }
+
+func (e *ReauthRequiredError) Unwrap() error { return e.APIError }
+
 // PaymentRequiredError is the `payment_required` error (HTTP 402). Match it with errors.As.
 type PaymentRequiredError struct{ *APIError }
 
@@ -145,6 +150,8 @@ func typedError(base *APIError) error {
 		return &AuthenticationError{base}
 	case "step_up_required":
 		return &StepUpRequiredError{base}
+	case "reauth_required":
+		return &ReauthRequiredError{base}
 	case "payment_required":
 		return &PaymentRequiredError{base}
 	case "forbidden":

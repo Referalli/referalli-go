@@ -7,39 +7,41 @@ import "encoding/json"
 
 // Every webhook topic the API publishes.
 const (
-	TopicBillingEventRecorded    = "billing_event.recorded"
-	TopicClickRecorded           = "click.recorded"
-	TopicCommissionEarned        = "commission.earned"
-	TopicCommissionReversed      = "commission.reversed"
-	TopicCommissionSettled       = "commission.settled"
-	TopicCreditRedeemed          = "credit.redeemed"
-	TopicCustomerAliased         = "customer.aliased"
-	TopicDealSubmitted           = "deal.submitted"
-	TopicDisputeResolved         = "dispute.resolved"
-	TopicFraudCaseOpened         = "fraud.case_opened"
-	TopicPartnerApplied          = "partner.applied"
-	TopicPartnerApproved         = "partner.approved"
-	TopicPartnerEnrolled         = "partner.enrolled"
-	TopicPartnerLevelUp          = "partner.level_up"
-	TopicPayoutCancelled         = "payout.cancelled"
-	TopicPayoutFailed            = "payout.failed"
-	TopicPayoutScheduled         = "payout.scheduled"
-	TopicPayoutSent              = "payout.sent"
-	TopicPayoutSubmitted         = "payout.submitted"
-	TopicPrivacyRequestCompleted = "privacy.request_completed"
-	TopicRefereeRewardEarned     = "referee_reward.earned"
-	TopicReferralApproved        = "referral.approved"
-	TopicReferralCreated         = "referral.created"
-	TopicReferralHeld            = "referral.held"
-	TopicReferralPaused          = "referral.paused"
-	TopicReferralReassigned      = "referral.reassigned"
-	TopicReferralRejected        = "referral.rejected"
-	TopicReferralResumed         = "referral.resumed"
-	TopicReferralVoided          = "referral.voided"
-	TopicRoiPatternDetected      = "roi.pattern_detected"
-	TopicRoiPaybackReached       = "roi.payback_reached"
-	TopicTaxFormDelivered        = "tax.form_delivered"
-	TopicWebhookEndpointDisabled = "webhook_endpoint.disabled"
+	TopicBillingEventRecorded     = "billing_event.recorded"
+	TopicClickRecorded            = "click.recorded"
+	TopicCommissionEarned         = "commission.earned"
+	TopicCommissionReversed       = "commission.reversed"
+	TopicCommissionSettled        = "commission.settled"
+	TopicCreditRedeemed           = "credit.redeemed"
+	TopicCustomerAliased          = "customer.aliased"
+	TopicDealSubmitted            = "deal.submitted"
+	TopicDisputeResolved          = "dispute.resolved"
+	TopicFraudCaseOpened          = "fraud.case_opened"
+	TopicPartnerApplied           = "partner.applied"
+	TopicPartnerApproved          = "partner.approved"
+	TopicPartnerEnrolled          = "partner.enrolled"
+	TopicPartnerLevelUp           = "partner.level_up"
+	TopicPayoutCancelled          = "payout.cancelled"
+	TopicPayoutFailed             = "payout.failed"
+	TopicPayoutScheduled          = "payout.scheduled"
+	TopicPayoutSent               = "payout.sent"
+	TopicPayoutSubmitted          = "payout.submitted"
+	TopicPrivacyRequestCompleted  = "privacy.request_completed"
+	TopicRefereeRewardEarned      = "referee_reward.earned"
+	TopicReferralApproved         = "referral.approved"
+	TopicReferralCreated          = "referral.created"
+	TopicReferralHeld             = "referral.held"
+	TopicReferralPaused           = "referral.paused"
+	TopicReferralReassigned       = "referral.reassigned"
+	TopicReferralRejected         = "referral.rejected"
+	TopicReferralResumed          = "referral.resumed"
+	TopicReferralVoided           = "referral.voided"
+	TopicRoiPatternDetected       = "roi.pattern_detected"
+	TopicRoiPaybackReached        = "roi.payback_reached"
+	TopicTaxFormDelivered         = "tax.form_delivered"
+	TopicWebhookEndpointDisabled  = "webhook_endpoint.disabled"
+	TopicWebhookEndpointFailing   = "webhook_endpoint.failing"
+	TopicWebhookEndpointRecovered = "webhook_endpoint.recovered"
 )
 
 // Topics lists every webhook topic.
@@ -77,6 +79,8 @@ var Topics = []string{
 	TopicRoiPaybackReached,
 	TopicTaxFormDelivered,
 	TopicWebhookEndpointDisabled,
+	TopicWebhookEndpointFailing,
+	TopicWebhookEndpointRecovered,
 }
 
 // AsBillingEventRecorded decodes the data of a `billing_event.recorded` event (A billing event was recorded).
@@ -437,6 +441,28 @@ func (e *WebhookEvent) AsWebhookEndpointDisabled() (WebhookEndpointDisabledEvent
 	var out WebhookEndpointDisabledEventData
 	if e.Topic != TopicWebhookEndpointDisabled {
 		return out, &WrongTopicError{Want: TopicWebhookEndpointDisabled, Got: e.Topic}
+	}
+	err := json.Unmarshal(e.Data, &out)
+	return out, err
+}
+
+// AsWebhookEndpointFailing decodes the data of a `webhook_endpoint.failing` event (A webhook endpoint keeps failing).
+// It returns a *WrongTopicError for an event of another topic.
+func (e *WebhookEvent) AsWebhookEndpointFailing() (WebhookEndpointFailingEventData, error) {
+	var out WebhookEndpointFailingEventData
+	if e.Topic != TopicWebhookEndpointFailing {
+		return out, &WrongTopicError{Want: TopicWebhookEndpointFailing, Got: e.Topic}
+	}
+	err := json.Unmarshal(e.Data, &out)
+	return out, err
+}
+
+// AsWebhookEndpointRecovered decodes the data of a `webhook_endpoint.recovered` event (A failing webhook endpoint recovered).
+// It returns a *WrongTopicError for an event of another topic.
+func (e *WebhookEvent) AsWebhookEndpointRecovered() (WebhookEndpointRecoveredEventData, error) {
+	var out WebhookEndpointRecoveredEventData
+	if e.Topic != TopicWebhookEndpointRecovered {
+		return out, &WrongTopicError{Want: TopicWebhookEndpointRecovered, Got: e.Topic}
 	}
 	err := json.Unmarshal(e.Data, &out)
 	return out, err

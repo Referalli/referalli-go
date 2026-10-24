@@ -335,6 +335,14 @@ type CommissionRule struct {
 	CreatedAt string                 `json:"createdAt"`
 }
 
+// BillingFilter is generated from the OpenAPI component of the same name.
+type BillingFilter struct {
+	Metadata   map[string]string `json:"metadata,omitempty"`
+	ProductIds []string          `json:"productIds,omitempty"`
+	PriceIds   []string          `json:"priceIds,omitempty"`
+	Skus       []string          `json:"skus,omitempty"`
+}
+
 // ValueMapping is generated from the OpenAPI component of the same name.
 type ValueMapping struct {
 	Cash          *string `json:"cash,omitempty"`
@@ -434,29 +442,72 @@ type BillingConnection struct {
 	NeedsCredentials bool                      `json:"needsCredentials"` // The provider sends thin webhooks: set API credentials (Recurly, BigCommerce).
 	HasCredentials   bool                      `json:"hasCredentials"`
 	ValueMapping     *ValueMapping             `json:"valueMapping"` // Where cash / credit / discount / cost live in this connection's payload; null uses the built-in extractor.
+	Filter           *BillingFilter            `json:"filter"`       // Only matching events earn; the rest are recorded as ignored_by_filter. null takes every event.
 	Rotation         BillingConnectionRotation `json:"rotation"`
 }
 
 // CreatedBillingConnection is generated from the OpenAPI component of the same name.
 type CreatedBillingConnection struct {
-	ID            string `json:"id"`
-	Provider      string `json:"provider"`
-	WebhookSecret string `json:"webhookSecret"` // Returned only here.
-	WebhookURL    string `json:"webhookUrl"`    // Path to register with the provider.
+	ID            string         `json:"id"`
+	Provider      string         `json:"provider"`
+	WebhookSecret string         `json:"webhookSecret"` // Returned only here.
+	WebhookURL    string         `json:"webhookUrl"`    // Path to register with the provider.
+	Filter        *BillingFilter `json:"filter"`
 }
 
 // BillingEvent is generated from the OpenAPI component of the same name.
 type BillingEvent struct {
-	ID          string  `json:"id"`
-	Provider    string  `json:"provider"`
-	Type        string  `json:"type"`
-	CustomerRef string  `json:"customerRef"`
-	InvoiceRef  *string `json:"invoiceRef"`
-	AmountGross int64   `json:"amountGross"` // Integer minor units (cents).
-	Tax         int64   `json:"tax"`         // Integer minor units (cents).
-	Fees        int64   `json:"fees"`        // Integer minor units (cents).
-	Currency    string  `json:"currency"`
-	OccurredAt  string  `json:"occurredAt"`
+	ID            string              `json:"id"`
+	Provider      string              `json:"provider"`
+	Type          string              `json:"type"`
+	CustomerRef   string              `json:"customerRef"`
+	InvoiceRef    *string             `json:"invoiceRef"`
+	AmountGross   int64               `json:"amountGross"` // Integer minor units (cents).
+	Tax           int64               `json:"tax"`         // Integer minor units (cents).
+	Fees          int64               `json:"fees"`        // Integer minor units (cents).
+	Currency      string              `json:"currency"`
+	OccurredAt    string              `json:"occurredAt"`
+	ConnectionID  *string             `json:"connectionId"`
+	ProductRef    string              `json:"productRef"`
+	Status        string              `json:"status"` // ignored_by_filter: recorded, never processed (product filter or internal customer).
+	IgnoredReason *string             `json:"ignoredReason"`
+	Catalog       map[string][]string `json:"catalog"` // The productIds, priceIds and skus the event named.
+}
+
+// InternalCustomer is generated from the OpenAPI component of the same name.
+type InternalCustomer struct {
+	CustomerRef string `json:"customerRef"`
+	Note        string `json:"note"`
+	CreatedAt   string `json:"createdAt"`
+}
+
+// IdentityProviderSampleHookOption1 is generated from the OpenAPI component of the same name.
+type IdentityProviderSampleHookOption1 struct {
+	Language string `json:"language"`
+	Filename string `json:"filename"`
+	Code     string `json:"code"`
+}
+
+// IdentityProviderMetadataPaths is generated from the OpenAPI component of the same name.
+type IdentityProviderMetadataPaths struct {
+	AnonID  []string `json:"anonId"`
+	ClickID []string `json:"clickId"`
+	Coupon  []string `json:"coupon"`
+}
+
+// IdentityProvider is generated from the OpenAPI component of the same name.
+type IdentityProvider struct {
+	ID             string                             `json:"id"`
+	Label          string                             `json:"label"`
+	Mechanism      string                             `json:"mechanism"`
+	Status         string                             `json:"status"`
+	DocsURL        string                             `json:"docsUrl"`
+	VendorDocsURL  string                             `json:"vendorDocsUrl"`
+	SecretKind     string                             `json:"secretKind"`
+	SecretIssuedBy string                             `json:"secretIssuedBy"`
+	VendorSteps    []string                           `json:"vendorSteps"`
+	SampleHook     *IdentityProviderSampleHookOption1 `json:"sampleHook"`
+	MetadataPaths  IdentityProviderMetadataPaths      `json:"metadataPaths"`
 }
 
 // WebhookEndpointRotation is generated from the OpenAPI component of the same name.
@@ -465,19 +516,41 @@ type WebhookEndpointRotation struct {
 	PreviousSecretExpiresAt *string `json:"previousSecretExpiresAt,omitempty"`
 }
 
+// WebhookEndpointLastFailureOption1 is generated from the OpenAPI component of the same name.
+type WebhookEndpointLastFailureOption1 struct {
+	StatusCode *int64  `json:"statusCode"`
+	Error      *string `json:"error"`
+	At         string  `json:"at"`
+}
+
 // WebhookEndpoint is generated from the OpenAPI component of the same name.
 type WebhookEndpoint struct {
-	ID              string                  `json:"id"`
-	URL             string                  `json:"url"`
-	Topics          []string                `json:"topics"`
-	ProgramIds      []string                `json:"programIds"` // null: every program. Otherwise only events about these programs (org-wide events such as payouts are not sent).
-	Status          string                  `json:"status"`
-	LegacySignature bool                    `json:"legacySignature"` // Also send the deprecated body-only legacy signature header.
-	Rotation        WebhookEndpointRotation `json:"rotation"`
-	FailingSince    *string                 `json:"failingSince"` // When the current run of failed deliveries began.
-	DisabledAt      *string                 `json:"disabledAt"`
-	DisabledReason  *string                 `json:"disabledReason"`
-	CreatedAt       string                  `json:"createdAt"`
+	ID                  string                             `json:"id"`
+	URL                 string                             `json:"url"`
+	Topics              []string                           `json:"topics"`
+	ProgramIds          []string                           `json:"programIds"` // null: every program. Otherwise only events about these programs (org-wide events such as payouts are not sent).
+	Status              string                             `json:"status"`
+	LegacySignature     bool                               `json:"legacySignature"` // Also send the deprecated body-only legacy signature header.
+	Rotation            WebhookEndpointRotation            `json:"rotation"`
+	FailingSince        *string                            `json:"failingSince"` // When the current run of failed deliveries began.
+	DisabledAt          *string                            `json:"disabledAt"`
+	DisabledReason      *string                            `json:"disabledReason"`
+	Health              string                             `json:"health"` // failing: the latest deliveries failed; alerts go out at 1 h and 24 h, and it is disabled at 72 h.
+	LastSuccessAt       *string                            `json:"lastSuccessAt"`
+	LastFailure         *WebhookEndpointLastFailureOption1 `json:"lastFailure"` // The most recent failed attempt: HTTP status (null: no response) and the error or start of the response body.
+	ConsecutiveFailures int64                              `json:"consecutiveFailures"`
+	AlertContacts       []string                           `json:"alertContacts"` // Emailed (with the org owner) when the endpoint starts failing.
+	CreatedAt           string                             `json:"createdAt"`
+}
+
+// HealthCheck is generated from the OpenAPI component of the same name.
+type HealthCheck struct {
+	ID     string  `json:"id"`
+	Ok     bool    `json:"ok"`
+	Detail string  `json:"detail"`
+	Fix    *string `json:"fix,omitempty"`
+	Docs   *string `json:"docs,omitempty"`
+	Hop    *string `json:"hop,omitempty"` // The hop that failed on a multi-system path, such as `stripe→referalli`.
 }
 
 // WebhookDelivery is generated from the OpenAPI component of the same name.
@@ -747,7 +820,8 @@ type CreatedAuthConnection struct {
 	ID              string            `json:"id"`
 	Provider        string            `json:"provider"`
 	Secret          string            `json:"secret"`               // Returned only here.
-	WebhookURL      *string           `json:"webhookUrl,omitempty"` // Webhook connectors: Clerk, Supabase, WorkOS, generic.
+	WebhookURL      *string           `json:"webhookUrl,omitempty"` // Webhook connectors: Clerk, Auth0, Supabase, Firebase, Cognito, Stytch, Kinde, WorkOS, generic.
+	DocsURL         *string           `json:"docsUrl,omitempty"`    // Webhook connectors: the setup guide for this provider.
 	MetadataKeys    map[string]string `json:"metadataKeys,omitempty"`
 	ProgramID       *string           `json:"programId,omitempty"` // Signed-protocol connections (atlas, custom).
 	InstanceID      *string           `json:"instanceId,omitempty"`
@@ -1958,7 +2032,7 @@ type PrivacyRequestCompletedEvent struct {
 	Data      PrivacyRequestCompletedEventData `json:"data"`
 }
 
-// WebhookEndpointDisabledEventData: `data` of a `webhook_endpoint.disabled` event: Sent to your other active endpoints when one is disabled after every delivery failed for 5 days.
+// WebhookEndpointDisabledEventData: `data` of a `webhook_endpoint.disabled` event: Sent to your other active endpoints when one is disabled after every delivery failed for 72 hours (or 1000 attempts in a row).
 type WebhookEndpointDisabledEventData struct {
 	EndpointID     string `json:"endpointId"`
 	URL            string `json:"url"`
@@ -1975,6 +2049,46 @@ type WebhookEndpointDisabledEvent struct {
 	Livemode  bool                             `json:"livemode"` // false for events from test mode.
 	CreatedAt string                           `json:"createdAt"`
 	Data      WebhookEndpointDisabledEventData `json:"data"`
+}
+
+// WebhookEndpointFailingEventData: `data` of a `webhook_endpoint.failing` event: Sent to your other active endpoints (never the failing one) when an endpoint has failed every delivery for 1 hour, and again at 24 hours. It's disabled at `disablesAt` unless a delivery succeeds first.
+type WebhookEndpointFailingEventData struct {
+	EndpointID          string  `json:"endpointId"`
+	URL                 string  `json:"url"`
+	Stage               string  `json:"stage"`
+	FailingSince        string  `json:"failingSince"`
+	ConsecutiveFailures int64   `json:"consecutiveFailures"`
+	LastStatusCode      *int64  `json:"lastStatusCode"`
+	SampleError         *string `json:"sampleError"`
+	DisablesAt          string  `json:"disablesAt"`
+}
+
+// WebhookEndpointFailingEvent: A webhook endpoint keeps failing: the `webhook_endpoint.failing` delivery body.
+type WebhookEndpointFailingEvent struct {
+	ID        string                          `json:"id"` // The event id (`evt_…`); the same event delivered to several endpoints has the same id.
+	Topic     string                          `json:"topic"`
+	OrgID     string                          `json:"orgId"`
+	Livemode  bool                            `json:"livemode"` // false for events from test mode.
+	CreatedAt string                          `json:"createdAt"`
+	Data      WebhookEndpointFailingEventData `json:"data"`
+}
+
+// WebhookEndpointRecoveredEventData: `data` of a `webhook_endpoint.recovered` event: Sent to your active endpoints, including the recovered one, when a delivery succeeds after the endpoint was failing.
+type WebhookEndpointRecoveredEventData struct {
+	EndpointID   string `json:"endpointId"`
+	URL          string `json:"url"`
+	FailingSince string `json:"failingSince"`
+	DownForMs    int64  `json:"downForMs"`
+}
+
+// WebhookEndpointRecoveredEvent: A failing webhook endpoint recovered: the `webhook_endpoint.recovered` delivery body.
+type WebhookEndpointRecoveredEvent struct {
+	ID        string                            `json:"id"` // The event id (`evt_…`); the same event delivered to several endpoints has the same id.
+	Topic     string                            `json:"topic"`
+	OrgID     string                            `json:"orgId"`
+	Livemode  bool                              `json:"livemode"` // false for events from test mode.
+	CreatedAt string                            `json:"createdAt"`
+	Data      WebhookEndpointRecoveredEventData `json:"data"`
 }
 
 // PostTOrgTokenVisitResponse is generated from the OpenAPI component of the same name.
@@ -2113,6 +2227,99 @@ type GetWellKnownAssetlinksJsonResponseValueItem struct {
 // GetWellKnownAssetlinksJsonResponse is generated from the OpenAPI component of the same name.
 type GetWellKnownAssetlinksJsonResponse = []GetWellKnownAssetlinksJsonResponseValueItem
 
+// GetWellKnownForgedeckEmbedJsonResponseCheckers is generated from the OpenAPI component of the same name.
+type GetWellKnownForgedeckEmbedJsonResponseCheckers struct {
+	UserAgent string   `json:"userAgent"`
+	Egress    []string `json:"egress"`
+}
+
+// GetWellKnownForgedeckEmbedJsonResponseSurfacesTrackingSnippetCookieDaysOption2 is generated from the OpenAPI component of the same name.
+type GetWellKnownForgedeckEmbedJsonResponseSurfacesTrackingSnippetCookieDaysOption2 struct {
+	Default int64  `json:"default"`
+	Max     int64  `json:"max"`
+	Note    string `json:"note"`
+}
+
+// GetWellKnownForgedeckEmbedJsonResponseSurfacesTrackingSnippetStorageItemPurpose is generated from the OpenAPI component of the same name.
+type GetWellKnownForgedeckEmbedJsonResponseSurfacesTrackingSnippetStorageItemPurpose struct {
+	En string `json:"en"`
+}
+
+// GetWellKnownForgedeckEmbedJsonResponseSurfacesTrackingSnippetStorageItem is generated from the OpenAPI component of the same name.
+type GetWellKnownForgedeckEmbedJsonResponseSurfacesTrackingSnippetStorageItem struct {
+	Name     string                                                                          `json:"name"`
+	Type     string                                                                          `json:"type"`
+	Category string                                                                          `json:"category"`
+	Lifetime string                                                                          `json:"lifetime"`
+	Purpose  GetWellKnownForgedeckEmbedJsonResponseSurfacesTrackingSnippetStorageItemPurpose `json:"purpose"`
+	Legacy   *bool                                                                           `json:"legacy,omitempty"`
+}
+
+// GetWellKnownForgedeckEmbedJsonResponseSurfacesTrackingSnippet is generated from the OpenAPI component of the same name.
+type GetWellKnownForgedeckEmbedJsonResponseSurfacesTrackingSnippet struct {
+	Script                  string                                                                     `json:"script"`
+	Csp                     map[string][]string                                                        `json:"csp"`
+	ConsentCategory         string                                                                     `json:"consentCategory"`
+	ConsentFallbackCategory string                                                                     `json:"consentFallbackCategory"`
+	ConsentAdapters         []string                                                                   `json:"consentAdapters"`
+	ConsentDefault          map[string]any                                                             `json:"consentDefault,omitempty"`
+	CookieDays              json.RawMessage                                                            `json:"cookieDays"`
+	Storage                 []GetWellKnownForgedeckEmbedJsonResponseSurfacesTrackingSnippetStorageItem `json:"storage"`
+}
+
+// GetWellKnownForgedeckEmbedJsonResponseSurfacesPortalEmbedStorageItemPurpose is generated from the OpenAPI component of the same name.
+type GetWellKnownForgedeckEmbedJsonResponseSurfacesPortalEmbedStorageItemPurpose struct {
+	En string `json:"en"`
+}
+
+// GetWellKnownForgedeckEmbedJsonResponseSurfacesPortalEmbedStorageItem is generated from the OpenAPI component of the same name.
+type GetWellKnownForgedeckEmbedJsonResponseSurfacesPortalEmbedStorageItem struct {
+	Name     string                                                                      `json:"name"`
+	Type     string                                                                      `json:"type"`
+	Category string                                                                      `json:"category"`
+	Lifetime string                                                                      `json:"lifetime"`
+	Purpose  GetWellKnownForgedeckEmbedJsonResponseSurfacesPortalEmbedStorageItemPurpose `json:"purpose"`
+	Legacy   *bool                                                                       `json:"legacy,omitempty"`
+}
+
+// GetWellKnownForgedeckEmbedJsonResponseSurfacesPortalEmbed is generated from the OpenAPI component of the same name.
+type GetWellKnownForgedeckEmbedJsonResponseSurfacesPortalEmbed struct {
+	Script          string                                                                 `json:"script"`
+	Csp             map[string][]string                                                    `json:"csp"`
+	ConsentCategory string                                                                 `json:"consentCategory"`
+	Storage         []GetWellKnownForgedeckEmbedJsonResponseSurfacesPortalEmbedStorageItem `json:"storage"`
+}
+
+// GetWellKnownForgedeckEmbedJsonResponseSurfaces is generated from the OpenAPI component of the same name.
+type GetWellKnownForgedeckEmbedJsonResponseSurfaces struct {
+	TrackingSnippet GetWellKnownForgedeckEmbedJsonResponseSurfacesTrackingSnippet `json:"tracking-snippet"`
+	PortalEmbed     GetWellKnownForgedeckEmbedJsonResponseSurfacesPortalEmbed     `json:"portal-embed"`
+}
+
+// GetWellKnownForgedeckEmbedJsonResponseChangesItem is generated from the OpenAPI component of the same name.
+type GetWellKnownForgedeckEmbedJsonResponseChangesItem struct {
+	Effective string   `json:"effective"`
+	Surface   string   `json:"surface"`
+	Add       []string `json:"add,omitempty"`
+	Remove    []string `json:"remove,omitempty"`
+	Note      string   `json:"note"`
+}
+
+// GetWellKnownForgedeckEmbedJsonResponse is generated from the OpenAPI component of the same name.
+type GetWellKnownForgedeckEmbedJsonResponse struct {
+	Schema   string                                              `json:"schema"`
+	Product  string                                              `json:"product"`
+	Updated  string                                              `json:"updated"`
+	Openapi  string                                              `json:"openapi"`
+	Llms     string                                              `json:"llms"`
+	Status   string                                              `json:"status"`
+	Docs     string                                              `json:"docs"`
+	Checkers GetWellKnownForgedeckEmbedJsonResponseCheckers      `json:"checkers"`
+	Org      *string                                             `json:"org,omitempty"`
+	Surfaces GetWellKnownForgedeckEmbedJsonResponseSurfaces      `json:"surfaces"`
+	Changes  []GetWellKnownForgedeckEmbedJsonResponseChangesItem `json:"changes"`
+}
+
 // PostAgentsRegisterResponse is generated from the OpenAPI component of the same name.
 type PostAgentsRegisterResponse struct {
 	AgentID       string `json:"agentId"`
@@ -2170,6 +2377,11 @@ type GetAuthProvidersResponse struct {
 	Details   []GetAuthProvidersResponseDetailsItem `json:"details"`
 }
 
+// PostAuthBackchannelLogoutResponse is generated from the OpenAPI component of the same name.
+type PostAuthBackchannelLogoutResponse struct {
+	Ok bool `json:"ok"`
+}
+
 // PostAuthLogoutResponse is generated from the OpenAPI component of the same name.
 type PostAuthLogoutResponse struct {
 	Ok        bool    `json:"ok"`
@@ -2223,6 +2435,60 @@ type GetMeResponse struct {
 	Org         *GetMeResponseOrg              `json:"org,omitempty"`
 }
 
+// GetPortalAuthCurrentResponse is generated from the OpenAPI component of the same name.
+type GetPortalAuthCurrentResponse struct {
+	Adapter  string  `json:"adapter"`
+	Name     *string `json:"name"`     // The sign-in button label.
+	StartURL *string `json:"startUrl"` // Where the button sends the partner; null for Referalli accounts.
+}
+
+// GetOrgPortalAuthResponseAdaptersItem is generated from the OpenAPI component of the same name.
+type GetOrgPortalAuthResponseAdaptersItem struct {
+	ID      string `json:"id"`
+	Label   string `json:"label"`
+	Status  string `json:"status"`
+	DocsURL string `json:"docsUrl"`
+}
+
+// GetOrgPortalAuthResponse is generated from the OpenAPI component of the same name.
+type GetOrgPortalAuthResponse struct {
+	Adapter      string                                 `json:"adapter"`
+	Config       map[string]any                         `json:"config"` // The stored settings; a client secret is sealed and never returned.
+	Adapters     []GetOrgPortalAuthResponseAdaptersItem `json:"adapters"`
+	JwtAudience  string                                 `json:"jwtAudience"`  // For the `custom` adapter: the `aud` your tokens must carry.
+	JwtSignInURL string                                 `json:"jwtSignInUrl"` // For the `custom` adapter: send the partner here with `token=<jwt>`.
+	RedirectURI  string                                 `json:"redirectUri"`  // For the `oidc` adapter: the redirect URI to register at your IdP.
+	HasSecret    bool                                   `json:"hasSecret"`
+	Status       string                                 `json:"status"`
+	LastOkAt     *string                                `json:"lastOkAt"`
+	LastError    *string                                `json:"lastError"`
+}
+
+// PutOrgPortalAuthResponseAdaptersItem is generated from the OpenAPI component of the same name.
+type PutOrgPortalAuthResponseAdaptersItem struct {
+	ID      string `json:"id"`
+	Label   string `json:"label"`
+	Status  string `json:"status"`
+	DocsURL string `json:"docsUrl"`
+}
+
+// PutOrgPortalAuthResponse is generated from the OpenAPI component of the same name.
+type PutOrgPortalAuthResponse struct {
+	Adapter      string                                 `json:"adapter"`
+	Config       map[string]any                         `json:"config"` // The stored settings; a client secret is sealed and never returned.
+	Adapters     []PutOrgPortalAuthResponseAdaptersItem `json:"adapters"`
+	JwtAudience  string                                 `json:"jwtAudience"`  // For the `custom` adapter: the `aud` your tokens must carry.
+	JwtSignInURL string                                 `json:"jwtSignInUrl"` // For the `custom` adapter: send the partner here with `token=<jwt>`.
+	RedirectURI  string                                 `json:"redirectUri"`  // For the `oidc` adapter: the redirect URI to register at your IdP.
+}
+
+// PostOrgPortalAuthTestResponse is generated from the OpenAPI component of the same name.
+type PostOrgPortalAuthTestResponse struct {
+	Ok     bool    `json:"ok"`
+	Detail string  `json:"detail"`
+	Fix    *string `json:"fix,omitempty"`
+}
+
 // GetHostsCurrentResponseValueOption1Branding is generated from the OpenAPI component of the same name.
 type GetHostsCurrentResponseValueOption1Branding struct {
 	LogoURL string            `json:"logoUrl"`
@@ -2235,6 +2501,47 @@ type GetHostsCurrentResponseValueOption1ProgramsItem struct {
 	Name   string `json:"name"`
 }
 
+// GetHostsCurrentResponseValueOption1ConsentTagsItem is generated from the OpenAPI component of the same name.
+type GetHostsCurrentResponseValueOption1ConsentTagsItem struct {
+	Tag    string                     `json:"tag"`
+	Attrs  map[string]json.RawMessage `json:"attrs"`
+	Inline *string                    `json:"inline,omitempty"`
+}
+
+// GetHostsCurrentResponseValueOption1ConsentSettingsLinkOption1 is generated from the OpenAPI component of the same name.
+type GetHostsCurrentResponseValueOption1ConsentSettingsLinkOption1 struct {
+	Call  *string           `json:"call,omitempty"`
+	Attrs map[string]string `json:"attrs,omitempty"`
+}
+
+// GetHostsCurrentResponseValueOption1ConsentBuiltin is generated from the OpenAPI component of the same name.
+type GetHostsCurrentResponseValueOption1ConsentBuiltin struct {
+	PolicyURL string            `json:"policyUrl"`
+	Text      map[string]string `json:"text,omitempty"`
+}
+
+// GetHostsCurrentResponseValueOption1Consent is generated from the OpenAPI component of the same name.
+type GetHostsCurrentResponseValueOption1Consent struct {
+	Mode         string                                                         `json:"mode"`
+	Provider     string                                                         `json:"provider"`
+	Tags         []GetHostsCurrentResponseValueOption1ConsentTagsItem           `json:"tags"`
+	SettingsLink *GetHostsCurrentResponseValueOption1ConsentSettingsLinkOption1 `json:"settingsLink"`
+	Builtin      *GetHostsCurrentResponseValueOption1ConsentBuiltin             `json:"builtin,omitempty"`
+}
+
+// GetHostsCurrentResponseValueOption1ChatOption1TagsItem is generated from the OpenAPI component of the same name.
+type GetHostsCurrentResponseValueOption1ChatOption1TagsItem struct {
+	Tag    string                     `json:"tag"`
+	Attrs  map[string]json.RawMessage `json:"attrs"`
+	Inline *string                    `json:"inline,omitempty"`
+}
+
+// GetHostsCurrentResponseValueOption1ChatOption1 is generated from the OpenAPI component of the same name.
+type GetHostsCurrentResponseValueOption1ChatOption1 struct {
+	Provider string                                                   `json:"provider"`
+	Tags     []GetHostsCurrentResponseValueOption1ChatOption1TagsItem `json:"tags"`
+}
+
 // GetHostsCurrentResponseValueOption1 is generated from the OpenAPI component of the same name.
 type GetHostsCurrentResponseValueOption1 struct {
 	Kind     string                                            `json:"kind"` // A merchant's verified partner-portal domain.
@@ -2242,11 +2549,15 @@ type GetHostsCurrentResponseValueOption1 struct {
 	OrgName  string                                            `json:"orgName"`
 	Branding GetHostsCurrentResponseValueOption1Branding       `json:"branding"`
 	Programs []GetHostsCurrentResponseValueOption1ProgramsItem `json:"programs"` // The org's active programs with a public signup page (/join/:handle).
+	Consent  GetHostsCurrentResponseValueOption1Consent        `json:"consent"`
+	Chat     *GetHostsCurrentResponseValueOption1ChatOption1   `json:"chat"`
+	Csp      string                                            `json:"csp"` // The Content-Security-Policy for this host's pages, built from the enabled adapters.
 }
 
 // GetHostsCurrentResponseValueOption2 is generated from the OpenAPI component of the same name.
 type GetHostsCurrentResponseValueOption2 struct {
 	Kind string `json:"kind"` // A merchant's verified link domain.
+	Csp  string `json:"csp"`
 }
 
 // GetHostsCurrentResponseValueOption3 is generated from the OpenAPI component of the same name.
@@ -2256,6 +2567,19 @@ type GetHostsCurrentResponseValueOption3 struct {
 
 // GetHostsCurrentResponse is generated from the OpenAPI component of the same name.
 type GetHostsCurrentResponse = json.RawMessage
+
+// GetChatlyIdentityResponseIdentityOption1 is generated from the OpenAPI component of the same name.
+type GetChatlyIdentityResponseIdentityOption1 struct {
+	ExternalID string  `json:"externalId"` // `merchant:<user id>` or `partner:<partner account id>`.
+	Email      string  `json:"email"`
+	Name       *string `json:"name,omitempty"`
+	UserHash   string  `json:"userHash"` // HMAC-SHA256 of `externalId` (hex), for the widget's identity verification.
+}
+
+// GetChatlyIdentityResponse is generated from the OpenAPI component of the same name.
+type GetChatlyIdentityResponse struct {
+	Identity *GetChatlyIdentityResponseIdentityOption1 `json:"identity"`
+}
 
 // PostMobilePurchasesResponse is generated from the OpenAPI component of the same name.
 type PostMobilePurchasesResponse struct {
@@ -2872,6 +3196,12 @@ type GetBillingEventsResponse struct {
 	Data       []BillingEvent `json:"data"`
 	HasMore    bool           `json:"has_more"` // Whether another page follows; pass next_cursor as starting_after to get it.
 	NextCursor *string        `json:"next_cursor"`
+}
+
+// PostBillingInternalCustomersResponse is generated from the OpenAPI component of the same name.
+type PostBillingInternalCustomersResponse struct {
+	CustomerRef string `json:"customerRef"`
+	Note        string `json:"note"`
 }
 
 // PutPartnersIdPayoutProfileResponse is generated from the OpenAPI component of the same name.
@@ -3624,6 +3954,7 @@ type PostWebhookEndpointsResponse struct {
 	Topics          []string `json:"topics"`
 	ProgramIds      []string `json:"programIds"`
 	LegacySignature bool     `json:"legacySignature"`
+	AlertContacts   []string `json:"alertContacts"`
 	Secret          string   `json:"secret"` // Returned only here. whsec_ + base64 key (Standard Webhooks).
 }
 
@@ -3634,6 +3965,9 @@ type GetWebhookEndpointsResponse struct {
 	HasMore    bool              `json:"has_more"` // Whether another page follows; pass next_cursor as starting_after to get it.
 	NextCursor *string           `json:"next_cursor"`
 }
+
+// PatchWebhookEndpointsIdResponse is generated from the OpenAPI component of the same name.
+type PatchWebhookEndpointsIdResponse = any
 
 // PostWebhookEndpointsIdRotateSecretResponse is generated from the OpenAPI component of the same name.
 type PostWebhookEndpointsIdRotateSecretResponse struct {
@@ -3661,6 +3995,13 @@ type GetWebhookEndpointsIdDeliveriesResponse struct {
 // GetWebhookDeliveriesIdResponse is generated from the OpenAPI component of the same name.
 type GetWebhookDeliveriesIdResponse = any
 
+// PostWebhookEndpointsIdReplayResponse is generated from the OpenAPI component of the same name.
+type PostWebhookEndpointsIdReplayResponse struct {
+	EndpointID string `json:"endpointId"`
+	Since      string `json:"since"`
+	Replayed   int64  `json:"replayed"`
+}
+
 // PostSandboxSimulateResponse is generated from the OpenAPI component of the same name.
 type PostSandboxSimulateResponse struct {
 	CustomerRef  string `json:"customerRef"`
@@ -3685,17 +4026,28 @@ type PostImportProviderResponse struct {
 // GetOpenapiJsonResponse is generated from the OpenAPI component of the same name.
 type GetOpenapiJsonResponse = map[string]any
 
+// GetBrandingResponseWarningsItem is generated from the OpenAPI component of the same name.
+type GetBrandingResponseWarningsItem struct {
+	Code       string  `json:"code"`
+	Foreground string  `json:"foreground"`
+	Background string  `json:"background"`
+	Ratio      float64 `json:"ratio"`
+	Minimum    float64 `json:"minimum"`
+	Message    string  `json:"message"`
+}
+
 // GetBrandingResponse is generated from the OpenAPI component of the same name.
 type GetBrandingResponse struct {
-	LogoURL              *string                 `json:"logoUrl"`
-	Theme                *GetOpenapiJsonResponse `json:"theme"`
-	PortalDomain         *string                 `json:"portalDomain"`
-	PortalDomainVerified bool                    `json:"portalDomainVerified"`
-	PortalDomainStatus   string                  `json:"portalDomainStatus"` // none; pending (waiting for DNS); provisioning (routed here, certificate being issued); active (links/portal served on it).
-	LinkDomain           *string                 `json:"linkDomain"`
-	LinkDomainVerified   bool                    `json:"linkDomainVerified"`
-	LinkDomainStatus     string                  `json:"linkDomainStatus"` // none; pending (waiting for DNS); provisioning (routed here, certificate being issued); active (links/portal served on it).
-	EmailFrom            *string                 `json:"emailFrom"`
+	LogoURL              *string                           `json:"logoUrl"`
+	Theme                *GetOpenapiJsonResponse           `json:"theme"`
+	PortalDomain         *string                           `json:"portalDomain"`
+	PortalDomainVerified bool                              `json:"portalDomainVerified"`
+	PortalDomainStatus   string                            `json:"portalDomainStatus"` // none; pending (waiting for DNS); provisioning (routed here, certificate being issued); active (links/portal served on it).
+	LinkDomain           *string                           `json:"linkDomain"`
+	LinkDomainVerified   bool                              `json:"linkDomainVerified"`
+	LinkDomainStatus     string                            `json:"linkDomainStatus"` // none; pending (waiting for DNS); provisioning (routed here, certificate being issued); active (links/portal served on it).
+	EmailFrom            *string                           `json:"emailFrom"`
+	Warnings             []GetBrandingResponseWarningsItem `json:"warnings"` // Theme colour pairs below WCAG AA (4.5:1).
 }
 
 // PostBrandingLinkDomainResponse is generated from the OpenAPI component of the same name.
@@ -3723,6 +4075,22 @@ type PostBrandingDomainResponse struct {
 	TxtName      string `json:"txtName"`
 	Verified     bool   `json:"verified"`
 	Instructions string `json:"instructions"`
+}
+
+// PutBrandingResponseWarningsItem is generated from the OpenAPI component of the same name.
+type PutBrandingResponseWarningsItem struct {
+	Code       string  `json:"code"`
+	Foreground string  `json:"foreground"`
+	Background string  `json:"background"`
+	Ratio      float64 `json:"ratio"`
+	Minimum    float64 `json:"minimum"`
+	Message    string  `json:"message"`
+}
+
+// PutBrandingResponse is generated from the OpenAPI component of the same name.
+type PutBrandingResponse struct {
+	Ok       bool                              `json:"ok"`
+	Warnings []PutBrandingResponseWarningsItem `json:"warnings"`
 }
 
 // PostEmbedTokensResponse is generated from the OpenAPI component of the same name.
@@ -4085,6 +4453,55 @@ type PostRewardsRedeemByCodeResponse struct {
 	RedeemedMinor  int64  `json:"redeemedMinor"`  // Amount recorded, capped at the remaining balance.
 	RemainingMinor int64  `json:"remainingMinor"` // Integer minor units (cents).
 	Capped         bool   `json:"capped"`         // True when the request exceeded the remaining balance.
+}
+
+// PostRewardsResponse is generated from the OpenAPI component of the same name.
+type PostRewardsResponse struct {
+	ID             string  `json:"id"`
+	PartnerID      string  `json:"partnerId"`
+	ProgramID      string  `json:"programId"`
+	RuleKey        *string `json:"ruleKey"`
+	Reason         string  `json:"reason"`
+	AmountMinor    int64   `json:"amountMinor"` // Integer minor units (cents).
+	Currency       string  `json:"currency"`
+	CommissionID   *string `json:"commissionId"`
+	IdempotencyKey string  `json:"idempotencyKey"`
+	CreatedAt      string  `json:"createdAt"`
+	Replayed       bool    `json:"replayed"`
+}
+
+// GetRewardsGrantedResponseValueItem is generated from the OpenAPI component of the same name.
+type GetRewardsGrantedResponseValueItem struct {
+	ID             string  `json:"id"`
+	PartnerID      string  `json:"partnerId"`
+	ProgramID      string  `json:"programId"`
+	RuleKey        *string `json:"ruleKey"`
+	Reason         string  `json:"reason"`
+	AmountMinor    int64   `json:"amountMinor"` // Integer minor units (cents).
+	Currency       string  `json:"currency"`
+	CommissionID   *string `json:"commissionId"`
+	IdempotencyKey string  `json:"idempotencyKey"`
+	CreatedAt      string  `json:"createdAt"`
+}
+
+// GetRewardsGrantedResponse is generated from the OpenAPI component of the same name.
+type GetRewardsGrantedResponse = []GetRewardsGrantedResponseValueItem
+
+// PutRewardsRulesKeyResponse is generated from the OpenAPI component of the same name.
+type PutRewardsRulesKeyResponse struct {
+	Key         string  `json:"key"`
+	Event       *string `json:"event"`
+	ProgramID   *string `json:"programId"`
+	AmountMinor int64   `json:"amountMinor"` // Integer minor units (cents).
+	Currency    string  `json:"currency"`
+	Reason      string  `json:"reason"`
+	Enabled     bool    `json:"enabled"`
+	UpdatedAt   string  `json:"updatedAt"`
+}
+
+// DeleteRewardsRulesKeyResponse is generated from the OpenAPI component of the same name.
+type DeleteRewardsRulesKeyResponse struct {
+	Ok bool `json:"ok"`
 }
 
 // GetProgramsIdGroupsResponse is generated from the OpenAPI component of the same name.
@@ -4953,12 +5370,24 @@ type GetPartnerSecurityResponse struct {
 	TotpEnabled bool `json:"totpEnabled"`
 }
 
+// GetAuthConnectionsProvidersResponse is generated from the OpenAPI component of the same name.
+type GetAuthConnectionsProvidersResponse struct {
+	Data []IdentityProvider `json:"data"`
+}
+
 // GetAuthConnectionsResponse is generated from the OpenAPI component of the same name.
 type GetAuthConnectionsResponse struct {
 	Object     string           `json:"object"`
 	Data       []AuthConnection `json:"data"`
 	HasMore    bool             `json:"has_more"` // Whether another page follows; pass next_cursor as starting_after to get it.
 	NextCursor *string          `json:"next_cursor"`
+}
+
+// PutAuthConnectionsIdSecretResponse is generated from the OpenAPI component of the same name.
+type PutAuthConnectionsIdSecretResponse struct {
+	ID       string `json:"id"`
+	Provider string `json:"provider"`
+	Ok       bool   `json:"ok"`
 }
 
 // PostAuthConnectionsIdRotateSecretResponse is generated from the OpenAPI component of the same name.
@@ -5017,6 +5446,18 @@ type PostAuthConnectionsIdSignupsResponse struct {
 	Referral  *PostAuthConnectionsIdSignupsResponseReferralOption1 `json:"referral"`
 	Reasoning *PostAuthConnectionsIdSignupsResponseReasoning       `json:"reasoning,omitempty"`
 	Partner   *PostAuthConnectionsIdSignupsResponsePartner         `json:"partner,omitempty"`
+}
+
+// PostAuthConnectionsIdPartnersResponsePartner is generated from the OpenAPI component of the same name.
+type PostAuthConnectionsIdPartnersResponsePartner struct {
+	ID   string  `json:"id"`
+	Code string  `json:"code"`
+	Link *string `json:"link"` // Their tracked link, when the connection has a destination.
+}
+
+// PostAuthConnectionsIdPartnersResponse is generated from the OpenAPI component of the same name.
+type PostAuthConnectionsIdPartnersResponse struct {
+	Partner PostAuthConnectionsIdPartnersResponsePartner `json:"partner"`
 }
 
 // PostAuthConnectionsIdEraseResponseCustomerOption1 is generated from the OpenAPI component of the same name.
@@ -5123,6 +5564,26 @@ type PostAuthConnectionsIdSignalsResponse struct {
 	Notes     []string                                            `json:"notes,omitempty"`
 }
 
+// PostAuthConnectionsInstallResponse is generated from the OpenAPI component of the same name.
+type PostAuthConnectionsInstallResponse struct {
+	RedirectTo string `json:"redirectTo"` // Send the browser here: back to the platform with a code, or error=access_denied.
+}
+
+// PostOauthTokenResponse is generated from the OpenAPI component of the same name.
+type PostOauthTokenResponse struct {
+	TokenType    string `json:"token_type"`
+	ConnectionID string `json:"connectionId"`
+	Provider     string `json:"provider"`
+	InstanceID   string `json:"instanceId"`
+	ProgramID    string `json:"programId"`
+	Secret       string `json:"secret"` // The connection signing secret. Returned only here.
+	Reinstalled  bool   `json:"reinstalled"`
+	SignupsURL   string `json:"signupsUrl"`
+	PartnersURL  string `json:"partnersUrl"`
+	EraseURL     string `json:"eraseUrl"`
+	ExportURL    string `json:"exportUrl"`
+}
+
 // GetOrgSsoResponseProviderOption1 is generated from the OpenAPI component of the same name.
 type GetOrgSsoResponseProviderOption1 struct {
 	Name  string `json:"name"`
@@ -5196,6 +5657,20 @@ type PatchOrgSsoResponse struct {
 	RoleMapping map[string]string `json:"roleMapping"`
 }
 
+// PutOrgSsoDirectResponse is generated from the OpenAPI component of the same name.
+type PutOrgSsoDirectResponse struct {
+	Adapter     string         `json:"adapter"`
+	Config      map[string]any `json:"config"` // The stored settings; the secret is sealed and never returned.
+	HasSecret   bool           `json:"hasSecret"`
+	SignInURL   string         `json:"signInUrl"`   // Where members start sign-in (GET /v1/auth/sso/start?org=…).
+	RedirectURI string         `json:"redirectUri"` // The redirect URI to register at the IdP.
+}
+
+// DeleteOrgSsoDirectResponse is generated from the OpenAPI component of the same name.
+type DeleteOrgSsoDirectResponse struct {
+	Removed bool `json:"removed"`
+}
+
 // PostPartnerAuthWalletNonceResponse is generated from the OpenAPI component of the same name.
 type PostPartnerAuthWalletNonceResponse struct {
 	Nonce   string `json:"nonce"`
@@ -5263,6 +5738,410 @@ type PostPublicProgramsHandleJoinResponse struct {
 	PortalURL string  `json:"portalUrl"`
 }
 
+// GetIntegrationHealthResponse is generated from the OpenAPI component of the same name.
+type GetIntegrationHealthResponse struct {
+	Ok          bool          `json:"ok"`
+	Checks      []HealthCheck `json:"checks"`
+	GeneratedAt string        `json:"generatedAt"`
+}
+
+// GetPlansResponsePlansItem is generated from the OpenAPI component of the same name.
+type GetPlansResponsePlansItem struct {
+	Key          string `json:"key"`
+	Label        string `json:"label"`
+	PriceMinor   int64  `json:"priceMinor"` // Integer minor units (cents).
+	Currency     string `json:"currency"`
+	Interval     string `json:"interval"`
+	MaxPrograms  *int64 `json:"maxPrograms"` // null: unlimited.
+	MaxPartners  *int64 `json:"maxPartners"` // null: unlimited.
+	Marketplace  bool   `json:"marketplace"`
+	Discovery    bool   `json:"discovery"`
+	LinkDomain   bool   `json:"linkDomain"`
+	PortalDomain bool   `json:"portalDomain"`
+	APIPerSec    int64  `json:"apiPerSec"`
+	APIBurst     int64  `json:"apiBurst"`
+}
+
+// GetPlansResponse is generated from the OpenAPI component of the same name.
+type GetPlansResponse struct {
+	Plans []GetPlansResponsePlansItem `json:"plans"`
+}
+
+// GetEventsResponseEventsItem is generated from the OpenAPI component of the same name.
+type GetEventsResponseEventsItem struct {
+	ID        string                 `json:"id"`
+	Topic     string                 `json:"topic"`
+	OrgID     string                 `json:"orgId"`
+	Livemode  bool                   `json:"livemode"`
+	CreatedAt string                 `json:"createdAt"`
+	Data      GetOpenapiJsonResponse `json:"data"` // The topic's payload (see the webhooks section).
+}
+
+// GetEventsResponse is generated from the OpenAPI component of the same name.
+type GetEventsResponse struct {
+	Events     []GetEventsResponseEventsItem `json:"events"`
+	HasMore    bool                          `json:"hasMore"`
+	NextCursor *string                       `json:"nextCursor"` // Pass as `after` for the next page; null on the last.
+}
+
+// GetSupportContextResponsePartnerOption1 is generated from the OpenAPI component of the same name.
+type GetSupportContextResponsePartnerOption1 struct {
+	ID            string   `json:"id"`
+	Name          string   `json:"name"`
+	Status        string   `json:"status"`
+	Tier          *string  `json:"tier"`
+	Programs      []string `json:"programs"`
+	ReferralLink  *string  `json:"referralLink"`
+	PendingMinor  int64    `json:"pendingMinor"`  // Integer minor units (cents).
+	ApprovedMinor int64    `json:"approvedMinor"` // Integer minor units (cents).
+	PaidMinor     int64    `json:"paidMinor"`     // Integer minor units (cents).
+	Currency      string   `json:"currency"`
+	NextPayoutAt  *string  `json:"nextPayoutAt"`
+	Flags         []string `json:"flags"`
+}
+
+// GetSupportContextResponseCustomerOption1ReferredByOption1 is generated from the OpenAPI component of the same name.
+type GetSupportContextResponseCustomerOption1ReferredByOption1 struct {
+	PartnerID string `json:"partnerId"`
+	Name      string `json:"name"`
+}
+
+// GetSupportContextResponseCustomerOption1RewardStateOption1 is generated from the OpenAPI component of the same name.
+type GetSupportContextResponseCustomerOption1RewardStateOption1 struct {
+	Kind           string `json:"kind"`
+	Status         string `json:"status"`
+	AmountMinor    int64  `json:"amountMinor"` // Integer minor units (cents).
+	Currency       string `json:"currency"`
+	RemainingMinor int64  `json:"remainingMinor"` // Integer minor units (cents).
+}
+
+// GetSupportContextResponseCustomerOption1 is generated from the OpenAPI component of the same name.
+type GetSupportContextResponseCustomerOption1 struct {
+	ReferredBy       *GetSupportContextResponseCustomerOption1ReferredByOption1  `json:"referredBy"`
+	AttributedAt     *string                                                     `json:"attributedAt"`
+	RewardState      *GetSupportContextResponseCustomerOption1RewardStateOption1 `json:"rewardState"`
+	CommissionsMinor int64                                                       `json:"commissionsMinor"` // Integer minor units (cents).
+	Currency         *string                                                     `json:"currency"`
+}
+
+// GetSupportContextResponseLinks is generated from the OpenAPI component of the same name.
+type GetSupportContextResponseLinks struct {
+	Dashboard string  `json:"dashboard"`
+	Partner   *string `json:"partner"`
+	Referral  *string `json:"referral"`
+}
+
+// GetSupportContextResponse is generated from the OpenAPI component of the same name.
+type GetSupportContextResponse struct {
+	Partner  *GetSupportContextResponsePartnerOption1  `json:"partner"`
+	Customer *GetSupportContextResponseCustomerOption1 `json:"customer"`
+	Links    GetSupportContextResponseLinks            `json:"links"`
+}
+
+// GetSupportAppsResponseValueItemInstall is generated from the OpenAPI component of the same name.
+type GetSupportAppsResponseValueItemInstall struct {
+	Kind         *string  `json:"kind,omitempty"`
+	Steps        []string `json:"steps"`
+	ManifestPath *string  `json:"manifestPath,omitempty"`
+}
+
+// GetSupportAppsResponseValueItemConfigOption1 is generated from the OpenAPI component of the same name.
+type GetSupportAppsResponseValueItemConfigOption1 struct {
+	Subdomain    any  `json:"subdomain"`
+	CardKey      any  `json:"cardKey"`
+	HasPublicKey bool `json:"hasPublicKey"`
+}
+
+// GetSupportAppsResponseValueItem is generated from the OpenAPI component of the same name.
+type GetSupportAppsResponseValueItem struct {
+	ID            string                                        `json:"id"`
+	Name          string                                        `json:"name"`
+	Status        string                                        `json:"status"`
+	DocsURL       string                                        `json:"docsUrl"`
+	VendorDocsURL string                                        `json:"vendorDocsUrl"`
+	SecretSource  string                                        `json:"secretSource"`
+	Install       GetSupportAppsResponseValueItemInstall        `json:"install"`
+	CardURL       string                                        `json:"cardUrl"`
+	Enabled       bool                                          `json:"enabled"`
+	Configured    bool                                          `json:"configured"`
+	Config        *GetSupportAppsResponseValueItemConfigOption1 `json:"config"`
+	LastOkAt      *string                                       `json:"lastOkAt"`
+	LastError     *string                                       `json:"lastError"`
+}
+
+// GetSupportAppsResponse is generated from the OpenAPI component of the same name.
+type GetSupportAppsResponse = []GetSupportAppsResponseValueItem
+
+// PutSupportAppsAdapterResponse is generated from the OpenAPI component of the same name.
+type PutSupportAppsAdapterResponse struct {
+	Adapter string  `json:"adapter"`
+	Enabled bool    `json:"enabled"`
+	CardURL string  `json:"cardUrl"`
+	Secret  *string `json:"secret,omitempty"`
+}
+
+// DeleteSupportAppsAdapterResponse is generated from the OpenAPI component of the same name.
+type DeleteSupportAppsAdapterResponse struct {
+	Ok bool `json:"ok"`
+}
+
+// PostSupportAppsAdapterTestResponse is generated from the OpenAPI component of the same name.
+type PostSupportAppsAdapterTestResponse struct {
+	Found    bool                       `json:"found"`
+	Context  *GetSupportContextResponse `json:"context"`
+	Rendered any                        `json:"rendered"`
+}
+
+// PostSupportCardsOrgIdAdapterResponse is generated from the OpenAPI component of the same name.
+type PostSupportCardsOrgIdAdapterResponse = map[string]any
+
+// GetPrivacyExecutorsResponseValueItemInstall is generated from the OpenAPI component of the same name.
+type GetPrivacyExecutorsResponseValueItemInstall struct {
+	Kind         *string  `json:"kind,omitempty"`
+	Steps        []string `json:"steps"`
+	ManifestPath *string  `json:"manifestPath,omitempty"`
+}
+
+// GetPrivacyExecutorsResponseValueItemConfigOption1 is generated from the OpenAPI component of the same name.
+type GetPrivacyExecutorsResponseValueItemConfigOption1 struct {
+	HasPublicKey bool    `json:"hasPublicKey"`
+	Algorithm    *string `json:"algorithm"`
+	SombraURL    *string `json:"sombraUrl"`
+}
+
+// GetPrivacyExecutorsResponseValueItemHealth is generated from the OpenAPI component of the same name.
+type GetPrivacyExecutorsResponseValueItemHealth struct {
+	Ok     bool    `json:"ok"`
+	Detail string  `json:"detail"`
+	Fix    *string `json:"fix"`
+}
+
+// GetPrivacyExecutorsResponseValueItem is generated from the OpenAPI component of the same name.
+type GetPrivacyExecutorsResponseValueItem struct {
+	ID              string                                             `json:"id"`
+	Name            string                                             `json:"name"`
+	Status          string                                             `json:"status"`
+	DocsURL         string                                             `json:"docsUrl"`
+	VendorDocsURL   string                                             `json:"vendorDocsUrl"`
+	KeyKind         string                                             `json:"keyKind"`
+	Install         GetPrivacyExecutorsResponseValueItemInstall        `json:"install"`
+	URL             string                                             `json:"url"`
+	Enabled         bool                                               `json:"enabled"`
+	HasKey          bool                                               `json:"hasKey"`
+	HasVendorSecret bool                                               `json:"hasVendorSecret"`
+	Config          *GetPrivacyExecutorsResponseValueItemConfigOption1 `json:"config"`
+	Health          GetPrivacyExecutorsResponseValueItemHealth         `json:"health"`
+	LastOkAt        *string                                            `json:"lastOkAt"`
+	LastError       *string                                            `json:"lastError"`
+}
+
+// GetPrivacyExecutorsResponse is generated from the OpenAPI component of the same name.
+type GetPrivacyExecutorsResponse = []GetPrivacyExecutorsResponseValueItem
+
+// PostPrivacyExecutorKeysResponse is generated from the OpenAPI component of the same name.
+type PostPrivacyExecutorKeysResponse struct {
+	Adapter string  `json:"adapter"`
+	URL     string  `json:"url"`
+	Enabled bool    `json:"enabled"`
+	Key     *string `json:"key,omitempty"`
+}
+
+// DeletePrivacyExecutorsAdapterResponse is generated from the OpenAPI component of the same name.
+type DeletePrivacyExecutorsAdapterResponse struct {
+	Ok bool `json:"ok"`
+}
+
+// PostPrivacyExecutorsAdapterCheckResponse is generated from the OpenAPI component of the same name.
+type PostPrivacyExecutorsAdapterCheckResponse struct {
+	Adapter string  `json:"adapter"`
+	Ok      bool    `json:"ok"`
+	Detail  string  `json:"detail"`
+	Fix     *string `json:"fix"`
+}
+
+// GetPrivacyExecutorRequestsResponseValueItem is generated from the OpenAPI component of the same name.
+type GetPrivacyExecutorRequestsResponseValueItem struct {
+	ID              string  `json:"id"`
+	Adapter         string  `json:"adapter"`
+	VendorRequestID *string `json:"vendorRequestId"`
+	Op              string  `json:"op"`
+	Status          string  `json:"status"`
+	CreatedAt       string  `json:"createdAt"`
+	CompletedAt     *string `json:"completedAt"`
+}
+
+// GetPrivacyExecutorRequestsResponse is generated from the OpenAPI component of the same name.
+type GetPrivacyExecutorRequestsResponse = []GetPrivacyExecutorRequestsResponseValueItem
+
+// PostAccountCloseResponse is generated from the OpenAPI component of the same name.
+type PostAccountCloseResponse struct {
+	Closed bool `json:"closed"`
+}
+
+// GetClicksConsentCoverageResponse is generated from the OpenAPI component of the same name.
+type GetClicksConsentCoverageResponse struct {
+	Days         int64    `json:"days"`
+	Since        string   `json:"since"`
+	Attributed   int64    `json:"attributed"`   // Attributed (non-void) sign-ups in the window.
+	WithEvidence int64    `json:"withEvidence"` // Of those, how many have consent evidence on their click or association.
+	Share        *float64 `json:"share"`        // withEvidence / attributed, 4 decimals; null with no sign-ups.
+}
+
+// GetClicksIdResponseConsentOption1 is generated from the OpenAPI component of the same name.
+type GetClicksIdResponseConsentOption1 struct {
+	Provider  string   `json:"provider"`
+	State     string   `json:"state"`
+	At        *string  `json:"at,omitempty"`
+	Stamp     *string  `json:"stamp,omitempty"`
+	TcString  *string  `json:"tcString,omitempty"`
+	GppString *string  `json:"gppString,omitempty"`
+	Purposes  []string `json:"purposes,omitempty"`
+}
+
+// GetClicksIdResponse is generated from the OpenAPI component of the same name.
+type GetClicksIdResponse struct {
+	ID         string                             `json:"id"`
+	ProgramID  string                             `json:"programId"`
+	PartnerID  string                             `json:"partnerId"`
+	LinkID     *string                            `json:"linkId"`
+	Ts         string                             `json:"ts"`
+	Source     string                             `json:"source"`
+	Eligible   bool                               `json:"eligible"`
+	FraudScore int64                              `json:"fraudScore"`
+	AnonID     *string                            `json:"anonId"`
+	Consent    *GetClicksIdResponseConsentOption1 `json:"consent"` // The visitor's consent when the click was stored (a redirect click: from the first consented visit).
+}
+
+// GetOrgTrackingConsentResponseAdaptersItem is generated from the OpenAPI component of the same name.
+type GetOrgTrackingConsentResponseAdaptersItem struct {
+	ID              string  `json:"id"`
+	Name            string  `json:"name"`
+	DefaultCategory *string `json:"defaultCategory"`
+	Status          string  `json:"status"`
+	DocsURL         string  `json:"docsUrl"`
+}
+
+// GetOrgTrackingConsentResponse is generated from the OpenAPI component of the same name.
+type GetOrgTrackingConsentResponse struct {
+	Mode        string                                      `json:"mode"` // `auto`, `none`, `pending` or a consent adapter id.
+	NoCmp       *string                                     `json:"noCmp,omitempty"`
+	Category    *string                                     `json:"category,omitempty"`
+	TcfVendorID *int64                                      `json:"tcfVendorId,omitempty"`
+	GcmSignal   *string                                     `json:"gcmSignal,omitempty"`
+	Configured  bool                                        `json:"configured"` // False for an org that never chose (its tag behaves as before: `none`).
+	Adapters    []GetOrgTrackingConsentResponseAdaptersItem `json:"adapters"`
+}
+
+// GetOrgHostedPagesResponseConsent is generated from the OpenAPI component of the same name.
+type GetOrgHostedPagesResponseConsent struct {
+	Adapter string         `json:"adapter"`
+	Config  map[string]any `json:"config"`
+}
+
+// GetOrgHostedPagesResponseChatOption1 is generated from the OpenAPI component of the same name.
+type GetOrgHostedPagesResponseChatOption1 struct {
+	Adapter string         `json:"adapter"`
+	Config  map[string]any `json:"config"`
+}
+
+// GetOrgHostedPagesResponseServedConsentTagsItem is generated from the OpenAPI component of the same name.
+type GetOrgHostedPagesResponseServedConsentTagsItem struct {
+	Tag    string                     `json:"tag"`
+	Attrs  map[string]json.RawMessage `json:"attrs"`
+	Inline *string                    `json:"inline,omitempty"`
+}
+
+// GetOrgHostedPagesResponseServedConsentSettingsLinkOption1 is generated from the OpenAPI component of the same name.
+type GetOrgHostedPagesResponseServedConsentSettingsLinkOption1 struct {
+	Call  *string           `json:"call,omitempty"`
+	Attrs map[string]string `json:"attrs,omitempty"`
+}
+
+// GetOrgHostedPagesResponseServedConsentBuiltin is generated from the OpenAPI component of the same name.
+type GetOrgHostedPagesResponseServedConsentBuiltin struct {
+	PolicyURL string            `json:"policyUrl"`
+	Text      map[string]string `json:"text,omitempty"`
+}
+
+// GetOrgHostedPagesResponseServedConsent is generated from the OpenAPI component of the same name.
+type GetOrgHostedPagesResponseServedConsent struct {
+	Mode         string                                                     `json:"mode"`
+	Provider     string                                                     `json:"provider"`
+	Tags         []GetOrgHostedPagesResponseServedConsentTagsItem           `json:"tags"`
+	SettingsLink *GetOrgHostedPagesResponseServedConsentSettingsLinkOption1 `json:"settingsLink"`
+	Builtin      *GetOrgHostedPagesResponseServedConsentBuiltin             `json:"builtin,omitempty"`
+}
+
+// GetOrgHostedPagesResponseServedChatOption1TagsItem is generated from the OpenAPI component of the same name.
+type GetOrgHostedPagesResponseServedChatOption1TagsItem struct {
+	Tag    string                     `json:"tag"`
+	Attrs  map[string]json.RawMessage `json:"attrs"`
+	Inline *string                    `json:"inline,omitempty"`
+}
+
+// GetOrgHostedPagesResponseServedChatOption1 is generated from the OpenAPI component of the same name.
+type GetOrgHostedPagesResponseServedChatOption1 struct {
+	Provider string                                               `json:"provider"`
+	Tags     []GetOrgHostedPagesResponseServedChatOption1TagsItem `json:"tags"`
+}
+
+// GetOrgHostedPagesResponseServed is generated from the OpenAPI component of the same name.
+type GetOrgHostedPagesResponseServed struct {
+	Consent GetOrgHostedPagesResponseServedConsent      `json:"consent"`
+	Chat    *GetOrgHostedPagesResponseServedChatOption1 `json:"chat"`
+	Csp     string                                      `json:"csp"` // The Content-Security-Policy for this host's pages, built from the enabled adapters.
+}
+
+// GetOrgHostedPagesResponseAdaptersConsentItem is generated from the OpenAPI component of the same name.
+type GetOrgHostedPagesResponseAdaptersConsentItem struct {
+	ID            string `json:"id"`
+	Name          string `json:"name"`
+	Status        string `json:"status"`
+	DocsURL       string `json:"docsUrl"`
+	VendorDocsURL string `json:"vendorDocsUrl"`
+}
+
+// GetOrgHostedPagesResponseAdaptersChatItem is generated from the OpenAPI component of the same name.
+type GetOrgHostedPagesResponseAdaptersChatItem struct {
+	ID            string `json:"id"`
+	Name          string `json:"name"`
+	Status        string `json:"status"`
+	DocsURL       string `json:"docsUrl"`
+	VendorDocsURL string `json:"vendorDocsUrl"`
+}
+
+// GetOrgHostedPagesResponseAdapters is generated from the OpenAPI component of the same name.
+type GetOrgHostedPagesResponseAdapters struct {
+	Consent []GetOrgHostedPagesResponseAdaptersConsentItem `json:"consent"`
+	Chat    []GetOrgHostedPagesResponseAdaptersChatItem    `json:"chat"`
+}
+
+// GetOrgHostedPagesResponse is generated from the OpenAPI component of the same name.
+type GetOrgHostedPagesResponse struct {
+	Consent       GetOrgHostedPagesResponseConsent      `json:"consent"`
+	Chat          *GetOrgHostedPagesResponseChatOption1 `json:"chat"`
+	CustomOrigins map[string][]string                   `json:"customOrigins"`
+	Status        string                                `json:"status"`
+	LastOkAt      *string                               `json:"lastOkAt"`
+	LastError     *string                               `json:"lastError"`
+	Served        GetOrgHostedPagesResponseServed       `json:"served"`
+	Adapters      GetOrgHostedPagesResponseAdapters     `json:"adapters"`
+}
+
+// PostOrgHostedPagesCheckResponseChecksItem is generated from the OpenAPI component of the same name.
+type PostOrgHostedPagesCheckResponseChecksItem struct {
+	ID     string  `json:"id"`
+	Ok     bool    `json:"ok"`
+	Detail string  `json:"detail"`
+	Fix    *string `json:"fix,omitempty"`
+}
+
+// PostOrgHostedPagesCheckResponse is generated from the OpenAPI component of the same name.
+type PostOrgHostedPagesCheckResponse struct {
+	Ok     bool                                        `json:"ok"`
+	Checks []PostOrgHostedPagesCheckResponseChecksItem `json:"checks"`
+}
+
 // PostWebhooksBillingConnectionIdResponseResultsItem is generated from the OpenAPI component of the same name.
 type PostWebhooksBillingConnectionIdResponseResultsItem struct {
 	Duplicate      bool    `json:"duplicate"`
@@ -5270,6 +6149,7 @@ type PostWebhooksBillingConnectionIdResponseResultsItem struct {
 	Conversions    int64   `json:"conversions"`
 	LinesCreated   int64   `json:"linesCreated"`
 	Reversals      int64   `json:"reversals"`
+	Ignored        *string `json:"ignored,omitempty"` // Recorded as ignored_by_filter: earned nothing.
 }
 
 // PostWebhooksBillingConnectionIdResponse is generated from the OpenAPI component of the same name.
@@ -5336,6 +6216,52 @@ type PostWebhooksStripeBillingResponse struct {
 	PlanStatus *string `json:"planStatus,omitempty"`
 }
 
+// PostApiPrivacyLookupResponse is generated from the OpenAPI component of the same name.
+type PostApiPrivacyLookupResponse struct {
+	SubjectID *string `json:"subjectId"`
+	Status    string  `json:"status"`
+}
+
+// PostApiPrivacyRequestsResponse is generated from the OpenAPI component of the same name.
+type PostApiPrivacyRequestsResponse struct {
+	ID     string  `json:"id"`
+	Status string  `json:"status"`
+	Eta    *string `json:"eta,omitempty"`
+	Detail *string `json:"detail,omitempty"`
+}
+
+// GetApiPrivacyRequestsIdResponse is generated from the OpenAPI component of the same name.
+type GetApiPrivacyRequestsIdResponse struct {
+	ID     string                  `json:"id"`
+	Type   string                  `json:"type"`
+	Status string                  `json:"status"`
+	Eta    *string                 `json:"eta,omitempty"`
+	Detail *string                 `json:"detail,omitempty"`
+	Result *GetOpenapiJsonResponse `json:"result,omitempty"`
+}
+
+// PostApiPrivacyOrgsOrgIdLookupResponse is generated from the OpenAPI component of the same name.
+type PostApiPrivacyOrgsOrgIdLookupResponse struct {
+	SubjectID *string `json:"subjectId"`
+	Status    string  `json:"status"`
+}
+
+// PostApiPrivacyOrgsOrgIdRequestsResponse is generated from the OpenAPI component of the same name.
+type PostApiPrivacyOrgsOrgIdRequestsResponse struct {
+	ID     string  `json:"id"`
+	Status string  `json:"status"`
+	Detail *string `json:"detail,omitempty"`
+}
+
+// GetApiPrivacyOrgsOrgIdRequestsIdResponse is generated from the OpenAPI component of the same name.
+type GetApiPrivacyOrgsOrgIdRequestsIdResponse struct {
+	ID     string                                `json:"id"`
+	Type   string                                `json:"type"`
+	Status string                                `json:"status"`
+	Detail *string                               `json:"detail,omitempty"`
+	Result *PostSupportCardsOrgIdAdapterResponse `json:"result,omitempty"`
+}
+
 // GetGraphqlResponse is generated from the OpenAPI component of the same name.
 type GetGraphqlResponse struct {
 	Data   *GetOpenapiJsonResponse  `json:"data,omitempty"`
@@ -5359,9 +6285,42 @@ type PostAgentsRegisterBody struct {
 	InstantPayout *bool   `json:"instantPayout,omitempty"`
 }
 
+// PostAuthBackchannelLogoutBody is generated from the OpenAPI component of the same name.
+type PostAuthBackchannelLogoutBody struct {
+	LogoutToken string `json:"logout_token"`
+}
+
 // PostOrgsBody is generated from the OpenAPI component of the same name.
 type PostOrgsBody struct {
 	Name string `json:"name"`
+}
+
+// PutOrgPortalAuthBodyOption1 is generated from the OpenAPI component of the same name.
+type PutOrgPortalAuthBodyOption1 struct {
+	Adapter string `json:"adapter"`
+}
+
+// PutOrgPortalAuthBodyOption2 is generated from the OpenAPI component of the same name.
+type PutOrgPortalAuthBodyOption2 struct {
+	Issuer              string  `json:"issuer"`
+	ClientID            string  `json:"clientId"`
+	ClientSecret        *string `json:"clientSecret,omitempty"`
+	Scopes              *string `json:"scopes,omitempty"`
+	Name                *string `json:"name,omitempty"`
+	TrustEmailVerified  *bool   `json:"trustEmailVerified,omitempty"`
+	Adapter             string  `json:"adapter"`
+	AutoEnrollProgramID *string `json:"autoEnrollProgramId,omitempty"`
+}
+
+// PutOrgPortalAuthBodyOption3 is generated from the OpenAPI component of the same name.
+type PutOrgPortalAuthBodyOption3 struct {
+	Adapter             string  `json:"adapter"`
+	Issuer              string  `json:"issuer"`
+	JwksURL             string  `json:"jwksUrl"`
+	TrustEmailVerified  *bool   `json:"trustEmailVerified,omitempty"`
+	AutoEnrollProgramID *string `json:"autoEnrollProgramId,omitempty"`
+	Name                *string `json:"name,omitempty"`
+	LoginURL            *string `json:"loginUrl,omitempty"`
 }
 
 // PostMobilePurchasesBody is generated from the OpenAPI component of the same name.
@@ -5768,19 +6727,31 @@ type PostWidgetTokensBody struct {
 	TtlSeconds         *int64  `json:"ttlSeconds,omitempty"`
 }
 
+// PostReferralsAssociateBodyConsent is generated from the OpenAPI component of the same name.
+type PostReferralsAssociateBodyConsent struct {
+	Provider  string   `json:"provider"` // The adapter that read it (`onetrust`, `tcf`, `cookiemunch`, …), `custom` for `aff.consent()`, `none`, or `no-cmp`.
+	State     string   `json:"state"`
+	At        *string  `json:"at,omitempty"`    // When the tracker read it.
+	Stamp     *string  `json:"stamp,omitempty"` // The CMP's consent record id, when it has one.
+	TcString  *string  `json:"tcString,omitempty"`
+	GppString *string  `json:"gppString,omitempty"`
+	Purposes  []string `json:"purposes,omitempty"`
+}
+
 // PostReferralsAssociateBody is generated from the OpenAPI component of the same name.
 type PostReferralsAssociateBody struct {
-	ProgramID      string  `json:"programId"`
-	CustomerRef    string  `json:"customerRef"`
-	AnonID         *string `json:"anonId,omitempty"`
-	ReferralToken  *string `json:"referralToken,omitempty"`
-	CouponCode     *string `json:"couponCode,omitempty"`
-	EmailHash      *string `json:"emailHash,omitempty"`
-	IP             *string `json:"ip,omitempty"`
-	UA             *string `json:"ua,omitempty"`
-	IdempotencyKey *string `json:"idempotencyKey,omitempty"`
-	OccurredAt     *string `json:"occurredAt,omitempty"`
-	EmailDomain    *string `json:"emailDomain,omitempty"`
+	ProgramID      string                             `json:"programId"`
+	CustomerRef    string                             `json:"customerRef"`
+	AnonID         *string                            `json:"anonId,omitempty"`
+	ReferralToken  *string                            `json:"referralToken,omitempty"`
+	CouponCode     *string                            `json:"couponCode,omitempty"`
+	EmailHash      *string                            `json:"emailHash,omitempty"`
+	IP             *string                            `json:"ip,omitempty"`
+	UA             *string                            `json:"ua,omitempty"`
+	IdempotencyKey *string                            `json:"idempotencyKey,omitempty"`
+	OccurredAt     *string                            `json:"occurredAt,omitempty"`
+	EmailDomain    *string                            `json:"emailDomain,omitempty"`
+	Consent        *PostReferralsAssociateBodyConsent `json:"consent,omitempty"`
 }
 
 // PatchReferralsIdBody is generated from the OpenAPI component of the same name.
@@ -5970,11 +6941,20 @@ type PostCommissionsIdSettleBody struct {
 	Memo      *string `json:"memo,omitempty"`
 }
 
+// PostBillingConnectionsBodyFilter is generated from the OpenAPI component of the same name.
+type PostBillingConnectionsBodyFilter struct {
+	Metadata   map[string]string `json:"metadata,omitempty"`
+	ProductIds []string          `json:"productIds,omitempty"`
+	PriceIds   []string          `json:"priceIds,omitempty"`
+	Skus       []string          `json:"skus,omitempty"`
+}
+
 // PostBillingConnectionsBody is generated from the OpenAPI component of the same name.
 type PostBillingConnectionsBody struct {
-	Provider      string  `json:"provider"`
-	Name          *string `json:"name,omitempty"`
-	WebhookSecret *string `json:"webhookSecret,omitempty"`
+	Provider      string                            `json:"provider"`
+	Name          *string                           `json:"name,omitempty"`
+	WebhookSecret *string                           `json:"webhookSecret,omitempty"`
+	Filter        *PostBillingConnectionsBodyFilter `json:"filter,omitempty"`
 }
 
 // PutBillingConnectionsIdSecretBody is generated from the OpenAPI component of the same name.
@@ -5990,10 +6970,19 @@ type PutBillingConnectionsIdCredentialsBody struct {
 	Region    *string `json:"region,omitempty"`
 }
 
+// PatchBillingConnectionsIdBodyFilterOption1 is generated from the OpenAPI component of the same name.
+type PatchBillingConnectionsIdBodyFilterOption1 struct {
+	Metadata   map[string]string `json:"metadata,omitempty"`
+	ProductIds []string          `json:"productIds,omitempty"`
+	PriceIds   []string          `json:"priceIds,omitempty"`
+	Skus       []string          `json:"skus,omitempty"`
+}
+
 // PatchBillingConnectionsIdBody is generated from the OpenAPI component of the same name.
 type PatchBillingConnectionsIdBody struct {
-	Status *string `json:"status,omitempty"`
-	Name   *string `json:"name,omitempty"`
+	Status *string                                     `json:"status,omitempty"`
+	Name   *string                                     `json:"name,omitempty"`
+	Filter *PatchBillingConnectionsIdBodyFilterOption1 `json:"filter,omitempty"`
 }
 
 // PutBillingConnectionsIdValueMappingBody is generated from the OpenAPI component of the same name.
@@ -6021,6 +7010,12 @@ type PostBillingConnectionsIdValueMappingPreviewBody struct {
 	Payload  any                                                     `json:"payload"`
 	Currency *string                                                 `json:"currency,omitempty"`
 	Mapping  *PostBillingConnectionsIdValueMappingPreviewBodyMapping `json:"mapping,omitempty"`
+}
+
+// PostBillingInternalCustomersBody is generated from the OpenAPI component of the same name.
+type PostBillingInternalCustomersBody struct {
+	CustomerRef string  `json:"customerRef"`
+	Note        *string `json:"note,omitempty"`
 }
 
 // PutPartnersIdPayoutProfileBody is generated from the OpenAPI component of the same name.
@@ -6147,9 +7142,35 @@ type PostRoiPatternsPatternReviewBody struct {
 	ProgramID   *string `json:"programId,omitempty"`
 }
 
-// PostValueEventsBody: Up to 500 value events; each is validated and recorded on its own.
+// PostValueEventsBodyEventsItem is generated from the OpenAPI component of the same name.
+type PostValueEventsBodyEventsItem struct {
+	Kind               string         `json:"kind"`
+	CustomerRef        *string        `json:"customerRef,omitempty"`        // Your id for the customer. One of customerRef, partnerId or partnerExternalRef is required.
+	PartnerID          *string        `json:"partnerId,omitempty"`          // A Referalli partner id.
+	PartnerExternalRef *string        `json:"partnerExternalRef,omitempty"` // Your id for the partner (the partner's externalRef).
+	CreditGrantID      *string        `json:"creditGrantId,omitempty"`      // The credit grant this event draws on.
+	ReferralID         *string        `json:"referralId,omitempty"`         // The referral it belongs to.
+	ProgramID          *string        `json:"programId,omitempty"`          // The program it belongs to.
+	ProductRef         *string        `json:"productRef,omitempty"`         // Your product or plan id.
+	Currency           string         `json:"currency"`                     // ISO 4217 code.
+	CashMinor          *int64         `json:"cashMinor,omitempty"`          // Cash paid (a refund is stored negative). Integer minor units.
+	CreditAppliedMinor *int64         `json:"creditAppliedMinor,omitempty"` // Credit applied to this payment. Integer minor units.
+	DiscountMinor      *int64         `json:"discountMinor,omitempty"`      // Discount given. Integer minor units.
+	TaxMinor           *int64         `json:"taxMinor,omitempty"`           // Tax included. Integer minor units.
+	FeesMinor          *int64         `json:"feesMinor,omitempty"`          // Payment fees. Integer minor units.
+	CostMinor          *int64         `json:"costMinor,omitempty"`          // Cost to you (cost events). Integer minor units.
+	FaceMinor          *int64         `json:"faceMinor,omitempty"`          // Face value of the credit (required for credit_granted). Integer minor units.
+	ExternalID         string         `json:"externalId"`                   // Your idempotency id for this fact: the same externalId is recorded once.
+	InvoiceRef         *string        `json:"invoiceRef,omitempty"`         // Your invoice id.
+	Provider           *string        `json:"provider,omitempty"`           // Where the fact came from (stripe, your billing system…).
+	OccurredAt         string         `json:"occurredAt"`                   // ISO 8601 date or date-time.
+	Role               *string        `json:"role,omitempty"`               // credit_granted only: who received the credit.
+	Metadata           map[string]any `json:"metadata,omitempty"`
+}
+
+// PostValueEventsBody: Up to 500 value events; each is validated and recorded on its own, so one bad event is reported in `errors` and the rest are recorded.
 type PostValueEventsBody struct {
-	Events []any `json:"events"`
+	Events []PostValueEventsBodyEventsItem `json:"events"`
 }
 
 // PostValueImportBody: CSV text (up to 10000 rows / 5 MB) plus a column-to-field mapping. "kind" applies to every row unless a column maps to kind. Up to 500 rows are recorded before the response; a larger file answers 202 with a jobId to poll at GET /v1/value/import/{jobId}. A dry run is always immediate.
@@ -6205,6 +7226,7 @@ type PostWebhookEndpointsBody struct {
 	Topics          []string `json:"topics,omitempty"`
 	LegacySignature *bool    `json:"legacySignature,omitempty"`
 	ProgramIds      []string `json:"programIds,omitempty"`
+	AlertContacts   []string `json:"alertContacts,omitempty"`
 }
 
 // PatchWebhookEndpointsIdBody is generated from the OpenAPI component of the same name.
@@ -6214,6 +7236,7 @@ type PatchWebhookEndpointsIdBody struct {
 	Topics          []string `json:"topics,omitempty"`
 	LegacySignature *bool    `json:"legacySignature,omitempty"`
 	ProgramIds      []string `json:"programIds,omitempty"`
+	AlertContacts   []string `json:"alertContacts,omitempty"`
 }
 
 // PostSandboxSimulateBody is generated from the OpenAPI component of the same name.
@@ -6364,6 +7387,19 @@ type PutProgramsIdRefereeRewardBody struct {
 	Currency    *string `json:"currency,omitempty"`
 }
 
+// PostRewardsBody is generated from the OpenAPI component of the same name.
+type PostRewardsBody struct {
+	PartnerID          *string `json:"partnerId,omitempty"`
+	PartnerExternalRef *string `json:"partnerExternalRef,omitempty"`
+	Reason             string  `json:"reason"`
+	AmountMinor        *int64  `json:"amountMinor,omitempty"`
+	Currency           *string `json:"currency,omitempty"`
+	RuleKey            *string `json:"ruleKey,omitempty"`
+	Event              *string `json:"event,omitempty"`
+	ProgramID          *string `json:"programId,omitempty"`
+	IdempotencyKey     string  `json:"idempotencyKey"`
+}
+
 // PostRewardsRedeemByCodeBody is generated from the OpenAPI component of the same name.
 type PostRewardsRedeemByCodeBody struct {
 	AmountMinor    *int64  `json:"amountMinor,omitempty"`
@@ -6381,6 +7417,16 @@ type PostRewardsIdRedeemBody struct {
 	InvoiceRef     *string `json:"invoiceRef,omitempty"`
 	ExternalID     *string `json:"externalId,omitempty"`
 	OccurredAt     any     `json:"occurredAt,omitempty"`
+}
+
+// PutRewardsRulesKeyBody is generated from the OpenAPI component of the same name.
+type PutRewardsRulesKeyBody struct {
+	Event       *string `json:"event,omitempty"` // An inbound event this rule rewards, e.g. community.answer_accepted. Unique per org.
+	ProgramID   *string `json:"programId,omitempty"`
+	AmountMinor int64   `json:"amountMinor"`
+	Currency    *string `json:"currency,omitempty"`
+	Reason      string  `json:"reason"`
+	Enabled     *bool   `json:"enabled,omitempty"`
 }
 
 // PostProgramsIdGroupsBodyBaseOption1Option1 is generated from the OpenAPI component of the same name.
@@ -6733,6 +7779,11 @@ type PostAuthConnectionsBody struct {
 	Keys            *PostAuthConnectionsBodyKeys `json:"keys,omitempty"`
 }
 
+// PutAuthConnectionsIdSecretBody is generated from the OpenAPI component of the same name.
+type PutAuthConnectionsIdSecretBody struct {
+	Secret string `json:"secret"`
+}
+
 // PatchAuthConnectionsIdBody is generated from the OpenAPI component of the same name.
 type PatchAuthConnectionsIdBody struct {
 	Status           *string `json:"status,omitempty"`
@@ -6781,6 +7832,14 @@ type PostAuthConnectionsIdSignupsBody struct {
 	Test         *bool                                     `json:"test,omitempty"`
 }
 
+// PostAuthConnectionsIdPartnersBody is generated from the OpenAPI component of the same name.
+type PostAuthConnectionsIdPartnersBody struct {
+	CustomerRef string  `json:"customerRef"`
+	Email       string  `json:"email"`
+	Name        *string `json:"name,omitempty"`
+	Code        *string `json:"code,omitempty"`
+}
+
 // PostAuthConnectionsIdEraseBody is generated from the OpenAPI component of the same name.
 type PostAuthConnectionsIdEraseBody struct {
 	CustomerRef string `json:"customerRef"`
@@ -6808,6 +7867,27 @@ type PostAuthConnectionsIdSignalsBody struct {
 	Details     map[string]any `json:"details,omitempty"`
 }
 
+// PostAuthConnectionsInstallBody is generated from the OpenAPI component of the same name.
+type PostAuthConnectionsInstallBody struct {
+	ClientID      string  `json:"clientId"`
+	Scope         string  `json:"scope"`
+	RedirectURI   string  `json:"redirectUri"`
+	State         *string `json:"state,omitempty"`
+	CodeChallenge string  `json:"codeChallenge"`
+	InstanceID    string  `json:"instanceId"`
+	ProgramID     *string `json:"programId,omitempty"`
+	Decision      string  `json:"decision"`
+}
+
+// PostOauthTokenBody is generated from the OpenAPI component of the same name.
+type PostOauthTokenBody struct {
+	GrantType    string `json:"grant_type"`
+	Code         string `json:"code"`
+	CodeVerifier string `json:"code_verifier"`
+	ClientID     string `json:"client_id"`
+	RedirectURI  string `json:"redirect_uri"`
+}
+
 // PatchOrgSsoBody is generated from the OpenAPI component of the same name.
 type PatchOrgSsoBody struct {
 	RequireSSO  *bool             `json:"requireSso,omitempty"`
@@ -6817,6 +7897,33 @@ type PatchOrgSsoBody struct {
 // PostOrgSsoTicketsBody is generated from the OpenAPI component of the same name.
 type PostOrgSsoTicketsBody struct {
 	ExpiresInDays *int64 `json:"expiresInDays,omitempty"`
+}
+
+// PutOrgSsoDirectBodyOption1 is generated from the OpenAPI component of the same name.
+type PutOrgSsoDirectBodyOption1 struct {
+	Adapter            string            `json:"adapter"`
+	Issuer             string            `json:"issuer"`
+	ClientID           string            `json:"clientId"`
+	ClientSecret       *string           `json:"clientSecret,omitempty"`
+	Scopes             *string           `json:"scopes,omitempty"`
+	RoleClaim          *string           `json:"roleClaim,omitempty"`
+	Name               *string           `json:"name,omitempty"`
+	Domains            []string          `json:"domains,omitempty"`
+	RoleMapping        map[string]string `json:"roleMapping,omitempty"`
+	DefaultRole        *string           `json:"defaultRole,omitempty"`
+	TrustEmailVerified *bool             `json:"trustEmailVerified,omitempty"`
+}
+
+// PutOrgSsoDirectBodyOption2 is generated from the OpenAPI component of the same name.
+type PutOrgSsoDirectBodyOption2 struct {
+	Adapter            string            `json:"adapter"`
+	ClientID           string            `json:"clientId"`
+	APIKey             *string           `json:"apiKey,omitempty"`
+	OrganizationID     string            `json:"organizationId"`
+	Domains            []string          `json:"domains,omitempty"`
+	RoleMapping        map[string]string `json:"roleMapping,omitempty"`
+	DefaultRole        *string           `json:"defaultRole,omitempty"`
+	TrustEmailVerified *bool             `json:"trustEmailVerified,omitempty"`
 }
 
 // PostPartnerAuthWalletNonceBody is generated from the OpenAPI component of the same name.
@@ -6843,6 +7950,78 @@ type PostOnchainConnectionsBody struct {
 // PostPublicProgramsHandleJoinBody is generated from the OpenAPI component of the same name.
 type PostPublicProgramsHandleJoinBody struct {
 	DestinationURL *string `json:"destinationUrl,omitempty"`
+}
+
+// PutSupportAppsAdapterBodyConfig is generated from the OpenAPI component of the same name.
+type PutSupportAppsAdapterBodyConfig struct {
+	PublicKeyPem *string `json:"publicKeyPem,omitempty"`
+	Subdomain    *string `json:"subdomain,omitempty"`
+	CardKey      *string `json:"cardKey,omitempty"`
+}
+
+// PutSupportAppsAdapterBody is generated from the OpenAPI component of the same name.
+type PutSupportAppsAdapterBody struct {
+	Enabled *bool                            `json:"enabled,omitempty"`
+	Secret  *string                          `json:"secret,omitempty"` // The vendor-issued signing secret (Chatly, Intercom, HubSpot, Front, Help Scout). Write-only.
+	Rotate  *bool                            `json:"rotate,omitempty"` // custom: mint a new secret (shown once).
+	Config  *PutSupportAppsAdapterBodyConfig `json:"config,omitempty"`
+}
+
+// PostSupportAppsAdapterTestBody is generated from the OpenAPI component of the same name.
+type PostSupportAppsAdapterTestBody struct {
+	Email              *string `json:"email,omitempty"` // Used only when no stronger key is given.
+	CustomerRef        *string `json:"customerRef,omitempty"`
+	PartnerExternalRef *string `json:"partnerExternalRef,omitempty"`
+	Ext                *string `json:"ext,omitempty"` // A support tool's verified external id: matched as a partner externalRef, then as a customer ref.
+}
+
+// PostPrivacyExecutorKeysBodyConfig is generated from the OpenAPI component of the same name.
+type PostPrivacyExecutorKeysBodyConfig struct {
+	PublicKeyPem *string `json:"publicKeyPem,omitempty"`
+	Algorithm    *string `json:"algorithm,omitempty"`
+	SombraURL    *string `json:"sombraUrl,omitempty"`
+}
+
+// PostPrivacyExecutorKeysBody is generated from the OpenAPI component of the same name.
+type PostPrivacyExecutorKeysBody struct {
+	Adapter      string                             `json:"adapter"`
+	VendorSecret *string                            `json:"vendorSecret,omitempty"` // A credential from the vendor (Transcend API key, Osano webhook secret). Write-only.
+	Config       *PostPrivacyExecutorKeysBodyConfig `json:"config,omitempty"`
+	Rotate       *bool                              `json:"rotate,omitempty"` // Mint a new executor key (the old one stops working). false keeps the current key and only updates the settings.
+	Enabled      *bool                              `json:"enabled,omitempty"`
+}
+
+// PostAccountCloseBody is generated from the OpenAPI component of the same name.
+type PostAccountCloseBody struct {
+	Confirm string `json:"confirm"` // The account's email address, typed out, to confirm.
+}
+
+// PutOrgTrackingConsentBody is generated from the OpenAPI component of the same name.
+type PutOrgTrackingConsentBody struct {
+	Mode        string  `json:"mode"`               // `auto` detects the CMP, `none` always stores, `pending` waits for `aff.consent()`, or an adapter id.
+	Category    *string `json:"category,omitempty"` // The CMP category, group, purpose or service to require (each adapter has a default).
+	TcfVendorID *int64  `json:"tcfVendorId,omitempty"`
+	GcmSignal   *string `json:"gcmSignal,omitempty"`
+	NoCmp       *string `json:"noCmp,omitempty"` // `auto` with no CMP on the page: `persist` stores, `memory` never does.
+}
+
+// PutOrgHostedPagesBodyConsent is generated from the OpenAPI component of the same name.
+type PutOrgHostedPagesBodyConsent struct {
+	Adapter string         `json:"adapter"`
+	Config  map[string]any `json:"config,omitempty"`
+}
+
+// PutOrgHostedPagesBodyChatOption1 is generated from the OpenAPI component of the same name.
+type PutOrgHostedPagesBodyChatOption1 struct {
+	Adapter string         `json:"adapter"`
+	Config  map[string]any `json:"config,omitempty"`
+}
+
+// PutOrgHostedPagesBody is generated from the OpenAPI component of the same name.
+type PutOrgHostedPagesBody struct {
+	Consent       PutOrgHostedPagesBodyConsent      `json:"consent"`
+	Chat          *PutOrgHostedPagesBodyChatOption1 `json:"chat,omitempty"`
+	CustomOrigins map[string][]string               `json:"customOrigins,omitempty"`
 }
 
 // PostGraphqlBody is generated from the OpenAPI component of the same name.
