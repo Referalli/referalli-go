@@ -336,6 +336,51 @@ type CommissionRule struct {
 	CreatedAt string                 `json:"createdAt"`
 }
 
+// ProgramTermsBaseOption1 is generated from the OpenAPI component of the same name.
+type ProgramTermsBaseOption1 struct {
+	Kind       string `json:"kind"`
+	PercentBps int64  `json:"percentBps"` // Basis points: 2000 is 20%.
+}
+
+// ProgramTermsBaseOption2 is generated from the OpenAPI component of the same name.
+type ProgramTermsBaseOption2 struct {
+	Kind        string `json:"kind"`
+	AmountMinor int64  `json:"amountMinor"` // Integer minor units (cents).
+	Currency    string `json:"currency"`
+}
+
+// ProgramTermsRecurringOption1 is generated from the OpenAPI component of the same name.
+type ProgramTermsRecurringOption1 struct {
+	Type string `json:"type"`
+}
+
+// ProgramTermsRecurringOption2 is generated from the OpenAPI component of the same name.
+type ProgramTermsRecurringOption2 struct {
+	Type string `json:"type"`
+}
+
+// ProgramTermsRecurringOption3 is generated from the OpenAPI component of the same name.
+type ProgramTermsRecurringOption3 struct {
+	Type   string `json:"type"`
+	Months int64  `json:"months"`
+}
+
+// ProgramTermsSummary is generated from the OpenAPI component of the same name.
+type ProgramTermsSummary struct {
+	En string `json:"en"`
+}
+
+// ProgramTerms is generated from the OpenAPI component of the same name.
+type ProgramTerms struct {
+	ProgramID   string              `json:"programId"`
+	RuleVersion int64               `json:"ruleVersion"` // The commission rule version these terms come from (the latest).
+	Base        json.RawMessage     `json:"base"`
+	Recurring   json.RawMessage     `json:"recurring"`
+	HoldDays    int64               `json:"holdDays"`
+	RatesVary   bool                `json:"ratesVary"` // Overrides, tiers or new-vs-expansion rates can change the rate a partner earns.
+	Summary     ProgramTermsSummary `json:"summary"`
+}
+
 // BillingFilter is generated from the OpenAPI component of the same name.
 type BillingFilter struct {
 	Metadata   map[string]string `json:"metadata,omitempty"`
@@ -434,28 +479,34 @@ type BillingConnectionRotation struct {
 
 // BillingConnection is generated from the OpenAPI component of the same name.
 type BillingConnection struct {
-	ID                     string                    `json:"id"`
-	Provider               string                    `json:"provider"`
-	Name                   string                    `json:"name"`
-	Status                 string                    `json:"status"` // paused: its webhook URL refuses events until resumed.
-	CreatedAt              string                    `json:"createdAt"`
-	WebhookURL             string                    `json:"webhookUrl"`
-	NeedsCredentials       bool                      `json:"needsCredentials"` // The provider sends thin webhooks: set API credentials (Recurly, BigCommerce).
-	HasCredentials         bool                      `json:"hasCredentials"`
-	ValueMapping           *ValueMapping             `json:"valueMapping"`                     // Where cash / credit / discount / cost live in this connection's payload; null uses the built-in extractor.
-	Filter                 *BillingFilter            `json:"filter"`                           // Only matching events earn; the rest are recorded as ignored_by_filter. null takes every event.
-	CustomerRefMetadataKey *string                   `json:"customerRefMetadataKey,omitempty"` // The provider metadata key that holds your customerRef, when it is not referalli_customer_ref.
-	Rotation               BillingConnectionRotation `json:"rotation"`
+	ID                      string                    `json:"id"`
+	Provider                string                    `json:"provider"`
+	Name                    string                    `json:"name"`
+	Status                  string                    `json:"status"`     // paused: its webhook URL refuses events until resumed. awaiting_secret: a provider that issues its own signing secret (Stripe, Paddle, Polar, Shopify, Recurly, Braintree) was connected without it; its events fail 401 until PUT …/secret stores it.
+	ProgramIds              []string                  `json:"programIds"` // Only referrals in these programs earn from this connection's events; null = every program.
+	CreatedAt               string                    `json:"createdAt"`
+	WebhookURL              string                    `json:"webhookUrl"`
+	NeedsCredentials        bool                      `json:"needsCredentials"` // The provider sends thin webhooks: set API credentials (Recurly, BigCommerce).
+	HasCredentials          bool                      `json:"hasCredentials"`
+	ValueMapping            *ValueMapping             `json:"valueMapping"`                      // Where cash / credit / discount / cost live in this connection's payload; null uses the built-in extractor.
+	Filter                  *BillingFilter            `json:"filter"`                            // Only matching events earn; the rest are recorded as ignored_by_filter. null takes every event.
+	CustomerRefMetadataKey  *string                   `json:"customerRefMetadataKey,omitempty"`  // The provider metadata key that holds your customerRef, when it is not referalli_customer_ref.
+	StripeWebhookEndpointID *string                   `json:"stripeWebhookEndpointId,omitempty"` // The Stripe webhook endpoint (`we_…`) Referalli registered for this connection with `stripeKey`.
+	Rotation                BillingConnectionRotation `json:"rotation"`
 }
 
 // CreatedBillingConnection is generated from the OpenAPI component of the same name.
 type CreatedBillingConnection struct {
-	ID                     string         `json:"id"`
-	Provider               string         `json:"provider"`
-	WebhookSecret          string         `json:"webhookSecret"` // Returned only here.
-	WebhookURL             string         `json:"webhookUrl"`    // Path to register with the provider.
-	Filter                 *BillingFilter `json:"filter"`
-	CustomerRefMetadataKey *string        `json:"customerRefMetadataKey,omitempty"` // The provider metadata key that holds your customerRef, when it is not referalli_customer_ref.
+	ID                      string         `json:"id"`
+	Provider                string         `json:"provider"`
+	Status                  string         `json:"status"`        // awaiting_secret until PUT …/secret stores the secret a provider issues itself.
+	WebhookSecret           string         `json:"webhookSecret"` // Returned only here.
+	WebhookURL              string         `json:"webhookUrl"`    // Path to register with the provider.
+	Filter                  *BillingFilter `json:"filter"`
+	CustomerRefMetadataKey  *string        `json:"customerRefMetadataKey,omitempty"`  // The provider metadata key that holds your customerRef, when it is not referalli_customer_ref.
+	ProgramIds              []string       `json:"programIds"`                        // Only referrals in these programs earn from this connection's events; null = every program.
+	StripeWebhookEndpointID *string        `json:"stripeWebhookEndpointId,omitempty"` // With `stripeKey`: the Stripe webhook endpoint (`we_…`) registered or reused.
+	Reused                  *bool          `json:"reused,omitempty"`                  // With `stripeKey`: true when an endpoint on the account already pointed at one of your Stripe connections, which is returned instead of a new one.
 }
 
 // BillingEvent is generated from the OpenAPI component of the same name.
@@ -472,9 +523,9 @@ type BillingEvent struct {
 	OccurredAt    string              `json:"occurredAt"`
 	ConnectionID  *string             `json:"connectionId"`
 	ProductRef    string              `json:"productRef"`
-	Status        string              `json:"status"` // ignored_by_filter: recorded, never processed (product filter or internal customer).
-	IgnoredReason *string             `json:"ignoredReason"`
-	Catalog       map[string][]string `json:"catalog"` // The productIds, priceIds and skus the event named.
+	Status        string              `json:"status"`        // ignored_by_filter: recorded, never processed (product filter or internal customer).
+	IgnoredReason *string             `json:"ignoredReason"` // Why it earned nothing. no_referral_in_scope (status processed): the customer is referred only in programs outside the connection's programIds.
+	Catalog       map[string][]string `json:"catalog"`       // The productIds, priceIds and skus the event named.
 }
 
 // InternalCustomer is generated from the OpenAPI component of the same name.
@@ -3275,6 +3326,7 @@ type GetPartnersIdSummaryResponse struct {
 	Balances           []Balance                             `json:"balances"`
 	Code               *string                               `json:"code"`    // Their current code in the program (coupon, else link).
 	LinkURL            *string                               `json:"linkUrl"` // Their newest link in the program; null when they have only a coupon.
+	Terms              *ProgramTerms                         `json:"terms"`   // The program's terms (as `GET /v1/programs/{id}/terms`); null when it has no rule yet.
 }
 
 // PostCommissionsApproveDueResponse is generated from the OpenAPI component of the same name.
@@ -7964,6 +8016,7 @@ type GetProgramsIdStripeCreditsResponse struct {
 	RefereeRewards          bool                                                              `json:"refereeRewards"`
 	BalanceCurrency         *string                                                           `json:"balanceCurrency"`         // Currency every credit is sent in; null = the Stripe customer's balance currency, else the commission's.
 	CreateCustomerIfMissing *GetProgramsIdStripeCreditsResponseCreateCustomerIfMissingOption1 `json:"createCustomerIfMissing"` // When set, a referrer no Stripe customer matches gets one created with this extra metadata.
+	WaitForCustomer         bool                                                              `json:"waitForCustomer"`         // A credit with no matching Stripe customer stays pending (no attempt cap) until one is billing-linked, instead of no_customer.
 	KeyConnected            bool                                                              `json:"keyConnected"`
 	HasOwnKey               bool                                                              `json:"hasOwnKey"`
 }
@@ -8957,13 +9010,33 @@ type PostBillingConnectionsBodyFilter struct {
 	Skus       []string          `json:"skus,omitempty"`
 }
 
+// PostBillingConnectionsBodyCreditRailCreateCustomerIfMissingOption1 is generated from the OpenAPI component of the same name.
+type PostBillingConnectionsBodyCreditRailCreateCustomerIfMissingOption1 struct {
+	Metadata map[string]string `json:"metadata,omitempty"`
+}
+
+// PostBillingConnectionsBodyCreditRail is generated from the OpenAPI component of the same name.
+type PostBillingConnectionsBodyCreditRail struct {
+	Enabled                 *bool                                                               `json:"enabled,omitempty"`
+	ReferrerMatch           *string                                                             `json:"referrerMatch,omitempty"`
+	MetadataKey             *string                                                             `json:"metadataKey,omitempty"`
+	RefereeRewards          *bool                                                               `json:"refereeRewards,omitempty"`
+	BalanceCurrency         *string                                                             `json:"balanceCurrency,omitempty"`
+	CreateCustomerIfMissing *PostBillingConnectionsBodyCreditRailCreateCustomerIfMissingOption1 `json:"createCustomerIfMissing,omitempty"`
+	WaitForCustomer         *bool                                                               `json:"waitForCustomer,omitempty"`
+	ProgramID               string                                                              `json:"programId"`
+}
+
 // PostBillingConnectionsBody is generated from the OpenAPI component of the same name.
 type PostBillingConnectionsBody struct {
-	Provider               string                            `json:"provider"`
-	Name                   *string                           `json:"name,omitempty"`
-	WebhookSecret          *string                           `json:"webhookSecret,omitempty"`
-	Filter                 *PostBillingConnectionsBodyFilter `json:"filter,omitempty"`
-	CustomerRefMetadataKey *string                           `json:"customerRefMetadataKey,omitempty"`
+	Provider               string                                `json:"provider"`
+	Name                   *string                               `json:"name,omitempty"`
+	WebhookSecret          *string                               `json:"webhookSecret,omitempty"`
+	Filter                 *PostBillingConnectionsBodyFilter     `json:"filter,omitempty"`
+	CustomerRefMetadataKey *string                               `json:"customerRefMetadataKey,omitempty"`
+	ProgramIds             []string                              `json:"programIds,omitempty"`
+	StripeKey              *string                               `json:"stripeKey,omitempty"`
+	CreditRail             *PostBillingConnectionsBodyCreditRail `json:"creditRail,omitempty"`
 }
 
 // PutBillingConnectionsIdSecretBody is generated from the OpenAPI component of the same name.
@@ -8993,6 +9066,7 @@ type PatchBillingConnectionsIdBody struct {
 	Name                   *string                                     `json:"name,omitempty"`
 	Filter                 *PatchBillingConnectionsIdBodyFilterOption1 `json:"filter,omitempty"`
 	CustomerRefMetadataKey *string                                     `json:"customerRefMetadataKey,omitempty"`
+	ProgramIds             []string                                    `json:"programIds,omitempty"`
 }
 
 // PutBillingConnectionsIdValueMappingBody is generated from the OpenAPI component of the same name.
@@ -10147,6 +10221,7 @@ type PutProgramsIdStripeCreditsBody struct {
 	RefereeRewards          *bool                                                         `json:"refereeRewards,omitempty"`
 	BalanceCurrency         *string                                                       `json:"balanceCurrency,omitempty"`
 	CreateCustomerIfMissing *PutProgramsIdStripeCreditsBodyCreateCustomerIfMissingOption1 `json:"createCustomerIfMissing,omitempty"`
+	WaitForCustomer         *bool                                                         `json:"waitForCustomer,omitempty"`
 	SecretKey               *string                                                       `json:"secretKey,omitempty"`
 }
 

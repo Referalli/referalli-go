@@ -202,6 +202,7 @@ var Operations = func() map[string][2]string {
 		{"getProgramsIdRefereeReward", "GET", "/v1/programs/{id}/referee-reward"},
 		{"getProgramsIdStripeCredits", "GET", "/v1/programs/{id}/stripe-credits"},
 		{"getProgramsIdStripeCreditsLog", "GET", "/v1/programs/{id}/stripe-credits/log"},
+		{"getProgramsIdTerms", "GET", "/v1/programs/{id}/terms"},
 		{"getProgramsIdTermsAcceptances", "GET", "/v1/programs/{id}/terms-acceptances"},
 		{"getProspects", "GET", "/v1/prospects"},
 		{"getPublicProgramsHandle", "GET", "/v1/public/programs/{handle}"},
@@ -505,7 +506,9 @@ func (p *DeleteAPIKeysIDParams) values() url.Values {
 //
 // Revokes a key at once. `cascade=true` also revokes every key it minted (and theirs); `pair=true` also revokes its live/test twin. Returns the revoked ids. Needs an owner or admin session, or an API key with the `admin` scope. Audited.
 //
-// **Auth:** an API key with `team:write` (or `full`), or a session of any role.
+// **Auth:** an API key with `team:write`, or a session of any role.
+//
+// **Scopes:** `team:write`, `full`, `admin`.
 //
 // cascade: true: also revoke every key this key minted, and theirs.
 // pair: true: also revoke its live/test twin.
@@ -521,7 +524,9 @@ func (c *Client) DeleteAPIKeysID(ctx context.Context, id string, params *DeleteA
 //
 // Removes a marketing asset.
 //
-// **Auth:** an API key with `partners:write` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `partners:write`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `partners:write`, `full`, `admin`.
 func (c *Client) DeleteAssetsID(ctx context.Context, id string, opts ...RequestOption) (*Ok, error) {
 	var out Ok
 	if err := c.do(ctx, "DELETE", "/v1/assets/"+url.PathEscape(id), nil, nil, &out, "json", opts); err != nil {
@@ -534,7 +539,9 @@ func (c *Client) DeleteAssetsID(ctx context.Context, id string, opts ...RequestO
 //
 // Removes the connection; its webhook URL and signed endpoints stop accepting calls. Referrals it filed stay.
 //
-// **Auth:** an API key with `integrations:write` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `integrations:write`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `integrations:write`, `connections:write`, `full`, `admin`.
 func (c *Client) DeleteAuthConnectionsID(ctx context.Context, id string, opts ...RequestOption) (*Ok, error) {
 	var out Ok
 	if err := c.do(ctx, "DELETE", "/v1/auth/connections/"+url.PathEscape(id), nil, nil, &out, "json", opts); err != nil {
@@ -547,7 +554,9 @@ func (c *Client) DeleteAuthConnectionsID(ctx context.Context, id string, opts ..
 //
 // Deletes the connection: its secrets and credentials are wiped and its webhook URL stops accepting events. Recorded billing events stay. Audited.
 //
-// **Auth:** an API key with `billing:write` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `billing:write`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `billing:write`, `full`, `admin`.
 func (c *Client) DeleteBillingConnectionsID(ctx context.Context, id string, opts ...RequestOption) (*Ok, error) {
 	var out Ok
 	if err := c.do(ctx, "DELETE", "/v1/billing/connections/"+url.PathEscape(id), nil, nil, &out, "json", opts); err != nil {
@@ -560,7 +569,9 @@ func (c *Client) DeleteBillingConnectionsID(ctx context.Context, id string, opts
 //
 // Their payments earn again from now on (events already ignored stay ignored). Audited.
 //
-// **Auth:** an API key with `billing:write` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `billing:write`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `billing:write`, `full`, `admin`.
 func (c *Client) DeleteBillingInternalCustomersCustomerRef(ctx context.Context, customerRef string, opts ...RequestOption) (*Ok, error) {
 	var out Ok
 	if err := c.do(ctx, "DELETE", "/v1/billing/internal-customers/"+url.PathEscape(customerRef), nil, nil, &out, "json", opts); err != nil {
@@ -573,7 +584,9 @@ func (c *Client) DeleteBillingInternalCustomersCustomerRef(ctx context.Context, 
 //
 // Stops serving the partner portal on the custom domain.
 //
-// **Auth:** an API key with `org:write` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `org:write`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `org:write`, `full`, `admin`.
 func (c *Client) DeleteBrandingDomain(ctx context.Context, opts ...RequestOption) (*Ok, error) {
 	var out Ok
 	if err := c.do(ctx, "DELETE", "/v1/branding/domain", nil, nil, &out, "json", opts); err != nil {
@@ -586,7 +599,9 @@ func (c *Client) DeleteBrandingDomain(ctx context.Context, opts ...RequestOption
 //
 // Stops using the custom link domain; links go back to the default host.
 //
-// **Auth:** an API key with `org:write` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `org:write`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `org:write`, `full`, `admin`.
 func (c *Client) DeleteBrandingLinkDomain(ctx context.Context, opts ...RequestOption) (*Ok, error) {
 	var out Ok
 	if err := c.do(ctx, "DELETE", "/v1/branding/link-domain", nil, nil, &out, "json", opts); err != nil {
@@ -599,7 +614,9 @@ func (c *Client) DeleteBrandingLinkDomain(ctx context.Context, opts ...RequestOp
 //
 // Closes the listener; queued events are dropped.
 //
-// **Auth:** an API key with `webhooks:write` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `webhooks:write`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `webhooks:write`, `full`, `admin`.
 func (c *Client) DeleteCliListenersID(ctx context.Context, id string, opts ...RequestOption) (*Ok, error) {
 	var out Ok
 	if err := c.do(ctx, "DELETE", "/v1/cli/listeners/"+url.PathEscape(id), nil, nil, &out, "json", opts); err != nil {
@@ -612,7 +629,9 @@ func (c *Client) DeleteCliListenersID(ctx context.Context, id string, opts ...Re
 //
 // Removes the override; the default template is used again.
 //
-// **Auth:** an API key with `org:write` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `org:write`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `org:write`, `full`, `admin`.
 func (c *Client) DeleteEmailTemplatesEventLocale(ctx context.Context, event string, locale string, opts ...RequestOption) (*DeleteEmailTemplatesEventLocaleResponse, error) {
 	var out DeleteEmailTemplatesEventLocaleResponse
 	if err := c.do(ctx, "DELETE", "/v1/email/templates/"+url.PathEscape(event)+"/"+url.PathEscape(locale), nil, nil, &out, "json", opts); err != nil {
@@ -625,7 +644,9 @@ func (c *Client) DeleteEmailTemplatesEventLocale(ctx context.Context, event stri
 //
 // Removes the HubSpot or Segment connection and its stored credential.
 //
-// **Auth:** an API key with `integrations:write` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `integrations:write`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `integrations:write`, `full`, `admin`.
 func (c *Client) DeleteIntegrationsKind(ctx context.Context, kind string, opts ...RequestOption) (*Ok, error) {
 	var out Ok
 	if err := c.do(ctx, "DELETE", "/v1/integrations/"+url.PathEscape(kind), nil, nil, &out, "json", opts); err != nil {
@@ -638,7 +659,9 @@ func (c *Client) DeleteIntegrationsKind(ctx context.Context, kind string, opts .
 //
 // Removes a member. Members can remove themselves; otherwise owner or admin. The last owner stays (409). Audited. Live mode only.
 //
-// **Auth:** an API key with `team:write` (or `full`), or a session of any role.
+// **Auth:** an API key with `team:write`, or a session of any role.
+//
+// **Scopes:** `team:write`, `full`, `admin`.
 func (c *Client) DeleteOrgMembersUserID(ctx context.Context, userId string, opts ...RequestOption) (*Ok, error) {
 	var out Ok
 	if err := c.do(ctx, "DELETE", "/v1/org/members/"+url.PathEscape(userId), nil, nil, &out, "json", opts); err != nil {
@@ -651,7 +674,9 @@ func (c *Client) DeleteOrgMembersUserID(ctx context.Context, userId string, opts
 //
 // Removes the org's own IdP configuration; team SSO and "require SSO" turn off, so nobody is locked out. Owner only.
 //
-// **Auth:** an API key with `org:write` (or `full`), or a session with role `owner`.
+// **Auth:** an API key with `org:write`, or a session with role `owner`.
+//
+// **Scopes:** `org:write`, `full`, `admin`.
 func (c *Client) DeleteOrgSSODirect(ctx context.Context, opts ...RequestOption) (*DeleteOrgSsoDirectResponse, error) {
 	var out DeleteOrgSsoDirectResponse
 	if err := c.do(ctx, "DELETE", "/v1/org/sso/direct", nil, nil, &out, "json", opts); err != nil {
@@ -677,7 +702,9 @@ func (c *Client) DeletePartnerAPITokensID(ctx context.Context, id string, opts .
 //
 // Deletes a partner that never did anything, with its enrollments, links, coupons and payout profile. A partner with any clicks, referrals, commissions, payouts or other history is `409`: archive it instead (`status: "archived"`). Audited.
 //
-// **Auth:** an API key with `partners:write` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `partners:write`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `partners:write`, `full`, `admin`.
 func (c *Client) DeletePartnersID(ctx context.Context, id string, opts ...RequestOption) (*Ok, error) {
 	var out Ok
 	if err := c.do(ctx, "DELETE", "/v1/partners/"+url.PathEscape(id), nil, nil, &out, "json", opts); err != nil {
@@ -690,7 +717,9 @@ func (c *Client) DeletePartnersID(ctx context.Context, id string, opts ...Reques
 //
 // Removes the stored credentials for a provider. Payouts by that method are then simulated until you reconnect. Audited.
 //
-// **Auth:** an API key with `payouts:write` (or `full`), or a session with role `owner`, `admin`, `finance`.
+// **Auth:** an API key with `payouts:write`, or a session with role `owner`, `admin`, `finance`.
+//
+// **Scopes:** `payouts:write`, `full`, `admin`.
 func (c *Client) DeletePayoutConnectionsProvider(ctx context.Context, provider string, opts ...RequestOption) (*DeletePayoutConnectionsProviderResponse, error) {
 	var out DeletePayoutConnectionsProviderResponse
 	if err := c.do(ctx, "DELETE", "/v1/payout-connections/"+url.PathEscape(provider), nil, nil, &out, "json", opts); err != nil {
@@ -703,7 +732,9 @@ func (c *Client) DeletePayoutConnectionsProvider(ctx context.Context, provider s
 //
 // Drops the draft and its preview link. What partners see is unchanged. Owner or admin.
 //
-// **Auth:** an API key with `org:write` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `org:write`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `org:write`, `full`, `admin`.
 func (c *Client) DeletePortalThemeDraft(ctx context.Context, opts ...RequestOption) (*GetPortalThemeResponse, error) {
 	var out GetPortalThemeResponse
 	if err := c.do(ctx, "DELETE", "/v1/portal/theme/draft", nil, nil, &out, "json", opts); err != nil {
@@ -716,7 +747,9 @@ func (c *Client) DeletePortalThemeDraft(ctx context.Context, opts ...RequestOpti
 //
 // Removes the tool, its key and settings; its URL answers 404 from now on. The request log stays.
 //
-// **Auth:** an API key with `privacy:write` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `privacy:write`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `privacy:write`, `full`, `admin`.
 func (c *Client) DeletePrivacyExecutorsAdapter(ctx context.Context, adapter string, opts ...RequestOption) (*DeletePrivacyExecutorsAdapterResponse, error) {
 	var out DeletePrivacyExecutorsAdapterResponse
 	if err := c.do(ctx, "DELETE", "/v1/privacy/executors/"+url.PathEscape(adapter), nil, nil, &out, "json", opts); err != nil {
@@ -729,7 +762,9 @@ func (c *Client) DeletePrivacyExecutorsAdapter(ctx context.Context, adapter stri
 //
 // The link and every token issued from it stop at once. A root action (see create).
 //
-// **Auth:** an API key with `team:write` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `team:write`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `team:write`, `full`, `admin`.
 func (c *Client) DeleteProductLinksID(ctx context.Context, id string, opts ...RequestOption) (*DeleteProductLinksIdResponse, error) {
 	var out DeleteProductLinksIdResponse
 	if err := c.do(ctx, "DELETE", "/v1/product-links/"+url.PathEscape(id), nil, nil, &out, "json", opts); err != nil {
@@ -742,7 +777,9 @@ func (c *Client) DeleteProductLinksID(ctx context.Context, id string, opts ...Re
 //
 // Removes a product from the margin catalog; its payments fall back to the program or org margin. Audited.
 //
-// **Auth:** an API key with `analytics:write` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `analytics:write`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `analytics:write`, `full`, `admin`.
 func (c *Client) DeleteProfitabilityProductsProductRef(ctx context.Context, productRef string, opts ...RequestOption) (*OkStatus, error) {
 	var out OkStatus
 	if err := c.do(ctx, "DELETE", "/v1/profitability/products/"+url.PathEscape(productRef), nil, nil, &out, "json", opts); err != nil {
@@ -755,7 +792,9 @@ func (c *Client) DeleteProfitabilityProductsProductRef(ctx context.Context, prod
 //
 // Deletes the rule. Rewards already granted through it stay.
 //
-// **Auth:** an API key with `commissions:write` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `commissions:write`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `commissions:write`, `full`, `admin`.
 func (c *Client) DeleteRewardsRulesKey(ctx context.Context, key string, opts ...RequestOption) (*DeleteRewardsRulesKeyResponse, error) {
 	var out DeleteRewardsRulesKeyResponse
 	if err := c.do(ctx, "DELETE", "/v1/rewards/rules/"+url.PathEscape(key), nil, nil, &out, "json", opts); err != nil {
@@ -768,7 +807,9 @@ func (c *Client) DeleteRewardsRulesKey(ctx context.Context, key string, opts ...
 //
 // Deletes the rail's own key. A Stripe payout connection, if any, is then used instead; with neither, queued credits fail until a key is connected. Owner or admin. Audited.
 //
-// **Auth:** an API key with `payouts:write` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `payouts:write`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `payouts:write`, `full`, `admin`.
 func (c *Client) DeleteStripeCreditsConnection(ctx context.Context, opts ...RequestOption) (*GetStripeCreditsConnectionResponse, error) {
 	var out GetStripeCreditsConnectionResponse
 	if err := c.do(ctx, "DELETE", "/v1/stripe-credits/connection", nil, nil, &out, "json", opts); err != nil {
@@ -781,7 +822,9 @@ func (c *Client) DeleteStripeCreditsConnection(ctx context.Context, opts ...Requ
 //
 // Removes the tool and its secret; its card URL answers 404 from now on.
 //
-// **Auth:** an API key with `partners:write` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `partners:write`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `partners:write`, `full`, `admin`.
 func (c *Client) DeleteSupportAppsAdapter(ctx context.Context, adapter string, opts ...RequestOption) (*DeleteSupportAppsAdapterResponse, error) {
 	var out DeleteSupportAppsAdapterResponse
 	if err := c.do(ctx, "DELETE", "/v1/support/apps/"+url.PathEscape(adapter), nil, nil, &out, "json", opts); err != nil {
@@ -794,7 +837,9 @@ func (c *Client) DeleteSupportAppsAdapter(ctx context.Context, adapter string, o
 //
 // Removes the endpoint and its delivery history. Audited.
 //
-// **Auth:** an API key with `webhooks:write` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `webhooks:write`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `webhooks:write`, `full`, `admin`.
 func (c *Client) DeleteWebhookEndpointsID(ctx context.Context, id string, opts ...RequestOption) (*Ok, error) {
 	var out Ok
 	if err := c.do(ctx, "DELETE", "/v1/webhook-endpoints/"+url.PathEscape(id), nil, nil, &out, "json", opts); err != nil {
@@ -807,7 +852,9 @@ func (c *Client) DeleteWebhookEndpointsID(ctx context.Context, id string, opts .
 //
 // REST hook unsubscribe, called by Zapier when a Zap turns off.
 //
-// **Auth:** an API key with `integrations:write` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `integrations:write`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `integrations:write`, `full`, `admin`.
 func (c *Client) DeleteZapierHooksID(ctx context.Context, id string, opts ...RequestOption) (*Ok, error) {
 	var out Ok
 	if err := c.do(ctx, "DELETE", "/v1/zapier/hooks/"+url.PathEscape(id), nil, nil, &out, "json", opts); err != nil {
@@ -967,7 +1014,9 @@ func (p *GetAgentsParams) values() url.Values {
 //
 // The AI agents partnered with this org, with their wallet, metadata and how many recommendations each has attributed, most active first.
 //
-// **Auth:** an API key with `growth:read` (or `full`), or a session with role `owner`, `admin`, `analyst`.
+// **Auth:** an API key with `growth:read`, or a session with role `owner`, `admin`, `analyst`.
+//
+// **Scopes:** `growth:read`, `growth:write`, `read`, `full`, `admin`.
 //
 // limit: Items per page, 1 to 100 (default 50). From API version 2026-11-01; ignored under 2026-10-21, where lists are a capped plain array.
 // starting_after: A cursor: the id of an item (the previous page's `next_cursor`); returns the items after it. From API version 2026-11-01; ignored under 2026-10-21, where lists are a capped plain array.
@@ -1020,7 +1069,9 @@ func (p *GetAgentsRecommendationsParams) values() url.Values {
 //
 // Signed recommendations AI agents have attributed in this org, newest first.
 //
-// **Auth:** an API key with `growth:read` (or `full`), or a session with role `owner`, `admin`, `analyst`.
+// **Auth:** an API key with `growth:read`, or a session with role `owner`, `admin`, `analyst`.
+//
+// **Scopes:** `growth:read`, `growth:write`, `read`, `full`, `admin`.
 //
 // limit: Items per page, 1 to 100 (default 50). From API version 2026-11-01; ignored under 2026-10-21, where lists are a capped plain array.
 // starting_after: A cursor: the id of an item (the previous page's `next_cursor`); returns the items after it. From API version 2026-11-01; ignored under 2026-10-21, where lists are a capped plain array.
@@ -1073,7 +1124,9 @@ func (p *GetAnalyticsByChannelParams) values() url.Values {
 //
 // Referrals and referred revenue by how they were matched (`coupon`, `deterministic` click, `email_hash`, `probabilistic`, `manual`…).
 //
-// **Auth:** an API key with `analytics:read` (or `full`), or a session of any role.
+// **Auth:** an API key with `analytics:read`, or a session of any role.
+//
+// **Scopes:** `analytics:read`, `analytics:write`, `read`, `full`, `admin`.
 //
 // limit: Items per page, 1 to 100 (default 50). From API version 2026-11-01; ignored under 2026-10-21, where lists are a capped plain array.
 // starting_after: A cursor: the id of an item (the previous page's `next_cursor`); returns the items after it. From API version 2026-11-01; ignored under 2026-10-21, where lists are a capped plain array.
@@ -1126,7 +1179,9 @@ func (p *GetAnalyticsByGeoParams) values() url.Values {
 //
 // Referrals and referred revenue by the country of the winning click, highest revenue first.
 //
-// **Auth:** an API key with `analytics:read` (or `full`), or a session of any role.
+// **Auth:** an API key with `analytics:read`, or a session of any role.
+//
+// **Scopes:** `analytics:read`, `analytics:write`, `read`, `full`, `admin`.
 //
 // limit: Items per page, 1 to 100 (default 50). From API version 2026-11-01; ignored under 2026-10-21, where lists are a capped plain array.
 // starting_after: A cursor: the id of an item (the previous page's `next_cursor`); returns the items after it. From API version 2026-11-01; ignored under 2026-10-21, where lists are a capped plain array.
@@ -1181,7 +1236,9 @@ func (p *GetAnalyticsCohortLtvParams) values() url.Values {
 //
 // Referred customers grouped by sign-up month over the last `months` (default 6), with net revenue (payments minus refunds) and revenue per customer.
 //
-// **Auth:** an API key with `analytics:read` (or `full`), or a session of any role.
+// **Auth:** an API key with `analytics:read`, or a session of any role.
+//
+// **Scopes:** `analytics:read`, `analytics:write`, `read`, `full`, `admin`.
 //
 // limit: Items per page, 1 to 100 (default 50). From API version 2026-11-01; ignored under 2026-10-21, where lists are a capped plain array.
 // starting_after: A cursor: the id of an item (the previous page's `next_cursor`); returns the items after it. From API version 2026-11-01; ignored under 2026-10-21, where lists are a capped plain array.
@@ -1234,7 +1291,9 @@ func (p *GetAnalyticsCouponPerformanceParams) values() url.Values {
 //
 // Referrals and revenue per coupon code, highest revenue first.
 //
-// **Auth:** an API key with `analytics:read` (or `full`), or a session of any role.
+// **Auth:** an API key with `analytics:read`, or a session of any role.
+//
+// **Scopes:** `analytics:read`, `analytics:write`, `read`, `full`, `admin`.
 //
 // limit: Items per page, 1 to 100 (default 50). From API version 2026-11-01; ignored under 2026-10-21, where lists are a capped plain array.
 // starting_after: A cursor: the id of an item (the previous page's `next_cursor`); returns the items after it. From API version 2026-11-01; ignored under 2026-10-21, where lists are a capped plain array.
@@ -1281,7 +1340,9 @@ func (p *GetAnalyticsOverviewParams) values() url.Values {
 //
 // Over the last `days` (default 30), optionally for one program: clicks (and how many were filtered), visitors, sign-ups, payments, referred revenue, commission earned and reversed, active partners and the click-to-sign-up and sign-up-to-paid rates.
 //
-// **Auth:** an API key with `analytics:read` (or `full`), or a session of any role.
+// **Auth:** an API key with `analytics:read`, or a session of any role.
+//
+// **Scopes:** `analytics:read`, `analytics:write`, `read`, `full`, `admin`.
 func (c *Client) GetAnalyticsOverview(ctx context.Context, params *GetAnalyticsOverviewParams, opts ...RequestOption) (*GetAnalyticsOverviewResponse, error) {
 	var out GetAnalyticsOverviewResponse
 	if err := c.do(ctx, "GET", "/v1/analytics/overview", params.values(), nil, &out, "json", opts); err != nil {
@@ -1322,7 +1383,9 @@ func (p *GetAnalyticsTimeseriesParams) values() url.Values {
 //
 // One `metric` (`clicks`, `signups` or `revenue` in minor units) per day over the last `days`, optionally for one program.
 //
-// **Auth:** an API key with `analytics:read` (or `full`), or a session of any role.
+// **Auth:** an API key with `analytics:read`, or a session of any role.
+//
+// **Scopes:** `analytics:read`, `analytics:write`, `read`, `full`, `admin`.
 //
 // limit: Items per page, 1 to 100 (default 50). From API version 2026-11-01; ignored under 2026-10-21, where lists are a capped plain array.
 // starting_after: A cursor: the id of an item (the previous page's `next_cursor`); returns the items after it. From API version 2026-11-01; ignored under 2026-10-21, where lists are a capped plain array.
@@ -1379,7 +1442,9 @@ func (p *GetAPIKeysParams) values() url.Values {
 //
 // Every key of the org, live and test (a test-mode caller sees test keys only), oldest first, with scopes, pinned version, owner, expiry and last use. Never returns the secret. Filter by `mode` (`live`, `test`, or `both`, the default) or `owner`.
 //
-// **Auth:** an API key with `team:read` (or `full`), or a session of any role.
+// **Auth:** an API key with `team:read`, or a session of any role.
+//
+// **Scopes:** `team:read`, `team:write`, `read`, `full`, `admin`.
 //
 // mode: Only live or only test keys; `both` (the default) lists both.
 // owner: Only keys with this owner.
@@ -1412,7 +1477,9 @@ func (c *Client) GetAPIKeysEach(ctx context.Context, params *GetAPIKeysParams, o
 //
 // One key of the org, without its secret.
 //
-// **Auth:** an API key with `team:read` (or `full`), or a session of any role.
+// **Auth:** an API key with `team:read`, or a session of any role.
+//
+// **Scopes:** `team:read`, `team:write`, `read`, `full`, `admin`.
 func (c *Client) GetAPIKeysID(ctx context.Context, id string, opts ...RequestOption) (*ApiKey, error) {
 	var out ApiKey
 	if err := c.do(ctx, "GET", "/v1/api-keys/"+url.PathEscape(id), nil, nil, &out, "json", opts); err != nil {
@@ -1449,7 +1516,9 @@ func (p *GetAssetsParams) values() url.Values {
 //
 // Marketing assets, filtered by `programId`.
 //
-// **Auth:** an API key with `partners:read` (or `full`), or a session of any role.
+// **Auth:** an API key with `partners:read`, or a session of any role.
+//
+// **Scopes:** `partners:read`, `partners:write`, `read`, `full`, `admin`.
 //
 // limit: Items per page, 1 to 100 (default 50). From API version 2026-11-01; ignored under 2026-10-21, where lists are a capped plain array.
 // starting_after: A cursor: the id of an item (the previous page's `next_cursor`); returns the items after it. From API version 2026-11-01; ignored under 2026-10-21, where lists are a capped plain array.
@@ -1502,7 +1571,9 @@ func (p *GetAssistantSuggestionsParams) values() url.Values {
 //
 // Draft-only suggestions for running the program, each with a suggested action for a person to take: partners who never drove a click, links with clicks but no referrals, programs without a commission rule, the review queue, and credit ROI findings. It never changes anything.
 //
-// **Auth:** an API key with `analytics:read` (or `full`), or a session of any role.
+// **Auth:** an API key with `analytics:read`, or a session of any role.
+//
+// **Scopes:** `analytics:read`, `analytics:write`, `read`, `full`, `admin`.
 //
 // limit: Items per page, 1 to 100 (default 50). From API version 2026-11-01; ignored under 2026-10-21, where lists are a capped plain array.
 // starting_after: A cursor: the id of an item (the previous page's `next_cursor`); returns the items after it. From API version 2026-11-01; ignored under 2026-10-21, where lists are a capped plain array.
@@ -1565,7 +1636,9 @@ func (p *GetAuditLogsParams) values() url.Values {
 //
 // Every change recorded in the org, newest first: who did it (`actor`, `actorType`), what (`action`; a trailing `*` matches a prefix such as `payout.*`) and to what (`subjectType`, `subjectId`). Filter by any of those and by `created[gte]`/`created[lte]`.
 //
-// **Auth:** an API key with `audit:read` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `audit:read`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `audit:read`, `audit:write`, `read`, `full`, `admin`.
 //
 // actor: Actor id: a user, API key or connection id.
 // action: Exact action, or a prefix ending in * (e.g. payout.*).
@@ -1617,7 +1690,9 @@ func (p *GetAuthConnectionsParams) values() url.Values {
 //
 // Auth-platform connections with provider, program, status, signature version and rotation state. Secrets are never returned.
 //
-// **Auth:** an API key with `integrations:read` (or `full`), or a session of any role.
+// **Auth:** an API key with `integrations:read`, or a session of any role.
+//
+// **Scopes:** `integrations:read`, `integrations:write`, `connections:read`, `connections:write`, `read`, `full`, `admin`.
 //
 // limit: Items per page, 1 to 100 (default 50). From API version 2026-11-01; ignored under 2026-10-21, where lists are a capped plain array.
 // starting_after: A cursor: the id of an item (the previous page's `next_cursor`); returns the items after it. From API version 2026-11-01; ignored under 2026-10-21, where lists are a capped plain array.
@@ -1675,7 +1750,9 @@ func (c *Client) GetAuthConnectionsIDExport(ctx context.Context, id string, para
 //
 // Every auth provider you can connect (Atlas, Clerk, Auth0, Supabase, Firebase, Cognito, Stytch, Kinde, WorkOS, generic, your own auth), with how it connects, who issues the secret, the setup steps, a copyable template where the vendor has no native webhook, and where the referral metadata lands.
 //
-// **Auth:** an API key with `integrations:read` (or `full`), or a session of any role.
+// **Auth:** an API key with `integrations:read`, or a session of any role.
+//
+// **Scopes:** `integrations:read`, `integrations:write`, `connections:read`, `connections:write`, `read`, `full`, `admin`.
 func (c *Client) GetAuthConnectionsProviders(ctx context.Context, opts ...RequestOption) (*GetAuthConnectionsProvidersResponse, error) {
 	var out GetAuthConnectionsProvidersResponse
 	if err := c.do(ctx, "GET", "/v1/auth/connections/providers", nil, nil, &out, "json", opts); err != nil {
@@ -1721,9 +1798,11 @@ func (p *GetBillingConnectionsParams) values() url.Values {
 
 // GetBillingConnections calls List billing connections. GET /v1/billing/connections.
 //
-// Billing connections (deleted ones excluded), with status, whether credentials are needed and set, the value mapping and secret-rotation state.
+// Billing connections (deleted ones excluded), with status (`active`, `paused`, or `awaiting_secret` until a provider-issued secret is set), `programIds`, whether credentials are needed and set, the value mapping and secret-rotation state. A program-scoped API key sees only connections whose `programIds` are all within its own.
 //
-// **Auth:** an API key with `billing:read` (or `full`), or a session of any role.
+// **Auth:** an API key with `billing:read`, or a session of any role.
+//
+// **Scopes:** `billing:read`, `billing:write`, `read`, `full`, `admin`.
 //
 // limit: Items per page, 1 to 100 (default 50). From API version 2026-11-01; ignored under 2026-10-21, where lists are a capped plain array.
 // starting_after: A cursor: the id of an item (the previous page's `next_cursor`); returns the items after it. From API version 2026-11-01; ignored under 2026-10-21, where lists are a capped plain array.
@@ -1754,7 +1833,9 @@ func (c *Client) GetBillingConnectionsEach(ctx context.Context, params *GetBilli
 //
 // One billing connection, without its secrets.
 //
-// **Auth:** an API key with `billing:read` (or `full`), or a session of any role.
+// **Auth:** an API key with `billing:read`, or a session of any role.
+//
+// **Scopes:** `billing:read`, `billing:write`, `read`, `full`, `admin`.
 func (c *Client) GetBillingConnectionsID(ctx context.Context, id string, opts ...RequestOption) (*BillingConnection, error) {
 	var out BillingConnection
 	if err := c.do(ctx, "GET", "/v1/billing/connections/"+url.PathEscape(id), nil, nil, &out, "json", opts); err != nil {
@@ -1791,9 +1872,11 @@ func (p *GetBillingEventsParams) values() url.Values {
 
 // GetBillingEvents calls List billing events. GET /v1/billing/events.
 //
-// Payments, refunds and other billing events received from every connection, newest first. Filter with `customerRef`, or `status=ignored_by_filter` for the events a product filter or the internal-customer list set aside (recorded, never processed).
+// Payments, refunds and other billing events received from every connection, newest first. Filter with `customerRef`, or `status=ignored_by_filter` for the events a product filter or the internal-customer list set aside (recorded, never processed). `ignoredReason: "no_referral_in_scope"` (with `status: "processed"`) marks a payment on a connection limited to some programs from a customer referred only in other programs: it earned nothing.
 //
-// **Auth:** an API key with `billing:read` (or `full`), or a session of any role.
+// **Auth:** an API key with `billing:read`, or a session of any role.
+//
+// **Scopes:** `billing:read`, `billing:write`, `read`, `full`, `admin`.
 //
 // limit: Items per page, 1 to 100 (default 50). From API version 2026-11-01; ignored under 2026-10-21, where lists are a capped plain array.
 // starting_after: A cursor: the id of an item (the previous page's `next_cursor`); returns the items after it. From API version 2026-11-01; ignored under 2026-10-21, where lists are a capped plain array.
@@ -1824,7 +1907,9 @@ func (c *Client) GetBillingEventsEach(ctx context.Context, params *GetBillingEve
 //
 // The org's own customers (staff, test accounts, your own plans) whose payments never earn on any connection. Metadata `planSource: "internal"` on the provider's customer does the same without a list.
 //
-// **Auth:** an API key with `billing:read` (or `full`), or a session of any role.
+// **Auth:** an API key with `billing:read`, or a session of any role.
+//
+// **Scopes:** `billing:read`, `billing:write`, `read`, `full`, `admin`.
 func (c *Client) GetBillingInternalCustomers(ctx context.Context, opts ...RequestOption) ([]InternalCustomer, error) {
 	var out []InternalCustomer
 	if err := c.do(ctx, "GET", "/v1/billing/internal-customers", nil, nil, &out, "json", opts); err != nil {
@@ -1837,7 +1922,9 @@ func (c *Client) GetBillingInternalCustomers(ctx context.Context, opts ...Reques
 //
 // The org's Referalli plan and status, its limits and current usage (programs, partners), the plan catalog, whether there is a subscription to manage and whether this caller may activate a plan without checkout.
 //
-// **Auth:** an API key with `billing:read` (or `full`), or a session of any role.
+// **Auth:** an API key with `billing:read`, or a session of any role.
+//
+// **Scopes:** `billing:read`, `billing:write`, `read`, `full`, `admin`.
 func (c *Client) GetBillingPlan(ctx context.Context, opts ...RequestOption) (*GetBillingPlanResponse, error) {
 	var out GetBillingPlanResponse
 	if err := c.do(ctx, "GET", "/v1/billing/plan", nil, nil, &out, "json", opts); err != nil {
@@ -1850,7 +1937,9 @@ func (c *Client) GetBillingPlan(ctx context.Context, opts ...RequestOption) (*Ge
 //
 // The org's logo, theme tokens, sender address, and its custom portal and link domains with their status (`none`, `pending` DNS, `provisioning` a certificate, `active`), and `warnings` for theme colour pairs below WCAG AA contrast.
 //
-// **Auth:** an API key with `org:read` (or `full`), or a session of any role.
+// **Auth:** an API key with `org:read`, or a session of any role.
+//
+// **Scopes:** `org:read`, `org:write`, `read`, `full`, `admin`.
 func (c *Client) GetBranding(ctx context.Context, opts ...RequestOption) (*GetBrandingResponse, error) {
 	var out GetBrandingResponse
 	if err := c.do(ctx, "GET", "/v1/branding", nil, nil, &out, "json", opts); err != nil {
@@ -1890,7 +1979,9 @@ func (p *GetCleanroomConsentParams) values() url.Values {
 //
 // A customer's recorded consent: whether granted, its purposes, the attributes they declared and when it changed. `consent: null` when none is recorded.
 //
-// **Auth:** an API key with `growth:read` (or `full`), or a session of any role.
+// **Auth:** an API key with `growth:read`, or a session of any role.
+//
+// **Scopes:** `growth:read`, `growth:write`, `read`, `full`, `admin`.
 func (c *Client) GetCleanroomConsent(ctx context.Context, params *GetCleanroomConsentParams, opts ...RequestOption) (*GetCleanroomConsentResponse, error) {
 	var out GetCleanroomConsentResponse
 	if err := c.do(ctx, "GET", "/v1/cleanroom/consent", params.values(), nil, &out, "json", opts); err != nil {
@@ -1917,7 +2008,9 @@ func (p *GetCleanroomQueryParams) values() url.Values {
 //
 // Aggregates over consenting customers only, grouped by a zero-party attribute they declared (`dimension`): customers, converted customers and referred revenue per value. Cohorts smaller than 5 are suppressed (k-anonymity); individual rows never leave.
 //
-// **Auth:** an API key with `growth:read` (or `full`), or a session of any role.
+// **Auth:** an API key with `growth:read`, or a session of any role.
+//
+// **Scopes:** `growth:read`, `growth:write`, `read`, `full`, `admin`.
 func (c *Client) GetCleanroomQuery(ctx context.Context, params *GetCleanroomQueryParams, opts ...RequestOption) (*GetCleanroomQueryResponse, error) {
 	var out GetCleanroomQueryResponse
 	if err := c.do(ctx, "GET", "/v1/cleanroom/query", params.values(), nil, &out, "json", opts); err != nil {
@@ -1944,7 +2037,9 @@ func (p *GetClicksConsentCoverageParams) values() url.Values {
 //
 // The share of attributed sign-ups in the last `days` (default 30) whose referral carries consent evidence, on its click or on the `associate` call. Low coverage means sign-ups are attributed from tags without a consent setting (`none`) or from server-side calls that don't pass `consent`.
 //
-// **Auth:** an API key with `links:read` (or `full`), or a session of any role.
+// **Auth:** an API key with `links:read`, or a session of any role.
+//
+// **Scopes:** `links:read`, `links:write`, `read`, `full`, `admin`.
 //
 // days: Look-back window in days.
 func (c *Client) GetClicksConsentCoverage(ctx context.Context, params *GetClicksConsentCoverageParams, opts ...RequestOption) (*GetClicksConsentCoverageResponse, error) {
@@ -1959,7 +2054,9 @@ func (c *Client) GetClicksConsentCoverage(ctx context.Context, params *GetClicks
 //
 // One click with its consent evidence: what the visitor's CMP said when the tracker stored the referral (`consent.provider`, `state`, `stamp`, `tcString`…). A redirect click (`/go`) is recorded before the landing page reads the CMP, so its evidence comes from the first consented visit beacon naming it. `consent` is null when none arrived.
 //
-// **Auth:** an API key with `links:read` (or `full`), or a session of any role.
+// **Auth:** an API key with `links:read`, or a session of any role.
+//
+// **Scopes:** `links:read`, `links:write`, `read`, `full`, `admin`.
 func (c *Client) GetClicksID(ctx context.Context, id string, opts ...RequestOption) (*GetClicksIdResponse, error) {
 	var out GetClicksIdResponse
 	if err := c.do(ctx, "GET", "/v1/clicks/"+url.PathEscape(id), nil, nil, &out, "json", opts); err != nil {
@@ -1972,7 +2069,9 @@ func (c *Client) GetClicksID(ctx context.Context, id string, opts ...RequestOpti
 //
 // For the approval page: the pending code, which CLI asked and when it expires. Needs a signed-in person (owner or admin). 404 when expired or used.
 //
-// **Auth:** an API key with `team:read` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `team:read`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `team:read`, `team:write`, `read`, `full`, `admin`.
 func (c *Client) GetCliDeviceCodesUserCode(ctx context.Context, userCode string, opts ...RequestOption) (*GetCliDeviceCodesUserCodeResponse, error) {
 	var out GetCliDeviceCodesUserCodeResponse
 	if err := c.do(ctx, "GET", "/v1/cli/device-codes/"+url.PathEscape(userCode), nil, nil, &out, "json", opts); err != nil {
@@ -1999,7 +2098,9 @@ func (p *GetCliListenersIDEventsParams) values() url.Values {
 //
 // Up to 50 queued events for the listener, oldest first, each with its body and signed headers. `wait` long-polls up to 25 seconds for the first event. Polling keeps the listener alive.
 //
-// **Auth:** an API key with `webhooks:read` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `webhooks:read`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `webhooks:read`, `webhooks:write`, `read`, `full`, `admin`.
 func (c *Client) GetCliListenersIDEvents(ctx context.Context, id string, params *GetCliListenersIDEventsParams, opts ...RequestOption) (*GetCliListenersIdEventsResponse, error) {
 	var out GetCliListenersIdEventsResponse
 	if err := c.do(ctx, "GET", "/v1/cli/listeners/"+url.PathEscape(id)+"/events", params.values(), nil, &out, "json", opts); err != nil {
@@ -2030,7 +2131,9 @@ func (p *GetCliLogsParams) values() url.Values {
 //
 // The CLI's `logs tail` command: the org's recent API requests (method, path without query string, status, latency, actor). The first call returns the latest 20 and a `cursor`; pass it as `after` (with `wait` to long-poll up to 25 seconds) for newer entries. Kept for a day.
 //
-// **Auth:** an API key with `audit:read` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `audit:read`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `audit:read`, `audit:write`, `read`, `full`, `admin`.
 //
 // after: Return entries after this cursor.
 func (c *Client) GetCliLogs(ctx context.Context, params *GetCliLogsParams, opts ...RequestOption) (*GetCliLogsResponse, error) {
@@ -2045,7 +2148,9 @@ func (c *Client) GetCliLogs(ctx context.Context, params *GetCliLogsParams, opts 
 //
 // The event topics `POST /v1/cli/trigger` can send.
 //
-// **Auth:** an API key with `webhooks:read` (or `full`), or a session of any role.
+// **Auth:** an API key with `webhooks:read`, or a session of any role.
+//
+// **Scopes:** `webhooks:read`, `webhooks:write`, `read`, `full`, `admin`.
 func (c *Client) GetCliTopics(ctx context.Context, opts ...RequestOption) (*GetCliTopicsResponse, error) {
 	var out GetCliTopicsResponse
 	if err := c.do(ctx, "GET", "/v1/cli/topics", nil, nil, &out, "json", opts); err != nil {
@@ -2082,7 +2187,9 @@ func (p *GetCommissionRulesParams) values() url.Values {
 //
 // Every rule version, by program and newest version first. Filter with `programId`.
 //
-// **Auth:** an API key with `commissions:read` (or `full`), or a session of any role.
+// **Auth:** an API key with `commissions:read`, or a session of any role.
+//
+// **Scopes:** `commissions:read`, `commissions:write`, `read`, `full`, `admin`.
 //
 // limit: Items per page, 1 to 100 (default 50). From API version 2026-11-01; ignored under 2026-10-21, where lists are a capped plain array.
 // starting_after: A cursor: the id of an item (the previous page's `next_cursor`); returns the items after it. From API version 2026-11-01; ignored under 2026-10-21, where lists are a capped plain array.
@@ -2143,7 +2250,9 @@ func (p *GetCommissionsParams) values() url.Values {
 //
 // The append-only commission ledger, newest first: `earned` lines and the `approved`, `paid`, `reversed` and `adjusted` events recorded against them (`relatedCommissionId`). Filter by `partnerId`, `programId`, `type` or `referralId`.
 //
-// **Auth:** an API key with `commissions:read` (or `full`), or a session of any role.
+// **Auth:** an API key with `commissions:read`, or a session of any role.
+//
+// **Scopes:** `commissions:read`, `commissions:write`, `read`, `full`, `admin`.
 //
 // limit: Items per page, 1 to 100 (default 50). From API version 2026-11-01; ignored under 2026-10-21, where lists are a capped plain array.
 // starting_after: A cursor: the id of an item (the previous page's `next_cursor`); returns the items after it. From API version 2026-11-01; ignored under 2026-10-21, where lists are a capped plain array.
@@ -2174,7 +2283,9 @@ func (c *Client) GetCommissionsEach(ctx context.Context, params *GetCommissionsP
 //
 // One ledger event. An `earned` line also carries its billing event, its net after reversals and adjustments, its state (`pending`, `approved` or `paid`) and every event recorded against it.
 //
-// **Auth:** an API key with `commissions:read` (or `full`), or a session of any role.
+// **Auth:** an API key with `commissions:read`, or a session of any role.
+//
+// **Scopes:** `commissions:read`, `commissions:write`, `read`, `full`, `admin`.
 func (c *Client) GetCommissionsID(ctx context.Context, id string, opts ...RequestOption) (*CommissionLine, error) {
 	var out CommissionLine
 	if err := c.do(ctx, "GET", "/v1/commissions/"+url.PathEscape(id), nil, nil, &out, "json", opts); err != nil {
@@ -2209,7 +2320,9 @@ func (p *GetContractsParams) values() url.Values {
 //
 // The org's contracts and their status (`draft`, `sent`, `accepted`, `declined`, `void`).
 //
-// **Auth:** an API key with `partners:read` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `partners:read`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `partners:read`, `partners:write`, `read`, `full`, `admin`.
 //
 // limit: Items per page, 1 to 100 (default 50). From API version 2026-11-01; ignored under 2026-10-21, where lists are a capped plain array.
 // starting_after: A cursor: the id of an item (the previous page's `next_cursor`); returns the items after it. From API version 2026-11-01; ignored under 2026-10-21, where lists are a capped plain array.
@@ -2266,7 +2379,9 @@ func (p *GetCouponsParams) values() url.Values {
 //
 // Coupon codes, filtered by `programId` and/or `partnerId`.
 //
-// **Auth:** an API key with `links:read` (or `full`), or a session of any role.
+// **Auth:** an API key with `links:read`, or a session of any role.
+//
+// **Scopes:** `links:read`, `links:write`, `read`, `full`, `admin`.
 //
 // limit: Items per page, 1 to 100 (default 50). From API version 2026-11-01; ignored under 2026-10-21, where lists are a capped plain array.
 // starting_after: A cursor: the id of an item (the previous page's `next_cursor`); returns the items after it. From API version 2026-11-01; ignored under 2026-10-21, where lists are a capped plain array.
@@ -2331,7 +2446,9 @@ func (p *GetCreatorsParams) values() url.Values {
 //
 // Published creator profiles, most engaged first, filtered by text (`q`), `category`, `channel`, minimum audience, minimum engagement and audience country. Each carries verified stats and whether this org already invited them. Emails are never returned.
 //
-// **Auth:** an API key with `growth:read` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `growth:read`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `growth:read`, `growth:write`, `read`, `full`, `admin`.
 //
 // limit: Items per page, 1 to 100 (default 50). From API version 2026-11-01; ignored under 2026-10-21, where lists are a capped plain array.
 // starting_after: A cursor: the id of an item (the previous page's `next_cursor`); returns the items after it. From API version 2026-11-01; ignored under 2026-10-21, where lists are a capped plain array.
@@ -2362,7 +2479,9 @@ func (c *Client) GetCreatorsEach(ctx context.Context, params *GetCreatorsParams,
 //
 // One published creator profile with verified stats. 404 when not listed.
 //
-// **Auth:** an API key with `growth:read` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `growth:read`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `growth:read`, `growth:write`, `read`, `full`, `admin`.
 func (c *Client) GetCreatorsAccountID(ctx context.Context, accountId string, opts ...RequestOption) (*CreatorProfile, error) {
 	var out CreatorProfile
 	if err := c.do(ctx, "GET", "/v1/creators/"+url.PathEscape(accountId), nil, nil, &out, "json", opts); err != nil {
@@ -2399,7 +2518,9 @@ func (p *GetDealsParams) values() url.Values {
 //
 // Deals partners registered, newest first. Filter with `status` (`submitted`, `approved`, `rejected`, `won`, `lost`).
 //
-// **Auth:** an API key with `growth:read` (or `full`), or a session of any role.
+// **Auth:** an API key with `growth:read`, or a session of any role.
+//
+// **Scopes:** `growth:read`, `growth:write`, `read`, `full`, `admin`.
 //
 // limit: Items per page, 1 to 100 (default 50). From API version 2026-11-01; ignored under 2026-10-21, where lists are a capped plain array.
 // starting_after: A cursor: the id of an item (the previous page's `next_cursor`); returns the items after it. From API version 2026-11-01; ignored under 2026-10-21, where lists are a capped plain array.
@@ -2452,7 +2573,9 @@ func (p *GetDisputesParams) values() url.Values {
 //
 // Disputes partners filed with this org, newest first.
 //
-// **Auth:** an API key with `commissions:read` (or `full`), or a session of any role.
+// **Auth:** an API key with `commissions:read`, or a session of any role.
+//
+// **Scopes:** `commissions:read`, `commissions:write`, `read`, `full`, `admin`.
 //
 // limit: Items per page, 1 to 100 (default 50). From API version 2026-11-01; ignored under 2026-10-21, where lists are a capped plain array.
 // starting_after: A cursor: the id of an item (the previous page's `next_cursor`); returns the items after it. From API version 2026-11-01; ignored under 2026-10-21, where lists are a capped plain array.
@@ -2483,7 +2606,9 @@ func (c *Client) GetDisputesEach(ctx context.Context, params *GetDisputesParams,
 //
 // The org's own email provider (`resend`, `brevo` or `postmark`), sender identity, branding and sending-domain status. The API key is never returned.
 //
-// **Auth:** an API key with `org:read` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `org:read`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `org:read`, `org:write`, `read`, `full`, `admin`.
 func (c *Client) GetEmailSettings(ctx context.Context, opts ...RequestOption) (*EmailSettings, error) {
 	var out EmailSettings
 	if err := c.do(ctx, "GET", "/v1/email/settings", nil, nil, &out, "json", opts); err != nil {
@@ -2518,7 +2643,9 @@ func (p *GetEmailTemplatesParams) values() url.Values {
 //
 // Every email event with its placeholders and, per locale, the default template and the org's override if any.
 //
-// **Auth:** an API key with `org:read` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `org:read`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `org:read`, `org:write`, `read`, `full`, `admin`.
 //
 // limit: Items per page, 1 to 100 (default 50). From API version 2026-11-01; ignored under 2026-10-21, where lists are a capped plain array.
 // starting_after: A cursor: the id of an item (the previous page's `next_cursor`); returns the items after it. From API version 2026-11-01; ignored under 2026-10-21, where lists are a capped plain array.
@@ -2582,7 +2709,9 @@ func (p *GetEventsParams) values() url.Values {
 //
 // The org's events, oldest first, in the shape webhook deliveries carry: filter with `since` and `topics`, page with `after` (the previous page's `nextCursor`). Every event is listed whether or not an endpoint subscribed to it. `referalli events tail --since 1h` uses it to backfill before tailing live.
 //
-// **Auth:** an API key with `webhooks:read` (or `full`), or a session of any role.
+// **Auth:** an API key with `webhooks:read`, or a session of any role.
+//
+// **Scopes:** `webhooks:read`, `webhooks:write`, `read`, `full`, `admin`.
 //
 // since: Only events created at or after this time.
 // topics: Comma-separated topics (default: every topic).
@@ -2615,7 +2744,9 @@ func (p *GetExportAccountingParams) values() url.Values {
 //
 // A year's sent payouts as a CSV that QuickBooks (`format=quickbooks`, the default) or Xero imports.
 //
-// **Auth:** an API key with `payouts:read` (or `full`), or a session with role `owner`, `admin`, `finance`.
+// **Auth:** an API key with `payouts:read`, or a session with role `owner`, `admin`, `finance`.
+//
+// **Scopes:** `payouts:read`, `payouts:write`, `read`, `full`, `admin`.
 func (c *Client) GetExportAccounting(ctx context.Context, params *GetExportAccountingParams, opts ...RequestOption) (string, error) {
 	var out string
 	err := c.do(ctx, "GET", "/v1/export/accounting", params.values(), nil, &out, "text", opts)
@@ -2626,7 +2757,9 @@ func (c *Client) GetExportAccounting(ctx context.Context, params *GetExportAccou
 //
 // Every tenant table of the org as NDJSON (one JSON object per line, tagged with its table), streamed so any size works. Owner or admin.
 //
-// **Auth:** an API key with `analytics:read` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `analytics:read`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `analytics:read`, `analytics:write`, `read`, `full`, `admin`.
 func (c *Client) GetExportFull(ctx context.Context, opts ...RequestOption) (string, error) {
 	var out string
 	err := c.do(ctx, "GET", "/v1/export/full", nil, nil, &out, "text", opts)
@@ -2661,7 +2794,9 @@ func (p *GetFraudCasesParams) values() url.Values {
 //
 // The fraud case queue (self-referrals, quality, rings, value patterns, identity risk), newest first, with the evidence. Filter with `status`.
 //
-// **Auth:** an API key with `fraud:read` (or `full`), or a session of any role.
+// **Auth:** an API key with `fraud:read`, or a session of any role.
+//
+// **Scopes:** `fraud:read`, `fraud:write`, `read`, `full`, `admin`.
 //
 // limit: Items per page, 1 to 100 (default 50). From API version 2026-11-01; ignored under 2026-10-21, where lists are a capped plain array.
 // starting_after: A cursor: the id of an item (the previous page's `next_cursor`); returns the items after it. From API version 2026-11-01; ignored under 2026-10-21, where lists are a capped plain array.
@@ -2722,7 +2857,9 @@ func (p *GetFXRatesParams) values() url.Values {
 //
 // The org's rates first, then the platform fallback, newest per pair first. A payout uses the org's latest rate at or before the run, else the platform's. Filter by `base`, `quote`, `effectiveAt[gte]` and `effectiveAt[lte]`. Live mode leaves out the `fixture` sample rows; test mode lists them.
 //
-// **Auth:** an API key with `payouts:read` (or `full`), or a session with role `owner`, `admin`, `finance`.
+// **Auth:** an API key with `payouts:read`, or a session with role `owner`, `admin`, `finance`.
+//
+// **Scopes:** `payouts:read`, `payouts:write`, `read`, `full`, `admin`.
 //
 // effectiveAt[gte]: Only rates effective at or after this time.
 // effectiveAt[lte]: Only rates effective at or before this time.
@@ -2755,7 +2892,9 @@ func (c *Client) GetFXRatesEach(ctx context.Context, params *GetFXRatesParams, o
 //
 // A read-only GraphQL endpoint over the same org-scoped data as REST (programs, partners, referrals, analytics), with the same authentication. Mutations stay in REST.
 //
-// **Auth:** an API key with `analytics:read` (or `full`), or a session of any role.
+// **Auth:** an API key with `analytics:read`, or a session of any role.
+//
+// **Scopes:** `analytics:read`, `analytics:write`, `read`, `full`, `admin`.
 func (c *Client) GetGraphql(ctx context.Context, opts ...RequestOption) (*GetGraphqlResponse, error) {
 	var out GetGraphqlResponse
 	if err := c.do(ctx, "GET", "/v1/graphql", nil, nil, &out, "json", opts); err != nil {
@@ -2808,7 +2947,9 @@ func (c *Client) GetHostsCurrent(ctx context.Context, params *GetHostsCurrentPar
 //
 // On a merchant's portal domain, for the signed-in partner of that merchant: the head tags that tell the merchant's chat who they are (partner id, email, name) and, when the merchant saved its chat vendor's identity-verification secret, the vendor's proof (Intercom `user_hash`, a Zendesk messaging JWT, a HubSpot visitor token…). The secret itself never leaves the API. Elsewhere, or for someone who isn't this merchant's partner, `tags` is empty. Partner session; `private, no-store`.
 //
-// **Auth:** an API key with `partners:read` (or `full`), or a session of any role.
+// **Auth:** an API key with `partners:read`, or a session of any role.
+//
+// **Scopes:** `partners:read`, `partners:write`, `read`, `full`, `admin`.
 func (c *Client) GetHostsCurrentChatIdentity(ctx context.Context, opts ...RequestOption) (*GetHostsCurrentChatIdentityResponse, error) {
 	var out GetHostsCurrentChatIdentityResponse
 	if err := c.do(ctx, "GET", "/v1/hosts/current/chat-identity", nil, nil, &out, "json", opts); err != nil {
@@ -2860,7 +3001,9 @@ func (p *GetIncrementalityParams) values() url.Values {
 //
 // For a program's active referrals: treatment and control counts, conversion rates and lift, overall and per partner.
 //
-// **Auth:** an API key with `analytics:read` (or `full`), or a session of any role.
+// **Auth:** an API key with `analytics:read`, or a session of any role.
+//
+// **Scopes:** `analytics:read`, `analytics:write`, `read`, `full`, `admin`.
 func (c *Client) GetIncrementality(ctx context.Context, params *GetIncrementalityParams, opts ...RequestOption) (*GetIncrementalityResponse, error) {
 	var out GetIncrementalityResponse
 	if err := c.do(ctx, "GET", "/v1/incrementality", params.values(), nil, &out, "json", opts); err != nil {
@@ -2873,7 +3016,9 @@ func (c *Client) GetIncrementality(ctx context.Context, params *GetIncrementalit
 //
 // Every connection the org depends on, each with `ok`, a `detail`, and when it fails a `fix` and `docs` link: billing connections (and when each last received an event), sign-up connections, the tracking snippet (a visit in the last 30 days), payout connections, outbound webhook endpoints, and every adapter of a connected port. `hop` names the leg that failed on a path between systems. `ok` at the top is true only when every check is.
 //
-// **Auth:** an API key with `integrations:read` (or `full`), or a session of any role.
+// **Auth:** an API key with `integrations:read`, or a session of any role.
+//
+// **Scopes:** `integrations:read`, `integrations:write`, `read`, `full`, `admin`.
 func (c *Client) GetIntegrationHealth(ctx context.Context, opts ...RequestOption) (*GetIntegrationHealthResponse, error) {
 	var out GetIntegrationHealthResponse
 	if err := c.do(ctx, "GET", "/v1/integration-health", nil, nil, &out, "json", opts); err != nil {
@@ -2886,7 +3031,9 @@ func (c *Client) GetIntegrationHealth(ctx context.Context, opts ...RequestOption
 //
 // The HubSpot and Segment connections with status, settings and the last test result. Credentials are never returned.
 //
-// **Auth:** an API key with `integrations:read` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `integrations:read`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `integrations:read`, `integrations:write`, `read`, `full`, `admin`.
 func (c *Client) GetIntegrations(ctx context.Context, opts ...RequestOption) (*GetIntegrationsResponse, error) {
 	var out GetIntegrationsResponse
 	if err := c.do(ctx, "GET", "/v1/integrations", nil, nil, &out, "json", opts); err != nil {
@@ -2925,7 +3072,9 @@ func (p *GetIntegrationsDeliveriesParams) values() url.Values {
 //
 // What was sent to Zapier, HubSpot and Segment, newest first, filtered by `kind` and `status`.
 //
-// **Auth:** an API key with `integrations:read` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `integrations:read`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `integrations:read`, `integrations:write`, `read`, `full`, `admin`.
 //
 // limit: Items per page, 1 to 100 (default 50). From API version 2026-11-01; ignored under 2026-10-21, where lists are a capped plain array.
 // starting_after: A cursor: the id of an item (the previous page's `next_cursor`); returns the items after it. From API version 2026-11-01; ignored under 2026-10-21, where lists are a capped plain array.
@@ -2978,7 +3127,9 @@ func (p *GetInvitationsParams) values() url.Values {
 //
 // The org's creator invitations and their status (`pending`, `accepted`, `declined`, `withdrawn`).
 //
-// **Auth:** an API key with `partners:read` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `partners:read`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `partners:read`, `partners:write`, `read`, `full`, `admin`.
 //
 // limit: Items per page, 1 to 100 (default 50). From API version 2026-11-01; ignored under 2026-10-21, where lists are a capped plain array.
 // starting_after: A cursor: the id of an item (the previous page's `next_cursor`); returns the items after it. From API version 2026-11-01; ignored under 2026-10-21, where lists are a capped plain array.
@@ -3035,7 +3186,9 @@ func (p *GetLinksParams) values() url.Values {
 //
 // Tracked links with their short URL and click count, filtered by `programId` and/or `partnerId`.
 //
-// **Auth:** an API key with `links:read` (or `full`), or a session of any role.
+// **Auth:** an API key with `links:read`, or a session of any role.
+//
+// **Scopes:** `links:read`, `links:write`, `read`, `full`, `admin`.
 //
 // limit: Items per page, 1 to 100 (default 50). From API version 2026-11-01; ignored under 2026-10-21, where lists are a capped plain array.
 // starting_after: A cursor: the id of an item (the previous page's `next_cursor`); returns the items after it. From API version 2026-11-01; ignored under 2026-10-21, where lists are a capped plain array.
@@ -3066,7 +3219,9 @@ func (c *Client) GetLinksEach(ctx context.Context, params *GetLinksParams, opts 
 //
 // An SVG QR code for the link's short URL.
 //
-// **Auth:** an API key with `links:read` (or `full`), or a session of any role.
+// **Auth:** an API key with `links:read`, or a session of any role.
+//
+// **Scopes:** `links:read`, `links:write`, `read`, `full`, `admin`.
 func (c *Client) GetLinksIDQR(ctx context.Context, id string, opts ...RequestOption) (string, error) {
 	var out string
 	err := c.do(ctx, "GET", "/v1/links/"+url.PathEscape(id)+"/qr", nil, nil, &out, "text", opts)
@@ -3099,7 +3254,9 @@ func (p *GetMarketplaceListingParams) values() url.Values {
 //
 // The org's listings with their platform-computed stats: eligible clicks, active referrals, earnings per click, conversion rate, payout reliability and approval latency.
 //
-// **Auth:** an API key with `growth:read` (or `full`), or a session of any role.
+// **Auth:** an API key with `growth:read`, or a session of any role.
+//
+// **Scopes:** `growth:read`, `growth:write`, `read`, `full`, `admin`.
 //
 // limit: Items per page, 1 to 100 (default 50). From API version 2026-11-01; ignored under 2026-10-21, where lists are a capped plain array.
 // starting_after: A cursor: the id of an item (the previous page's `next_cursor`); returns the items after it. From API version 2026-11-01; ignored under 2026-10-21, where lists are a capped plain array.
@@ -3130,7 +3287,9 @@ func (c *Client) GetMarketplaceListingEach(ctx context.Context, params *GetMarke
 //
 // Who is calling. With a user session: the user and their org memberships (no `x-org-id` needed). With an API key: `{ user: null, memberships: [], apiKey, org: { id, name } }`, where `apiKey` holds the key (name, prefix, scopes, pinned `apiVersion`, `livemode`, owner, expiry, `programIds`). The mode is `apiKey.livemode`; there is no top-level `livemode`.
 //
-// **Auth:** an API key with `team:read` (or `full`), or a session of any role.
+// **Auth:** an API key with `team:read`, or a session of any role.
+//
+// **Scopes:** `team:read`, `team:write`, `read`, `full`, `admin`.
 func (c *Client) GetMe(ctx context.Context, opts ...RequestOption) (*GetMeResponse, error) {
 	var out GetMeResponse
 	if err := c.do(ctx, "GET", "/v1/me", nil, nil, &out, "json", opts); err != nil {
@@ -3167,7 +3326,9 @@ func (p *GetNegotiationsParams) values() url.Values {
 //
 // Agent negotiation rounds and their decisions, newest first, optionally for one program.
 //
-// **Auth:** an API key with `growth:read` (or `full`), or a session of any role.
+// **Auth:** an API key with `growth:read`, or a session of any role.
+//
+// **Scopes:** `growth:read`, `growth:write`, `read`, `full`, `admin`.
 //
 // limit: Items per page, 1 to 100 (default 50). From API version 2026-11-01; ignored under 2026-10-21, where lists are a capped plain array.
 // starting_after: A cursor: the id of an item (the previous page's `next_cursor`); returns the items after it. From API version 2026-11-01; ignored under 2026-10-21, where lists are a capped plain array.
@@ -3214,7 +3375,9 @@ func (p *GetNetworkJourneyParams) values() url.Values {
 //
 // For a hashed customer email, the partner accounts that touched them at any opted-in merchant (never which merchant) and each one's credit under `model`. 403 unless the org has joined the network.
 //
-// **Auth:** an API key with `growth:read` (or `full`), or a session of any role.
+// **Auth:** an API key with `growth:read`, or a session of any role.
+//
+// **Scopes:** `growth:read`, `growth:write`, `read`, `full`, `admin`.
 func (c *Client) GetNetworkJourney(ctx context.Context, params *GetNetworkJourneyParams, opts ...RequestOption) (*GetNetworkJourneyResponse, error) {
 	var out GetNetworkJourneyResponse
 	if err := c.do(ctx, "GET", "/v1/network/journey", params.values(), nil, &out, "json", opts); err != nil {
@@ -3227,7 +3390,9 @@ func (c *Client) GetNetworkJourney(ctx context.Context, params *GetNetworkJourne
 //
 // Whether the org contributes to (and can read) the attribution network.
 //
-// **Auth:** an API key with `growth:read` (or `full`), or a session of any role.
+// **Auth:** an API key with `growth:read`, or a session of any role.
+//
+// **Scopes:** `growth:read`, `growth:write`, `read`, `full`, `admin`.
 func (c *Client) GetNetworkSettings(ctx context.Context, opts ...RequestOption) (*GetNetworkSettingsResponse, error) {
 	var out GetNetworkSettingsResponse
 	if err := c.do(ctx, "GET", "/v1/network/settings", nil, nil, &out, "json", opts); err != nil {
@@ -3264,7 +3429,9 @@ func (p *GetNotificationsParams) values() url.Values {
 //
 // The org's in-app notifications (failing webhooks, anomalies, answered invitations…), newest first. `unread=true` for unread only.
 //
-// **Auth:** an API key with `org:read` (or `full`), or a session of any role.
+// **Auth:** an API key with `org:read`, or a session of any role.
+//
+// **Scopes:** `org:read`, `org:write`, `read`, `full`, `admin`.
 //
 // unread: true: unread notifications only.
 // limit: Items per page, 1 to 100 (default 50). From API version 2026-11-01; ignored under 2026-10-21, where lists are a capped plain array.
@@ -3318,7 +3485,9 @@ func (p *GetOnchainConnectionsParams) values() url.Values {
 //
 // The org's on-chain conversion connections.
 //
-// **Auth:** an API key with `billing:read` (or `full`), or a session of any role.
+// **Auth:** an API key with `billing:read`, or a session of any role.
+//
+// **Scopes:** `billing:read`, `billing:write`, `read`, `full`, `admin`.
 //
 // limit: Items per page, 1 to 100 (default 50). From API version 2026-11-01; ignored under 2026-10-21, where lists are a capped plain array.
 // starting_after: A cursor: the id of an item (the previous page's `next_cursor`); returns the items after it. From API version 2026-11-01; ignored under 2026-10-21, where lists are a capped plain array.
@@ -3373,7 +3542,9 @@ func (c *Client) GetOpenapiYaml(ctx context.Context, opts ...RequestOption) (str
 //
 // The current org: `id`, name, plan, settings, public `trackingToken`, payout KYC requirement and mode (`livemode`; test orgs also carry `liveOrgId`).
 //
-// **Auth:** an API key with `org:read` (or `full`), or a session of any role.
+// **Auth:** an API key with `org:read`, or a session of any role.
+//
+// **Scopes:** `org:read`, `org:write`, `read`, `full`, `admin`.
 func (c *Client) GetOrg(ctx context.Context, opts ...RequestOption) (*Org, error) {
 	var out Org
 	if err := c.do(ctx, "GET", "/v1/org", nil, nil, &out, "json", opts); err != nil {
@@ -3386,7 +3557,9 @@ func (c *Client) GetOrg(ctx context.Context, opts ...RequestOption) (*Org, error
 //
 // What to enter in Cookie Munch to send your site's consent events to Referalli: link partner `referalli` with `externalId` (your org id); deliveries go to `receiverUrl`. `sites` are the Cookie Munch sites (cbids) whose events this org accepts, and `grants` says, per site, whether its owner granted Referalli that site in Cookie Munch (`granted`, `waiting_on_partner`, `revoked`, `expired`, `none`, or `unknown` when Cookie Munch couldn't be asked; `grantCheck` says why). `stampCheck.status` is `live` when Referalli checks visitors' consent stamps with Cookie Munch, else `not_configured`.
 //
-// **Auth:** an API key with `org:read` (or `full`), or a session of any role.
+// **Auth:** an API key with `org:read`, or a session of any role.
+//
+// **Scopes:** `org:read`, `org:write`, `read`, `full`, `admin`.
 func (c *Client) GetOrgConsentPartnersCookiemunch(ctx context.Context, opts ...RequestOption) (*GetOrgConsentPartnersCookiemunchResponse, error) {
 	var out GetOrgConsentPartnersCookiemunchResponse
 	if err := c.do(ctx, "GET", "/v1/org/consent-partners/cookiemunch", nil, nil, &out, "json", opts); err != nil {
@@ -3415,7 +3588,9 @@ func (p *GetOrgConsentPartnersCookiemunchEventsParams) values() url.Values {
 //
 // Consent evidence from Cookie Munch, newest first: each `consent.recorded` and `consent.withdrawn` event for your registered sites, with the visitor's consent `stamp`, the `choices` (and for a withdrawal, the `withdrawn` categories), and the id of the key that signed it. Filter by `stamp` to see one visitor's history; with `stamp`, `checks` lists what Cookie Munch said about it (newest first, `credited` only for `consented`). Append-only.
 //
-// **Auth:** an API key with `org:read` (or `full`), or a session of any role.
+// **Auth:** an API key with `org:read`, or a session of any role.
+//
+// **Scopes:** `org:read`, `org:write`, `read`, `full`, `admin`.
 //
 // stamp: Only this visitor's consent stamp.
 func (c *Client) GetOrgConsentPartnersCookiemunchEvents(ctx context.Context, params *GetOrgConsentPartnersCookiemunchEventsParams, opts ...RequestOption) (*GetOrgConsentPartnersCookiemunchEventsResponse, error) {
@@ -3430,7 +3605,9 @@ func (c *Client) GetOrgConsentPartnersCookiemunchEvents(ctx context.Context, par
 //
 // Whether the daily ECB reference-rate feed is on for this org, and the date of its latest rate.
 //
-// **Auth:** an API key with `org:read` (or `full`), or a session with role `owner`, `admin`, `finance`.
+// **Auth:** an API key with `org:read`, or a session with role `owner`, `admin`, `finance`.
+//
+// **Scopes:** `org:read`, `org:write`, `read`, `full`, `admin`.
 func (c *Client) GetOrgFXFeed(ctx context.Context, opts ...RequestOption) (*GetOrgFxFeedResponse, error) {
 	var out GetOrgFxFeedResponse
 	if err := c.do(ctx, "GET", "/v1/org/fx-feed", nil, nil, &out, "json", opts); err != nil {
@@ -3443,7 +3620,9 @@ func (c *Client) GetOrgFXFeed(ctx context.Context, opts ...RequestOption) (*GetO
 //
 // What runs on the pages Referalli hosts for you on your own portal domain (the partner portal and `/join`): your consent banner (Cookie Munch, OneTrust, Cookiebot, Usercentrics, Didomi, Osano, Termly, iubenda, CookieYes, TrustArc, Ketch, Transcend, CookieFirst, consentmanager, Cookie Information, CookieScript, CookieHub, Google Privacy & messaging, Axeptio, Sourcepoint, InMobi Choice, Securiti, Enzuzo, CookiePro, TrustCommander, Klaro, Civic Cookie Control, a custom CMP, a built-in necessary-only notice, or none) and your support chat (Chatly, Intercom, Crisp, Zendesk Messaging, HubSpot, Drift, LiveChat, Tawk.to, Freshchat, Tidio, Help Scout Beacon, Front, Chatwoot, Olark, Smartsupp, JivoChat, Gorgias, Pylon, Plain, Userlike, Zoho SalesIQ, Re:amaze, Chatra, Kustomer, Gladly, Brevo, Trengo, Dixa, Gist, Freshdesk, LiveAgent, Chatbase, Voiceflow, Botpress, Salesforce, Dynamics 365 or custom). `adapters.consent[].fields` are the `config.params` a CMP's inline snippet needs. `adapters.chat[].fields` lists each chat's config keys; `chat.hasIdentitySecret` says whether an identity-verification secret is saved (never the secret). `served` is exactly what visitors get: the head tags, the "Cookie settings" link and the Content-Security-Policy built from these adapters. Referalli's own banner and chat never run on your domain.
 //
-// **Auth:** an API key with `org:read` (or `full`), or a session of any role.
+// **Auth:** an API key with `org:read`, or a session of any role.
+//
+// **Scopes:** `org:read`, `org:write`, `read`, `full`, `admin`.
 func (c *Client) GetOrgHostedPages(ctx context.Context, opts ...RequestOption) (*GetOrgHostedPagesResponse, error) {
 	var out GetOrgHostedPagesResponse
 	if err := c.do(ctx, "GET", "/v1/org/hosted-pages", nil, nil, &out, "json", opts); err != nil {
@@ -3478,7 +3657,9 @@ func (p *GetOrgMembersParams) values() url.Values {
 //
 // Members of the org with their role and email, oldest first.
 //
-// **Auth:** an API key with `team:read` (or `full`), or a session of any role.
+// **Auth:** an API key with `team:read`, or a session of any role.
+//
+// **Scopes:** `team:read`, `team:write`, `read`, `full`, `admin`.
 //
 // limit: Items per page, 1 to 100 (default 50). From API version 2026-11-01; ignored under 2026-10-21, where lists are a capped plain array.
 // starting_after: A cursor: the id of an item (the previous page's `next_cursor`); returns the items after it. From API version 2026-11-01; ignored under 2026-10-21, where lists are a capped plain array.
@@ -3509,7 +3690,9 @@ func (c *Client) GetOrgMembersEach(ctx context.Context, params *GetOrgMembersPar
 //
 // The org schedule and its next run date, plus each program's override (`{ kind: 'off' }`, its own schedule, or `null` to follow the org) and next run date.
 //
-// **Auth:** an API key with `payouts:read` (or `full`), or a session of any role.
+// **Auth:** an API key with `payouts:read`, or a session of any role.
+//
+// **Scopes:** `payouts:read`, `payouts:write`, `read`, `full`, `admin`.
 func (c *Client) GetOrgPayoutSchedule(ctx context.Context, opts ...RequestOption) (*GetOrgPayoutScheduleResponse, error) {
 	var out GetOrgPayoutScheduleResponse
 	if err := c.do(ctx, "GET", "/v1/org/payout-schedule", nil, nil, &out, "json", opts); err != nil {
@@ -3522,7 +3705,9 @@ func (c *Client) GetOrgPayoutSchedule(ctx context.Context, opts ...RequestOption
 //
 // How partners sign in to the org's portal: `referalli` (partner accounts, the default), `oidc` (the merchant's IdP) or `custom` (the merchant's own session, as a short-lived JWT). Includes the audience tokens must carry, the URL to send partners to, the redirect URI to register, and the last check. Never the secret.
 //
-// **Auth:** an API key with `org:read` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `org:read`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `org:read`, `org:write`, `read`, `full`, `admin`.
 func (c *Client) GetOrgPortalAuth(ctx context.Context, opts ...RequestOption) (*GetOrgPortalAuthResponse, error) {
 	var out GetOrgPortalAuthResponse
 	if err := c.do(ctx, "GET", "/v1/org/portal-auth", nil, nil, &out, "json", opts); err != nil {
@@ -3535,7 +3720,9 @@ func (c *Client) GetOrgPortalAuth(ctx context.Context, opts ...RequestOption) (*
 //
 // The query parameters aff.js reads a referral code from: the built-in ones (`via`, `ref`, `aff`) and the org's extra ones.
 //
-// **Auth:** an API key with `org:read` (or `full`), or a session of any role.
+// **Auth:** an API key with `org:read`, or a session of any role.
+//
+// **Scopes:** `org:read`, `org:write`, `read`, `full`, `admin`.
 func (c *Client) GetOrgReferralParams(ctx context.Context, opts ...RequestOption) (*GetOrgReferralParamsResponse, error) {
 	var out GetOrgReferralParamsResponse
 	if err := c.do(ctx, "GET", "/v1/org/referral-params", nil, nil, &out, "json", opts); err != nil {
@@ -3548,7 +3735,9 @@ func (c *Client) GetOrgReferralParams(ctx context.Context, opts ...RequestOption
 //
 // How many days each kind of raw data is kept before the nightly purge, the allowed minimum and default per kind, and the last purge run.
 //
-// **Auth:** an API key with `org:read` (or `full`), or a session of any role.
+// **Auth:** an API key with `org:read`, or a session of any role.
+//
+// **Scopes:** `org:read`, `org:write`, `read`, `full`, `admin`.
 func (c *Client) GetOrgRetention(ctx context.Context, opts ...RequestOption) (*Retention, error) {
 	var out Retention
 	if err := c.do(ctx, "GET", "/v1/org/retention", nil, nil, &out, "json", opts); err != nil {
@@ -3561,7 +3750,9 @@ func (c *Client) GetOrgRetention(ctx context.Context, opts ...RequestOption) (*R
 //
 // Single sign-on for the org: whether SSO is configured on this deployment and linked to a directory tenant, its connections and domains, whether SSO is required, the role mapping, recent setup tickets and any provider error.
 //
-// **Auth:** an API key with `org:read` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `org:read`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `org:read`, `org:write`, `read`, `full`, `admin`.
 func (c *Client) GetOrgSSO(ctx context.Context, opts ...RequestOption) (*GetOrgSsoResponse, error) {
 	var out GetOrgSsoResponse
 	if err := c.do(ctx, "GET", "/v1/org/sso", nil, nil, &out, "json", opts); err != nil {
@@ -3574,7 +3765,9 @@ func (c *Client) GetOrgSSO(ctx context.Context, opts ...RequestOption) (*GetOrgS
 //
 // The SAML service-provider metadata for one of the org's SSO connections, to give the identity provider.
 //
-// **Auth:** an API key with `org:read` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `org:read`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `org:read`, `org:write`, `read`, `full`, `admin`.
 func (c *Client) GetOrgSSOConnectionsIDSamlMetadata(ctx context.Context, id string, opts ...RequestOption) (*GetOrgSsoConnectionsIdSamlMetadataResponse, error) {
 	var out GetOrgSsoConnectionsIdSamlMetadataResponse
 	if err := c.do(ctx, "GET", "/v1/org/sso/connections/"+url.PathEscape(id)+"/saml-metadata", nil, nil, &out, "json", opts); err != nil {
@@ -3587,7 +3780,9 @@ func (c *Client) GetOrgSSOConnectionsIDSamlMetadata(ctx context.Context, id stri
 //
 // The org's legal name, address, country, VAT id, EIN, domestic VAT rate, whether partner VAT ids are checked against EU VIES, and the 1099 filing provider.
 //
-// **Auth:** an API key with `org:read` (or `full`), or a session with role `owner`, `admin`, `finance`.
+// **Auth:** an API key with `org:read`, or a session with role `owner`, `admin`, `finance`.
+//
+// **Scopes:** `org:read`, `org:write`, `read`, `full`, `admin`.
 func (c *Client) GetOrgTaxProfile(ctx context.Context, opts ...RequestOption) (*TaxProfile, error) {
 	var out TaxProfile
 	if err := c.do(ctx, "GET", "/v1/org/tax-profile", nil, nil, &out, "json", opts); err != nil {
@@ -3600,7 +3795,9 @@ func (c *Client) GetOrgTaxProfile(ctx context.Context, opts ...RequestOption) (*
 //
 // How `aff.js` reads visitor consent unless the tag says otherwise (`data-consent`): `auto` detects the site's CMP (Cookie Munch, OneTrust, Cookiebot, Usercentrics, Didomi, Osano, Termly, IAB TCF and GPP, Google Consent Mode, or `window.referalliConsent`), an adapter id pins one, `pending` waits for `aff.consent(true|false)`, and `none` always stores. Until consent is granted nothing is stored or sent; the referral stays in memory for the sign-up. `noCmp` is what `auto` does on a site without a CMP. `configured: false` is an org that never chose: it serves `none`, so existing tags behave as before. Lists the adapters with their default category.
 //
-// **Auth:** an API key with `org:read` (or `full`), or a session of any role.
+// **Auth:** an API key with `org:read`, or a session of any role.
+//
+// **Scopes:** `org:read`, `org:write`, `read`, `full`, `admin`.
 func (c *Client) GetOrgTrackingConsent(ctx context.Context, opts ...RequestOption) (*GetOrgTrackingConsentResponse, error) {
 	var out GetOrgTrackingConsentResponse
 	if err := c.do(ctx, "GET", "/v1/org/tracking-consent", nil, nil, &out, "json", opts); err != nil {
@@ -3635,7 +3832,9 @@ func (p *GetOutreachParams) values() url.Values {
 //
 // Drafted, approved and sent outreach messages, newest first.
 //
-// **Auth:** an API key with `growth:read` (or `full`), or a session of any role.
+// **Auth:** an API key with `growth:read`, or a session of any role.
+//
+// **Scopes:** `growth:read`, `growth:write`, `read`, `full`, `admin`.
 //
 // limit: Items per page, 1 to 100 (default 50). From API version 2026-11-01; ignored under 2026-10-21, where lists are a capped plain array.
 // starting_after: A cursor: the id of an item (the previous page's `next_cursor`); returns the items after it. From API version 2026-11-01; ignored under 2026-10-21, where lists are a capped plain array.
@@ -4623,7 +4822,9 @@ func (p *GetPartnersParams) values() url.Values {
 //
 // Partners, newest first. Filter by `email`, `externalRef` (the partner's own or a program-scoped one on an enrollment) or `status`. `programId` returns only partners enrolled in that program, each with the program's own `externalRef` for them when it has one, and then `externalRef` matches that. Archived partners are hidden unless you ask for them with `status=archived` or `includeArchived=true`. Always a list, even for a filter that matches one partner: read `data[0]`. Partner reads carry no `code` or `link`; use `GET /v1/partners/{id}/summary?programId=` or `GET /v1/links?partnerId=` for those.
 //
-// **Auth:** an API key with `partners:read` (or `full`), or a session of any role.
+// **Auth:** an API key with `partners:read`, or a session of any role.
+//
+// **Scopes:** `partners:read`, `partners:write`, `read`, `full`, `admin`.
 //
 // limit: Items per page, 1 to 100 (default 50). From API version 2026-11-01; ignored under 2026-10-21, where lists are a capped plain array.
 // starting_after: A cursor: the id of an item (the previous page's `next_cursor`); returns the items after it. From API version 2026-11-01; ignored under 2026-10-21, where lists are a capped plain array.
@@ -4681,7 +4882,9 @@ func (p *GetPartnersIDParams) values() url.Values {
 //
 // One partner, with a cross-network warning when the same account is flagged or banned by other merchants (it never says which). With `programId`, `externalRef` is the one that program knows them by: its own externalRef for them when it has one, else the partner's.
 //
-// **Auth:** an API key with `partners:read` (or `full`), or a session of any role.
+// **Auth:** an API key with `partners:read`, or a session of any role.
+//
+// **Scopes:** `partners:read`, `partners:write`, `read`, `full`, `admin`.
 func (c *Client) GetPartnersID(ctx context.Context, id string, params *GetPartnersIDParams, opts ...RequestOption) (*GetPartnersIdResponse, error) {
 	var out GetPartnersIdResponse
 	if err := c.do(ctx, "GET", "/v1/partners/"+url.PathEscape(id), params.values(), nil, &out, "json", opts); err != nil {
@@ -4716,7 +4919,9 @@ func (p *GetPartnersIDBalancesParams) values() url.Values {
 //
 // The partner's commission balances per currency: pending (in hold), approved (payable), paid and reversed.
 //
-// **Auth:** an API key with `commissions:read` (or `full`), or a session of any role.
+// **Auth:** an API key with `commissions:read`, or a session of any role.
+//
+// **Scopes:** `commissions:read`, `commissions:write`, `read`, `full`, `admin`.
 //
 // limit: Items per page, 1 to 100 (default 50). From API version 2026-11-01; ignored under 2026-10-21, where lists are a capped plain array.
 // starting_after: A cursor: the id of an item (the previous page's `next_cursor`); returns the items after it. From API version 2026-11-01; ignored under 2026-10-21, where lists are a capped plain array.
@@ -4769,7 +4974,9 @@ func (p *GetPartnersIDEnrollmentsParams) values() url.Values {
 //
 // The programs a partner is enrolled in or applied to, with status, group and `externalRef` (that program's own id for the partner, or null when the partner's own applies).
 //
-// **Auth:** an API key with `partners:read` (or `full`), or a session of any role.
+// **Auth:** an API key with `partners:read`, or a session of any role.
+//
+// **Scopes:** `partners:read`, `partners:write`, `read`, `full`, `admin`.
 //
 // limit: Items per page, 1 to 100 (default 50). From API version 2026-11-01; ignored under 2026-10-21, where lists are a capped plain array.
 // starting_after: A cursor: the id of an item (the previous page's `next_cursor`); returns the items after it. From API version 2026-11-01; ignored under 2026-10-21, where lists are a capped plain array.
@@ -4800,7 +5007,9 @@ func (c *Client) GetPartnersIDEnrollmentsEach(ctx context.Context, id string, pa
 //
 // The partner's payout method, currency, threshold and tax form status. Method details are not returned. 404 when none is set.
 //
-// **Auth:** an API key with `payouts:read` (or `full`), or a session of any role.
+// **Auth:** an API key with `payouts:read`, or a session of any role.
+//
+// **Scopes:** `payouts:read`, `payouts:write`, `read`, `full`, `admin`.
 func (c *Client) GetPartnersIDPayoutProfile(ctx context.Context, id string, opts ...RequestOption) (*PayoutProfile, error) {
 	var out PayoutProfile
 	if err := c.do(ctx, "GET", "/v1/partners/"+url.PathEscape(id)+"/payout-profile", nil, nil, &out, "json", opts); err != nil {
@@ -4813,7 +5022,9 @@ func (c *Client) GetPartnersIDPayoutProfile(ctx context.Context, id string, opts
 //
 // The partner's quality score computed now (with its metrics) and the last stored snapshot.
 //
-// **Auth:** an API key with `partners:read` (or `full`), or a session of any role.
+// **Auth:** an API key with `partners:read`, or a session of any role.
+//
+// **Scopes:** `partners:read`, `partners:write`, `read`, `full`, `admin`.
 func (c *Client) GetPartnersIDQuality(ctx context.Context, id string, opts ...RequestOption) (*GetPartnersIdQualityResponse, error) {
 	var out GetPartnersIdQualityResponse
 	if err := c.do(ctx, "GET", "/v1/partners/"+url.PathEscape(id)+"/quality", nil, nil, &out, "json", opts); err != nil {
@@ -4840,7 +5051,9 @@ func (p *GetPartnersIDStatsParams) values() url.Values {
 //
 // What the partner brought in, in one call: eligible clicks, referrals by status, converted customers (referred, not void, with at least one payment) and balances per currency. Pass `programId` to count one program only (an org shared by several products).
 //
-// **Auth:** an API key with `commissions:read` (or `full`), or a session of any role.
+// **Auth:** an API key with `commissions:read`, or a session of any role.
+//
+// **Scopes:** `commissions:read`, `commissions:write`, `read`, `full`, `admin`.
 func (c *Client) GetPartnersIDStats(ctx context.Context, id string, params *GetPartnersIDStatsParams, opts ...RequestOption) (*GetPartnersIdStatsResponse, error) {
 	var out GetPartnersIdStatsResponse
 	if err := c.do(ctx, "GET", "/v1/partners/"+url.PathEscape(id)+"/stats", params.values(), nil, &out, "json", opts); err != nil {
@@ -4865,9 +5078,11 @@ func (p *GetPartnersIDSummaryParams) values() url.Values {
 
 // GetPartnersIDSummary calls Get a partner's referrer summary. GET /v1/partners/{id}/summary.
 //
-// Everything a referrer panel shows, in one call: the stats for one program (`programId` is required) plus the partner's current `code` there (the newest coupon, else the newest link's code) and `linkUrl` (null when they have only a coupon).
+// Everything a referrer panel shows, in one call: the stats for one program (`programId` is required) plus the partner's current `code` there (the newest coupon, else the newest link's code), `linkUrl` (null when they have only a coupon) and the program's `terms` (as `GET /v1/programs/{id}/terms`; null when it has no rule yet).
 //
-// **Auth:** an API key with `commissions:read` (or `full`), or a session of any role.
+// **Auth:** an API key with `commissions:read`, or a session of any role.
+//
+// **Scopes:** `commissions:read`, `commissions:write`, `read`, `full`, `admin`.
 func (c *Client) GetPartnersIDSummary(ctx context.Context, id string, params *GetPartnersIDSummaryParams, opts ...RequestOption) (*GetPartnersIdSummaryResponse, error) {
 	var out GetPartnersIdSummaryResponse
 	if err := c.do(ctx, "GET", "/v1/partners/"+url.PathEscape(id)+"/summary", params.values(), nil, &out, "json", opts); err != nil {
@@ -5085,7 +5300,9 @@ func (p *GetPayoutConnectionsParams) values() url.Values {
 //
 // The payout providers the org connected with its own credentials (PayPal, Stripe, Circle, Wise, Payoneer, Tremendous), with environment and status. Secrets are never returned.
 //
-// **Auth:** an API key with `payouts:read` (or `full`), or a session with role `owner`, `admin`, `finance`.
+// **Auth:** an API key with `payouts:read`, or a session with role `owner`, `admin`, `finance`.
+//
+// **Scopes:** `payouts:read`, `payouts:write`, `read`, `full`, `admin`.
 //
 // limit: Items per page, 1 to 100 (default 50). From API version 2026-11-01; ignored under 2026-10-21, where lists are a capped plain array.
 // starting_after: A cursor: the id of an item (the previous page's `next_cursor`); returns the items after it. From API version 2026-11-01; ignored under 2026-10-21, where lists are a capped plain array.
@@ -5138,7 +5355,9 @@ func (p *GetPayoutRunsParams) values() url.Values {
 //
 // Payout runs, newest first, with their status and summary.
 //
-// **Auth:** an API key with `payouts:read` (or `full`), or a session of any role.
+// **Auth:** an API key with `payouts:read`, or a session of any role.
+//
+// **Scopes:** `payouts:read`, `payouts:write`, `read`, `full`, `admin`.
 //
 // limit: Items per page, 1 to 100 (default 50). From API version 2026-11-01; ignored under 2026-10-21, where lists are a capped plain array.
 // starting_after: A cursor: the id of an item (the previous page's `next_cursor`); returns the items after it. From API version 2026-11-01; ignored under 2026-10-21, where lists are a capped plain array.
@@ -5193,7 +5412,9 @@ func (p *GetPayoutsParams) values() url.Values {
 //
 // Individual payouts, newest first, with rail, provider reference and failure reason. Filter with `partnerId`.
 //
-// **Auth:** an API key with `payouts:read` (or `full`), or a session of any role.
+// **Auth:** an API key with `payouts:read`, or a session of any role.
+//
+// **Scopes:** `payouts:read`, `payouts:write`, `read`, `full`, `admin`.
 //
 // limit: Items per page, 1 to 100 (default 50). From API version 2026-11-01; ignored under 2026-10-21, where lists are a capped plain array.
 // starting_after: A cursor: the id of an item (the previous page's `next_cursor`); returns the items after it. From API version 2026-11-01; ignored under 2026-10-21, where lists are a capped plain array.
@@ -5238,7 +5459,9 @@ func (p *GetPayoutsIDInvoiceParams) values() url.Values {
 //
 // The self-billing invoice issued for a payout, as JSON or (`format=html`) a printable page. 404 when the payout has no invoice.
 //
-// **Auth:** an API key with `payouts:read` (or `full`), or a session of any role.
+// **Auth:** an API key with `payouts:read`, or a session of any role.
+//
+// **Scopes:** `payouts:read`, `payouts:write`, `read`, `full`, `admin`.
 func (c *Client) GetPayoutsIDInvoice(ctx context.Context, id string, params *GetPayoutsIDInvoiceParams, opts ...RequestOption) (*Invoice, error) {
 	var out Invoice
 	if err := c.do(ctx, "GET", "/v1/payouts/"+url.PathEscape(id)+"/invoice", params.values(), nil, &out, "json", opts); err != nil {
@@ -5291,7 +5514,9 @@ func (c *Client) GetPortalAuthCurrent(ctx context.Context, params *GetPortalAuth
 //
 // The partner portal's look and layout on your portal domain: `published` (what partners see) and `draft` (what you are editing, or null). Colours with a separate dark palette, the colour scheme, widths and density, fonts (a stylesheet URL, `@font-face` files, a family per role, the type scale), the logo set and favicon, component shape (radius, shadow, buttons, inputs, focus ring, links), an announcement, the header and footer, the home sections and navigation, the sign-in page, interface string overrides, typed theme settings, CSS snippets, custom CSS, phone tuning and embedding. Every key is optional; an unset key keeps the built-in look.
 //
-// **Auth:** an API key with `org:read` (or `full`), or a session of any role.
+// **Auth:** an API key with `org:read`, or a session of any role.
+//
+// **Scopes:** `org:read`, `org:write`, `read`, `full`, `admin`.
 func (c *Client) GetPortalTheme(ctx context.Context, opts ...RequestOption) (*GetPortalThemeResponse, error) {
 	var out GetPortalThemeResponse
 	if err := c.do(ctx, "GET", "/v1/portal/theme", nil, nil, &out, "json", opts); err != nil {
@@ -5318,7 +5543,9 @@ func (p *GetPortalThemeCompiledParams) values() url.Values {
 //
 // The draft (or `?which=published`) compiled: `css`, the stylesheet partners load, and `view`, the layout, brand and text the portal draws. For a live preview in your own editor.
 //
-// **Auth:** an API key with `org:read` (or `full`), or a session of any role.
+// **Auth:** an API key with `org:read`, or a session of any role.
+//
+// **Scopes:** `org:read`, `org:write`, `read`, `full`, `admin`.
 func (c *Client) GetPortalThemeCompiled(ctx context.Context, params *GetPortalThemeCompiledParams, opts ...RequestOption) (*GetPortalThemeCompiledResponse, error) {
 	var out GetPortalThemeCompiledResponse
 	if err := c.do(ctx, "GET", "/v1/portal/theme/compiled", params.values(), nil, &out, "json", opts); err != nil {
@@ -5331,7 +5558,9 @@ func (c *Client) GetPortalThemeCompiled(ctx context.Context, params *GetPortalTh
 //
 // Every key the portal design takes, as JSON Schema (draft 2020-12): build an editor or validate a theme file before you send it.
 //
-// **Auth:** an API key with `org:read` (or `full`), or a session of any role.
+// **Auth:** an API key with `org:read`, or a session of any role.
+//
+// **Scopes:** `org:read`, `org:write`, `read`, `full`, `admin`.
 func (c *Client) GetPortalThemeSchema(ctx context.Context, opts ...RequestOption) (*GetPortalThemeSchemaResponse, error) {
 	var out GetPortalThemeSchemaResponse
 	if err := c.do(ctx, "GET", "/v1/portal/theme/schema", nil, nil, &out, "json", opts); err != nil {
@@ -5344,7 +5573,9 @@ func (c *Client) GetPortalThemeSchema(ctx context.Context, opts ...RequestOption
 //
 // The last 50 published versions, newest first.
 //
-// **Auth:** an API key with `org:read` (or `full`), or a session of any role.
+// **Auth:** an API key with `org:read`, or a session of any role.
+//
+// **Scopes:** `org:read`, `org:write`, `read`, `full`, `admin`.
 func (c *Client) GetPortalThemeVersions(ctx context.Context, opts ...RequestOption) (*GetPortalThemeVersionsResponse, error) {
 	var out GetPortalThemeVersionsResponse
 	if err := c.do(ctx, "GET", "/v1/portal/theme/versions", nil, nil, &out, "json", opts); err != nil {
@@ -5357,7 +5588,9 @@ func (c *Client) GetPortalThemeVersions(ctx context.Context, opts ...RequestOpti
 //
 // The last 200 requests connected DSAR tools sent: operation, outcome and the vendor request id. Subjects are kept only as hashes.
 //
-// **Auth:** an API key with `privacy:read` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `privacy:read`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `privacy:read`, `privacy:write`, `read`, `full`, `admin`.
 func (c *Client) GetPrivacyExecutorRequests(ctx context.Context, opts ...RequestOption) (*GetPrivacyExecutorRequestsResponse, error) {
 	var out GetPrivacyExecutorRequestsResponse
 	if err := c.do(ctx, "GET", "/v1/privacy/executor-requests", nil, nil, &out, "json", opts); err != nil {
@@ -5370,7 +5603,9 @@ func (c *Client) GetPrivacyExecutorRequests(ctx context.Context, opts ...Request
 //
 // Every DSAR tool that can reach Referalli as a connected system (Cookie Munch cm-standard-v1, OneTrust, Transcend, DataGrail, Ketch, Osano, `custom` for any tool speaking Standard Webhooks), with the per-org URL to register, install steps and a health check. Keys are never returned.
 //
-// **Auth:** an API key with `privacy:read` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `privacy:read`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `privacy:read`, `privacy:write`, `read`, `full`, `admin`.
 func (c *Client) GetPrivacyExecutors(ctx context.Context, opts ...RequestOption) (*GetPrivacyExecutorsResponse, error) {
 	var out GetPrivacyExecutorsResponse
 	if err := c.do(ctx, "GET", "/v1/privacy/executors", nil, nil, &out, "json", opts); err != nil {
@@ -5397,7 +5632,9 @@ func (p *GetPrivacyExportParams) values() url.Values {
 //
 // Every stored row that references the customer, for a data-subject access request.
 //
-// **Auth:** an API key with `privacy:read` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `privacy:read`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `privacy:read`, `privacy:write`, `read`, `full`, `admin`.
 func (c *Client) GetPrivacyExport(ctx context.Context, params *GetPrivacyExportParams, opts ...RequestOption) (*CustomerExport, error) {
 	var out CustomerExport
 	if err := c.do(ctx, "GET", "/v1/privacy/export", params.values(), nil, &out, "json", opts); err != nil {
@@ -5432,7 +5669,9 @@ func (p *GetPrivacyRequestsParams) values() url.Values {
 //
 // Access and erasure requests, newest first, with their status.
 //
-// **Auth:** an API key with `privacy:read` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `privacy:read`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `privacy:read`, `privacy:write`, `read`, `full`, `admin`.
 //
 // limit: Items per page, 1 to 100 (default 50). From API version 2026-11-01; ignored under 2026-10-21, where lists are a capped plain array.
 // starting_after: A cursor: the id of an item (the previous page's `next_cursor`); returns the items after it. From API version 2026-11-01; ignored under 2026-10-21, where lists are a capped plain array.
@@ -5463,7 +5702,9 @@ func (c *Client) GetPrivacyRequestsEach(ctx context.Context, params *GetPrivacyR
 //
 // Poll one request: `pending`, `completed` or `failed`, and whether data was found.
 //
-// **Auth:** an API key with `privacy:read` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `privacy:read`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `privacy:read`, `privacy:write`, `read`, `full`, `admin`.
 func (c *Client) GetPrivacyRequestsID(ctx context.Context, id string, opts ...RequestOption) (*PrivacyRequest, error) {
 	var out PrivacyRequest
 	if err := c.do(ctx, "GET", "/v1/privacy/requests/"+url.PathEscape(id), nil, nil, &out, "json", opts); err != nil {
@@ -5476,7 +5717,9 @@ func (c *Client) GetPrivacyRequestsID(ctx context.Context, id string, opts ...Re
 //
 // The full result of a completed request; for access requests, the exported data. 400 until it is completed.
 //
-// **Auth:** an API key with `privacy:read` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `privacy:read`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `privacy:read`, `privacy:write`, `read`, `full`, `admin`.
 func (c *Client) GetPrivacyRequestsIDResult(ctx context.Context, id string, opts ...RequestOption) (*GetPrivacyRequestsIdResultResponse, error) {
 	var out GetPrivacyRequestsIdResultResponse
 	if err := c.do(ctx, "GET", "/v1/privacy/requests/"+url.PathEscape(id)+"/result", nil, nil, &out, "json", opts); err != nil {
@@ -5489,7 +5732,9 @@ func (c *Client) GetPrivacyRequestsIDResult(ctx context.Context, id string, opts
 //
 // Other products allowed to call this organization's API (REF-S28), newest first, with status, scopes and last use. Secrets are never shown again. Owners and admins, or a key with team:read.
 //
-// **Auth:** an API key with `team:read` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `team:read`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `team:read`, `team:write`, `read`, `full`, `admin`.
 func (c *Client) GetProductLinks(ctx context.Context, opts ...RequestOption) (*GetProductLinksResponse, error) {
 	var out GetProductLinksResponse
 	if err := c.do(ctx, "GET", "/v1/product-links", nil, nil, &out, "json", opts); err != nil {
@@ -5502,7 +5747,9 @@ func (c *Client) GetProductLinks(ctx context.Context, opts ...RequestOption) (*G
 //
 // The margin catalog: per product, a margin (bps) or a unit cost, used to turn revenue into profit.
 //
-// **Auth:** an API key with `analytics:read` (or `full`), or a session of any role.
+// **Auth:** an API key with `analytics:read`, or a session of any role.
+//
+// **Scopes:** `analytics:read`, `analytics:write`, `read`, `full`, `admin`.
 func (c *Client) GetProfitabilityProducts(ctx context.Context, opts ...RequestOption) (*GetProfitabilityProductsResponse, error) {
 	var out GetProfitabilityProductsResponse
 	if err := c.do(ctx, "GET", "/v1/profitability/products", nil, nil, &out, "json", opts); err != nil {
@@ -5515,7 +5762,9 @@ func (c *Client) GetProfitabilityProducts(ctx context.Context, opts ...RequestOp
 //
 // One product of the margin catalog.
 //
-// **Auth:** an API key with `analytics:read` (or `full`), or a session of any role.
+// **Auth:** an API key with `analytics:read`, or a session of any role.
+//
+// **Scopes:** `analytics:read`, `analytics:write`, `read`, `full`, `admin`.
 func (c *Client) GetProfitabilityProductsProductRef(ctx context.Context, productRef string, opts ...RequestOption) (*GetProfitabilityProductsProductRefResponse, error) {
 	var out GetProfitabilityProductsProductRefResponse
 	if err := c.do(ctx, "GET", "/v1/profitability/products/"+url.PathEscape(productRef), nil, nil, &out, "json", opts); err != nil {
@@ -5528,7 +5777,9 @@ func (c *Client) GetProfitabilityProductsProductRef(ctx context.Context, product
 //
 // Progress of a rebuild: `queued`, `running`, `done` or `failed` (a job untouched for an hour reports `failed` with `error: "stale"`), with processed and total counts.
 //
-// **Auth:** an API key with `analytics:read` (or `full`), or a session of any role.
+// **Auth:** an API key with `analytics:read`, or a session of any role.
+//
+// **Scopes:** `analytics:read`, `analytics:write`, `read`, `full`, `admin`.
 func (c *Client) GetProfitabilityRebuildJobID(ctx context.Context, jobId string, opts ...RequestOption) (*GetProfitabilityRebuildJobIdResponse, error) {
 	var out GetProfitabilityRebuildJobIdResponse
 	if err := c.do(ctx, "GET", "/v1/profitability/rebuild/"+url.PathEscape(jobId), nil, nil, &out, "json", opts); err != nil {
@@ -5555,7 +5806,9 @@ func (p *GetProfitabilitySettingsParams) values() url.Values {
 //
 // The economics credit ROI is computed with: reporting currency, default margin, how a credit's cost is modelled, how credit use is inferred, attribution and churn windows, target ROI and more. With `programId`, the program's overrides merged over the org's.
 //
-// **Auth:** an API key with `analytics:read` (or `full`), or a session of any role.
+// **Auth:** an API key with `analytics:read`, or a session of any role.
+//
+// **Scopes:** `analytics:read`, `analytics:write`, `read`, `full`, `admin`.
 func (c *Client) GetProfitabilitySettings(ctx context.Context, params *GetProfitabilitySettingsParams, opts ...RequestOption) (*GetProfitabilitySettingsResponse, error) {
 	var out GetProfitabilitySettingsResponse
 	if err := c.do(ctx, "GET", "/v1/profitability/settings", params.values(), nil, &out, "json", opts); err != nil {
@@ -5592,7 +5845,9 @@ func (p *GetProgramsParams) values() url.Values {
 //
 // The org's programs, oldest first, with their settings. `slug` returns just that program, still as a list (`data` holds one program, or none).
 //
-// **Auth:** an API key with `programs:read` (or `full`), or a session of any role.
+// **Auth:** an API key with `programs:read`, or a session of any role.
+//
+// **Scopes:** `programs:read`, `programs:write`, `read`, `full`, `admin`.
 //
 // limit: Items per page, 1 to 100 (default 50). From API version 2026-11-01; ignored under 2026-10-21, where lists are a capped plain array.
 // starting_after: A cursor: the id of an item (the previous page's `next_cursor`); returns the items after it. From API version 2026-11-01; ignored under 2026-10-21, where lists are a capped plain array.
@@ -5623,7 +5878,9 @@ func (c *Client) GetProgramsEach(ctx context.Context, params *GetProgramsParams,
 //
 // One program with its settings (defaults filled in) and public page.
 //
-// **Auth:** an API key with `programs:read` (or `full`), or a session of any role.
+// **Auth:** an API key with `programs:read`, or a session of any role.
+//
+// **Scopes:** `programs:read`, `programs:write`, `read`, `full`, `admin`.
 func (c *Client) GetProgramsID(ctx context.Context, id string, opts ...RequestOption) (*Program, error) {
 	var out Program
 	if err := c.do(ctx, "GET", "/v1/programs/"+url.PathEscape(id), nil, nil, &out, "json", opts); err != nil {
@@ -5636,7 +5893,9 @@ func (c *Client) GetProgramsID(ctx context.Context, id string, opts ...RequestOp
 //
 // The program's autopricing configuration, or `null` when it's off.
 //
-// **Auth:** an API key with `programs:read` (or `full`), or a session of any role.
+// **Auth:** an API key with `programs:read`, or a session of any role.
+//
+// **Scopes:** `programs:read`, `programs:write`, `read`, `full`, `admin`.
 func (c *Client) GetProgramsIDAutopricing(ctx context.Context, id string, opts ...RequestOption) (*GetProgramsIdAutopricingResponse, error) {
 	var out GetProgramsIdAutopricingResponse
 	if err := c.do(ctx, "GET", "/v1/programs/"+url.PathEscape(id)+"/autopricing", nil, nil, &out, "json", opts); err != nil {
@@ -5675,7 +5934,9 @@ func (p *GetProgramsIDEnrollmentsParams) values() url.Values {
 //
 // The program's enrollments and applications, newest first, each with the partner and a cross-network warning when other merchants banned the same account and `externalRef` (this program's own id for the partner, or null). Filter with `status` or `partnerId`.
 //
-// **Auth:** an API key with `programs:read` (or `full`), or a session of any role.
+// **Auth:** an API key with `programs:read`, or a session of any role.
+//
+// **Scopes:** `programs:read`, `programs:write`, `read`, `full`, `admin`.
 //
 // limit: Items per page, 1 to 100 (default 50). From API version 2026-11-01; ignored under 2026-10-21, where lists are a capped plain array.
 // starting_after: A cursor: the id of an item (the previous page's `next_cursor`); returns the items after it. From API version 2026-11-01; ignored under 2026-10-21, where lists are a capped plain array.
@@ -5722,7 +5983,9 @@ func (p *GetProgramsIDGraphParams) values() url.Values {
 //
 // Who referred whom from one partner (`root`) down, with revenue and net commission per node. Where customers are partners too (customerRef equals a partner's externalRef), the tree continues up to `depth` partner levels. Stops at 5,000 referrals and says so.
 //
-// **Auth:** an API key with `programs:read` (or `full`), or a session of any role.
+// **Auth:** an API key with `programs:read`, or a session of any role.
+//
+// **Scopes:** `programs:read`, `programs:write`, `read`, `full`, `admin`.
 func (c *Client) GetProgramsIDGraph(ctx context.Context, id string, params *GetProgramsIDGraphParams, opts ...RequestOption) (*GetProgramsIdGraphResponse, error) {
 	var out GetProgramsIdGraphResponse
 	if err := c.do(ctx, "GET", "/v1/programs/"+url.PathEscape(id)+"/graph", params.values(), nil, &out, "json", opts); err != nil {
@@ -5759,7 +6022,9 @@ func (p *GetProgramsIDGroupsParams) values() url.Values {
 //
 // The program's partner groups with member counts. Archived groups are hidden unless `includeArchived=true`.
 //
-// **Auth:** an API key with `programs:read` (or `full`), or a session of any role.
+// **Auth:** an API key with `programs:read`, or a session of any role.
+//
+// **Scopes:** `programs:read`, `programs:write`, `read`, `full`, `admin`.
 //
 // includeArchived: true: include archived groups.
 // limit: Items per page, 1 to 100 (default 50). From API version 2026-11-01; ignored under 2026-10-21, where lists are a capped plain array.
@@ -5791,7 +6056,9 @@ func (c *Client) GetProgramsIDGroupsEach(ctx context.Context, id string, params 
 //
 // The program's negotiation policy, or `null` when it isn't open to negotiation.
 //
-// **Auth:** an API key with `programs:read` (or `full`), or a session of any role.
+// **Auth:** an API key with `programs:read`, or a session of any role.
+//
+// **Scopes:** `programs:read`, `programs:write`, `read`, `full`, `admin`.
 func (c *Client) GetProgramsIDNegotiationPolicy(ctx context.Context, id string, opts ...RequestOption) (*GetProgramsIdNegotiationPolicyResponse, error) {
 	var out GetProgramsIdNegotiationPolicyResponse
 	if err := c.do(ctx, "GET", "/v1/programs/"+url.PathEscape(id)+"/negotiation-policy", nil, nil, &out, "json", opts); err != nil {
@@ -5826,7 +6093,9 @@ func (p *GetProgramsIDPromotionsParams) values() url.Values {
 //
 // The program's promotions, latest start first.
 //
-// **Auth:** an API key with `programs:read` (or `full`), or a session of any role.
+// **Auth:** an API key with `programs:read`, or a session of any role.
+//
+// **Scopes:** `programs:read`, `programs:write`, `read`, `full`, `admin`.
 //
 // limit: Items per page, 1 to 100 (default 50). From API version 2026-11-01; ignored under 2026-10-21, where lists are a capped plain array.
 // starting_after: A cursor: the id of an item (the previous page's `next_cursor`); returns the items after it. From API version 2026-11-01; ignored under 2026-10-21, where lists are a capped plain array.
@@ -5857,7 +6126,9 @@ func (c *Client) GetProgramsIDPromotionsEach(ctx context.Context, id string, par
 //
 // The program's reward for referred customers (the friend's side of a double-sided program), or `null` when it has none.
 //
-// **Auth:** an API key with `programs:read` (or `full`), or a session of any role.
+// **Auth:** an API key with `programs:read`, or a session of any role.
+//
+// **Scopes:** `programs:read`, `programs:write`, `read`, `full`, `admin`.
 func (c *Client) GetProgramsIDRefereeReward(ctx context.Context, id string, opts ...RequestOption) (*GetProgramsIdRefereeRewardResponse, error) {
 	var out GetProgramsIdRefereeRewardResponse
 	if err := c.do(ctx, "GET", "/v1/programs/"+url.PathEscape(id)+"/referee-reward", nil, nil, &out, "json", opts); err != nil {
@@ -5870,7 +6141,9 @@ func (c *Client) GetProgramsIDRefereeReward(ctx context.Context, id string, opts
 //
 // Whether settled lines of this program are credited to the partner's Stripe customer balance, how that customer is found (`referrerMatch`), and whether store-credit referee rewards are credited too. `keyConnected` says whether a Stripe key is available to this program; `hasOwnKey` whether that is the program's own key rather than the org's. The key is never returned.
 //
-// **Auth:** an API key with `payouts:read` (or `full`), or a session of any role.
+// **Auth:** an API key with `payouts:read`, or a session of any role.
+//
+// **Scopes:** `payouts:read`, `payouts:write`, `read`, `full`, `admin`.
 func (c *Client) GetProgramsIDStripeCredits(ctx context.Context, id string, opts ...RequestOption) (*GetProgramsIdStripeCreditsResponse, error) {
 	var out GetProgramsIdStripeCreditsResponse
 	if err := c.do(ctx, "GET", "/v1/programs/"+url.PathEscape(id)+"/stripe-credits", nil, nil, &out, "json", opts); err != nil {
@@ -5903,9 +6176,11 @@ func (p *GetProgramsIDStripeCreditsLogParams) values() url.Values {
 
 // GetProgramsIDStripeCreditsLog calls List a program's Stripe balance credits. GET /v1/programs/{id}/stripe-credits/log.
 //
-// Every credit and debit the rail queued for this program, newest first: amount and currency (the commission's), `appliedAmountMinor`/`appliedCurrency` (what is sent to Stripe after any conversion; a debit uses its credit's currency and rate), Stripe customer, `status` (`pending`, `applied`, `no_customer`, `ambiguous_customer`, `fx_rate_missing`, `failed`, `canceled`), attempts, the Stripe balance transaction id once applied, and the last error. Unapplied rows are retried hourly, up to 24 tries.
+// Every credit and debit the rail queued for this program, newest first: amount and currency (the commission's), `appliedAmountMinor`/`appliedCurrency` (what is sent to Stripe after any conversion; a debit uses its credit's currency and rate), Stripe customer, `status` (`pending`, `applied`, `no_customer`, `ambiguous_customer`, `fx_rate_missing`, `failed`, `canceled`), attempts, the Stripe balance transaction id once applied, and the last error. Unapplied rows are retried hourly, up to 24 tries (a row waiting under `waitForCustomer` has no cap).
 //
-// **Auth:** an API key with `payouts:read` (or `full`), or a session of any role.
+// **Auth:** an API key with `payouts:read`, or a session of any role.
+//
+// **Scopes:** `payouts:read`, `payouts:write`, `read`, `full`, `admin`.
 //
 // limit: Items per page, 1 to 100 (default 50). From API version 2026-11-01; ignored under 2026-10-21, where lists are a capped plain array.
 // starting_after: A cursor: the id of an item (the previous page's `next_cursor`); returns the items after it. From API version 2026-11-01; ignored under 2026-10-21, where lists are a capped plain array.
@@ -5930,6 +6205,21 @@ func (c *Client) GetProgramsIDStripeCreditsLogEach(ctx context.Context, id strin
 		p.StartingAfter = cursor
 		return c.GetProgramsIDStripeCreditsLog(ctx, id, &p, opts...)
 	})
+}
+
+// GetProgramsIDTerms calls Get a program's terms. GET /v1/programs/{id}/terms.
+//
+// The program's commission terms for product copy, from its latest commission rule version (`ruleVersion`): the `base` (`percentBps`, or `amountMinor` and `currency`), how long it recurs, the hold, and `summary.en`, an English sentence built deterministically from the rule, such as "20% of every payment for 12 months" or "$50.00 for the first payment only". Bounties are added (", plus $5.00 per signup"); rule conditions add "(conditions apply)"; overrides, tiers or new-vs-expansion rates set `ratesVary` and add "(rates vary)" rather than quote one rate. Partner-group rates and promotions are not included. Publishing a new rule version changes the terms on the next read. `404` when the program has no rule yet. Program-scoped keys read their own programs.
+//
+// **Auth:** an API key with `programs:read`, or a session of any role.
+//
+// **Scopes:** `programs:read`, `programs:write`, `read`, `full`, `admin`.
+func (c *Client) GetProgramsIDTerms(ctx context.Context, id string, opts ...RequestOption) (*ProgramTerms, error) {
+	var out ProgramTerms
+	if err := c.do(ctx, "GET", "/v1/programs/"+url.PathEscape(id)+"/terms", nil, nil, &out, "json", opts); err != nil {
+		return nil, err
+	}
+	return &out, nil
 }
 
 // GetProgramsIDTermsAcceptancesParams are the query parameters of GetProgramsIDTermsAcceptances.
@@ -5958,7 +6248,9 @@ func (p *GetProgramsIDTermsAcceptancesParams) values() url.Values {
 //
 // Which partner accepted which version of the program's terms, newest first.
 //
-// **Auth:** an API key with `programs:read` (or `full`), or a session of any role.
+// **Auth:** an API key with `programs:read`, or a session of any role.
+//
+// **Scopes:** `programs:read`, `programs:write`, `read`, `full`, `admin`.
 //
 // limit: Items per page, 1 to 100 (default 50). From API version 2026-11-01; ignored under 2026-10-21, where lists are a capped plain array.
 // starting_after: A cursor: the id of an item (the previous page's `next_cursor`); returns the items after it. From API version 2026-11-01; ignored under 2026-10-21, where lists are a capped plain array.
@@ -6013,7 +6305,9 @@ func (p *GetProspectsParams) values() url.Values {
 //
 // Prospects, best fit first, with channel, audience, evidence and outreach status. Filter with `status`.
 //
-// **Auth:** an API key with `growth:read` (or `full`), or a session of any role.
+// **Auth:** an API key with `growth:read`, or a session of any role.
+//
+// **Scopes:** `growth:read`, `growth:write`, `read`, `full`, `admin`.
 //
 // limit: Items per page, 1 to 100 (default 50). From API version 2026-11-01; ignored under 2026-10-21, where lists are a capped plain array.
 // starting_after: A cursor: the id of an item (the previous page's `next_cursor`); returns the items after it. From API version 2026-11-01; ignored under 2026-10-21, where lists are a capped plain array.
@@ -6087,7 +6381,9 @@ func (p *GetReferralsParams) values() url.Values {
 //
 // Referrals, newest first, filtered by `programId`, `partnerId`, `status` or `customerRef`.
 //
-// **Auth:** an API key with `referrals:read` (or `full`), or a session of any role.
+// **Auth:** an API key with `referrals:read`, or a session of any role.
+//
+// **Scopes:** `referrals:read`, `referrals:write`, `read`, `full`, `admin`.
 //
 // customerRef: Your id for the referred customer.
 // limit: Items per page, 1 to 100 (default 50). From API version 2026-11-01; ignored under 2026-10-21, where lists are a capped plain array.
@@ -6119,7 +6415,9 @@ func (c *Client) GetReferralsEach(ctx context.Context, params *GetReferralsParam
 //
 // One referral with its touch credits and attribution reasoning.
 //
-// **Auth:** an API key with `referrals:read` (or `full`), or a session of any role.
+// **Auth:** an API key with `referrals:read`, or a session of any role.
+//
+// **Scopes:** `referrals:read`, `referrals:write`, `read`, `full`, `admin`.
 func (c *Client) GetReferralsID(ctx context.Context, id string, opts ...RequestOption) (*Referral, error) {
 	var out Referral
 	if err := c.do(ctx, "GET", "/v1/referrals/"+url.PathEscape(id), nil, nil, &out, "json", opts); err != nil {
@@ -6132,7 +6430,9 @@ func (c *Client) GetReferralsID(ctx context.Context, id string, opts ...RequestO
 //
 // The referral with every touchpoint considered: each click's time, URL, fraud score, eligibility, credit weight and which one won.
 //
-// **Auth:** an API key with `referrals:read` (or `full`), or a session of any role.
+// **Auth:** an API key with `referrals:read`, or a session of any role.
+//
+// **Scopes:** `referrals:read`, `referrals:write`, `read`, `full`, `admin`.
 func (c *Client) GetReferralsIDJourney(ctx context.Context, id string, opts ...RequestOption) (*GetReferralsIdJourneyResponse, error) {
 	var out GetReferralsIdJourneyResponse
 	if err := c.do(ctx, "GET", "/v1/referrals/"+url.PathEscape(id)+"/journey", nil, nil, &out, "json", opts); err != nil {
@@ -6167,7 +6467,9 @@ func (p *GetReportsFilteredClicksParams) values() url.Values {
 //
 // Per day, newest first: total clicks, clicks excluded from attribution (bots, rate limits, invalid traffic) and the average fraud score.
 //
-// **Auth:** an API key with `analytics:read` (or `full`), or a session of any role.
+// **Auth:** an API key with `analytics:read`, or a session of any role.
+//
+// **Scopes:** `analytics:read`, `analytics:write`, `read`, `full`, `admin`.
 //
 // limit: Items per page, 1 to 100 (default 50). From API version 2026-11-01; ignored under 2026-10-21, where lists are a capped plain array.
 // starting_after: A cursor: the id of an item (the previous page's `next_cursor`); returns the items after it. From API version 2026-11-01; ignored under 2026-10-21, where lists are a capped plain array.
@@ -6212,7 +6514,9 @@ func (p *GetReportsPartnerPerformanceParams) values() url.Values {
 //
 // Per partner, highest revenue first: clicks, referrals, payments, referred revenue, commission earned and reversed. `format=csv` returns the same as a CSV file.
 //
-// **Auth:** an API key with `analytics:read` (or `full`), or a session of any role.
+// **Auth:** an API key with `analytics:read`, or a session of any role.
+//
+// **Scopes:** `analytics:read`, `analytics:write`, `read`, `full`, `admin`.
 //
 // format: csv: the same rows as a CSV file.
 func (c *Client) GetReportsPartnerPerformance(ctx context.Context, params *GetReportsPartnerPerformanceParams, opts ...RequestOption) (*GetReportsPartnerPerformanceResponse, error) {
@@ -6251,7 +6555,9 @@ func (p *GetRewardsParams) values() url.Values {
 //
 // Rewards issued to referred customers, newest first, with code and status (`issued`, `redeemed`, `void`). Filter with `status`.
 //
-// **Auth:** an API key with `commissions:read` (or `full`), or a session of any role.
+// **Auth:** an API key with `commissions:read`, or a session of any role.
+//
+// **Scopes:** `commissions:read`, `commissions:write`, `read`, `full`, `admin`.
 //
 // limit: Items per page, 1 to 100 (default 50). From API version 2026-11-01; ignored under 2026-10-21, where lists are a capped plain array.
 // starting_after: A cursor: the id of an item (the previous page's `next_cursor`); returns the items after it. From API version 2026-11-01; ignored under 2026-10-21, where lists are a capped plain array.
@@ -6282,7 +6588,9 @@ func (c *Client) GetRewardsEach(ctx context.Context, params *GetRewardsParams, o
 //
 // The last 200 rewards granted through `POST /v1/rewards`, with the commission line each one posted.
 //
-// **Auth:** an API key with `commissions:read` (or `full`), or a session of any role.
+// **Auth:** an API key with `commissions:read`, or a session of any role.
+//
+// **Scopes:** `commissions:read`, `commissions:write`, `read`, `full`, `admin`.
 func (c *Client) GetRewardsGranted(ctx context.Context, opts ...RequestOption) (*GetRewardsGrantedResponse, error) {
 	var out GetRewardsGrantedResponse
 	if err := c.do(ctx, "GET", "/v1/rewards/granted", nil, nil, &out, "json", opts); err != nil {
@@ -6295,7 +6603,9 @@ func (c *Client) GetRewardsGranted(ctx context.Context, opts ...RequestOption) (
 //
 // Whether a reward code is valid (issued and unredeemed), with its kind and amount, so your checkout can apply it. Unknown codes answer `{ "valid": false }`.
 //
-// **Auth:** an API key with `commissions:read` (or `full`), or a session of any role.
+// **Auth:** an API key with `commissions:read`, or a session of any role.
+//
+// **Scopes:** `commissions:read`, `commissions:write`, `read`, `full`, `admin`.
 func (c *Client) GetRewardsLookupCode(ctx context.Context, code string, opts ...RequestOption) (*GetRewardsLookupCodeResponse, error) {
 	var out GetRewardsLookupCodeResponse
 	if err := c.do(ctx, "GET", "/v1/rewards/lookup/"+url.PathEscape(code), nil, nil, &out, "json", opts); err != nil {
@@ -6308,7 +6618,9 @@ func (c *Client) GetRewardsLookupCode(ctx context.Context, code string, opts ...
 //
 // Your rules that turn an inbound event (or a rule key) into a fixed partner reward.
 //
-// **Auth:** an API key with `commissions:read` (or `full`), or a session of any role.
+// **Auth:** an API key with `commissions:read`, or a session of any role.
+//
+// **Scopes:** `commissions:read`, `commissions:write`, `read`, `full`, `admin`.
 func (c *Client) GetRewardsRules(ctx context.Context, opts ...RequestOption) ([]PutRewardsRulesKeyResponse, error) {
 	var out []PutRewardsRulesKeyResponse
 	if err := c.do(ctx, "GET", "/v1/rewards/rules", nil, nil, &out, "json", opts); err != nil {
@@ -6359,7 +6671,9 @@ func (p *GetRoiBreakdownParams) values() url.Values {
 //
 // The summary figures grouped `by` program, partner, cohort (grant month), source or role, best ROI first (cohorts in date order). Partner and program rows also carry their referrals' combined figures. `from`/`to` select grants by grant date (a date covers its whole UTC day), `programId` and `partnerId` narrow them, `windowDays` overrides each program's attribution window (30, 90, 180, 365, or 0 for lifetime), and `currency` views one native currency instead of the reporting currency. `format=csv` returns the same as a CSV file.
 //
-// **Auth:** an API key with `analytics:read` (or `full`), or a session of any role.
+// **Auth:** an API key with `analytics:read`, or a session of any role.
+//
+// **Scopes:** `analytics:read`, `analytics:write`, `read`, `full`, `admin`.
 //
 // from: Grants (or referrals) from this instant or date, inclusive.
 // to: Up to this instant, or through the end of this date (UTC), inclusive.
@@ -6413,7 +6727,9 @@ func (p *GetRoiDataQualityParams) values() url.Values {
 //
 // How complete the inputs to ROI are over `from`/`to`: payments with credit-applied info, products with a margin, partners linked to their own customer id, events excluded for a missing FX rate, and a list of gaps with how to fix each.
 //
-// **Auth:** an API key with `analytics:read` (or `full`), or a session of any role.
+// **Auth:** an API key with `analytics:read`, or a session of any role.
+//
+// **Scopes:** `analytics:read`, `analytics:write`, `read`, `full`, `admin`.
 //
 // from: Grants (or referrals) from this instant or date, inclusive.
 // to: Up to this instant, or through the end of this date (UTC), inclusive.
@@ -6471,7 +6787,9 @@ func (p *GetRoiGrantsParams) values() url.Values {
 //
 // Each credit grant in view with its status (`open`, `used`, `expired`, `revoked`) and figures, newest first. Filter by `status`, `role` (`referee` or `referrer`) and `paidBack`. `from`/`to` select grants by grant date (a date covers its whole UTC day), `programId` and `partnerId` narrow them, `windowDays` overrides each program's attribution window (30, 90, 180, 365, or 0 for lifetime), and `currency` views one native currency instead of the reporting currency. `format=csv` returns the same as a CSV file. CSV returns every grant, unpaged.
 //
-// **Auth:** an API key with `analytics:read` (or `full`), or a session of any role.
+// **Auth:** an API key with `analytics:read`, or a session of any role.
+//
+// **Scopes:** `analytics:read`, `analytics:write`, `read`, `full`, `admin`.
 //
 // from: Grants (or referrals) from this instant or date, inclusive.
 // to: Up to this instant, or through the end of this date (UTC), inclusive.
@@ -6523,7 +6841,9 @@ func (p *GetRoiPartnersIDTraceParams) values() url.Values {
 //
 // The same trace for a partner's own customer identity (through their externalRef).
 //
-// **Auth:** an API key with `analytics:read` (or `full`), or a session of any role.
+// **Auth:** an API key with `analytics:read`, or a session of any role.
+//
+// **Scopes:** `analytics:read`, `analytics:write`, `read`, `full`, `admin`.
 //
 // windowDays: Attribution window; default each program's setting. 0 = lifetime.
 func (c *Client) GetRoiPartnersIDTrace(ctx context.Context, id string, params *GetRoiPartnersIDTraceParams, opts ...RequestOption) (*RoiTrace, error) {
@@ -6538,7 +6858,9 @@ func (c *Client) GetRoiPartnersIDTrace(ctx context.Context, id string, params *G
 //
 // Every value pattern from one detection run, with the matching subjects: `credit_only` (a referee used their credit and paid no cash after within the window), `churn_at_exhaustion` (used it up, paid, then stopped), `bonus_collector` (a partner holding commission credit who never spends their own cash) and `negative_partner` (a partner whose referrals net below zero). Matches wait until the evidence is in, so young customers are never flagged.
 //
-// **Auth:** an API key with `analytics:read` (or `full`), or a session of any role.
+// **Auth:** an API key with `analytics:read`, or a session of any role.
+//
+// **Scopes:** `analytics:read`, `analytics:write`, `read`, `full`, `admin`.
 func (c *Client) GetRoiPatterns(ctx context.Context, opts ...RequestOption) (*GetRoiPatternsResponse, error) {
 	var out GetRoiPatternsResponse
 	if err := c.do(ctx, "GET", "/v1/roi/patterns", nil, nil, &out, "json", opts); err != nil {
@@ -6573,7 +6895,9 @@ func (p *GetRoiPatternsPatternParams) values() url.Values {
 //
 // The subjects currently matching one pattern, with the detail of each match.
 //
-// **Auth:** an API key with `analytics:read` (or `full`), or a session of any role.
+// **Auth:** an API key with `analytics:read`, or a session of any role.
+//
+// **Scopes:** `analytics:read`, `analytics:write`, `read`, `full`, `admin`.
 //
 // limit: Items per page, 1 to 100 (default 50). From API version 2026-11-01; ignored under 2026-10-21, where lists are a capped plain array.
 // starting_after: A cursor: the id of an item (the previous page's `next_cursor`); returns the items after it. From API version 2026-11-01; ignored under 2026-10-21, where lists are a capped plain array.
@@ -6634,7 +6958,9 @@ func (p *GetRoiSummaryParams) values() url.Values {
 //
 // Credit ROI for the grants in view: credit cost, cash and profit from the recipients after each grant, net, ROI, payback share and median days, outstanding credit and how much of it is measured rather than inferred. With `programId`, also status against the program's target ROI. `model=incremental` adds the lift against the program's holdout group; `includeProjection=true` adds the expected payback of open grants. `from`/`to` select grants by grant date (a date covers its whole UTC day), `programId` and `partnerId` narrow them, `windowDays` overrides each program's attribution window (30, 90, 180, 365, or 0 for lifetime), and `currency` views one native currency instead of the reporting currency. `format=csv` returns the same as a CSV file.
 //
-// **Auth:** an API key with `analytics:read` (or `full`), or a session of any role.
+// **Auth:** an API key with `analytics:read`, or a session of any role.
+//
+// **Scopes:** `analytics:read`, `analytics:write`, `read`, `full`, `admin`.
 //
 // from: Grants (or referrals) from this instant or date, inclusive.
 // to: Up to this instant, or through the end of this date (UTC), inclusive.
@@ -6671,7 +6997,9 @@ func (p *GetRoiTraceCustomerRefParams) values() url.Values {
 //
 // Every value event of a customer (and the identities linked to them) in order, with the running net, to see exactly how their ROI was computed. `format=csv` for a file.
 //
-// **Auth:** an API key with `analytics:read` (or `full`), or a session of any role.
+// **Auth:** an API key with `analytics:read`, or a session of any role.
+//
+// **Scopes:** `analytics:read`, `analytics:write`, `read`, `full`, `admin`.
 //
 // windowDays: Attribution window; default each program's setting. 0 = lifetime.
 func (c *Client) GetRoiTraceCustomerRef(ctx context.Context, customerRef string, params *GetRoiTraceCustomerRefParams, opts ...RequestOption) (*RoiTrace, error) {
@@ -6686,7 +7014,9 @@ func (c *Client) GetRoiTraceCustomerRef(ctx context.Context, customerRef string,
 //
 // Test mode only. The Stripe event types `POST /v1/sandbox/stripe-fixtures` can send, each with the `overrides` fields it uses.
 //
-// **Auth:** an API key with `billing:read` (or `full`), or a session of any role.
+// **Auth:** an API key with `billing:read`, or a session of any role.
+//
+// **Scopes:** `billing:read`, `billing:write`, `read`, `full`, `admin`.
 func (c *Client) GetSandboxStripeFixtures(ctx context.Context, opts ...RequestOption) (*GetSandboxStripeFixturesResponse, error) {
 	var out GetSandboxStripeFixturesResponse
 	if err := c.do(ctx, "GET", "/v1/sandbox/stripe-fixtures", nil, nil, &out, "json", opts); err != nil {
@@ -6699,7 +7029,9 @@ func (c *Client) GetSandboxStripeFixtures(ctx context.Context, opts ...RequestOp
 //
 // The install checker: which integration steps are done (auth or associate, program and rule, partner, snippet or click, billing, a payable partner, webhooks) and the next steps as hints.
 //
-// **Auth:** an API key with `analytics:read` (or `full`), or a session of any role.
+// **Auth:** an API key with `analytics:read`, or a session of any role.
+//
+// **Scopes:** `analytics:read`, `analytics:write`, `read`, `full`, `admin`.
 func (c *Client) GetSetupStatus(ctx context.Context, opts ...RequestOption) (*GetSetupStatusResponse, error) {
 	var out GetSetupStatusResponse
 	if err := c.do(ctx, "GET", "/v1/setup/status", nil, nil, &out, "json", opts); err != nil {
@@ -6801,7 +7133,9 @@ func (c *Client) GetStatusIncidentsID(ctx context.Context, id string, opts ...Re
 //
 // Whether the Stripe balance credit rail has a key: its own (`source: "stripe_credits"`) or your Stripe payout connection (`source: "payout_connection"`). The key is never returned.
 //
-// **Auth:** an API key with `payouts:read` (or `full`), or a session of any role.
+// **Auth:** an API key with `payouts:read`, or a session of any role.
+//
+// **Scopes:** `payouts:read`, `payouts:write`, `read`, `full`, `admin`.
 func (c *Client) GetStripeCreditsConnection(ctx context.Context, opts ...RequestOption) (*GetStripeCreditsConnectionResponse, error) {
 	var out GetStripeCreditsConnectionResponse
 	if err := c.do(ctx, "GET", "/v1/stripe-credits/connection", nil, nil, &out, "json", opts); err != nil {
@@ -6814,7 +7148,9 @@ func (c *Client) GetStripeCreditsConnection(ctx context.Context, opts ...Request
 //
 // Every support tool Referalli can show referral context in (Chatly cards and AI tools, Intercom, Zendesk, HubSpot, Front, Help Scout, custom), with its card URL, install steps and whether it is set up. Secrets are never returned.
 //
-// **Auth:** an API key with `partners:read` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `partners:read`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `partners:read`, `partners:write`, `read`, `full`, `admin`.
 func (c *Client) GetSupportApps(ctx context.Context, opts ...RequestOption) (*GetSupportAppsResponse, error) {
 	var out GetSupportAppsResponse
 	if err := c.do(ctx, "GET", "/v1/support/apps", nil, nil, &out, "json", opts); err != nil {
@@ -6876,7 +7212,9 @@ func (p *GetSupportContextParams) values() url.Values {
 //
 // What a support agent should know about a contact: the partner (status, tier, programs, referral link, pending/approved/paid balances, next payout, open flags) and/or the referred customer (who referred them, when, the referee reward and what is left of it). Name the contact by `partnerExternalRef`, `ext` (a tool's verified external id), `customerRef` or `email`; the email is used only when no stronger key is given. Your org's data only; `partner` and `customer` are null when nothing matches.
 //
-// **Auth:** an API key with `partners:read` (or `full`), or a session with role `owner`, `admin`, `support`, `finance`, `analyst`.
+// **Auth:** an API key with `partners:read`, or a session with role `owner`, `admin`, `support`, `finance`, `analyst`.
+//
+// **Scopes:** `partners:read`, `partners:write`, `read`, `full`, `admin`.
 //
 // email: Used only when no stronger key is given.
 // ext: A support tool's verified external id: matched as a partner externalRef, then as a customer ref.
@@ -6947,7 +7285,9 @@ func (p *GetTax1099Params) values() url.Values {
 //
 // For each partner with a W-9 on file: the total actually paid in the tax year, in USD at recorded FX rates, and whether a form is required (US$600 or more, or a currency that couldn't be converted, listed in `fxMissingCurrencies` for review).
 //
-// **Auth:** an API key with `payouts:read` (or `full`), or a session with role `owner`, `admin`, `finance`.
+// **Auth:** an API key with `payouts:read`, or a session with role `owner`, `admin`, `finance`.
+//
+// **Scopes:** `payouts:read`, `payouts:write`, `read`, `full`, `admin`.
 //
 // limit: Items per page, 1 to 100 (default 50). From API version 2026-11-01; ignored under 2026-10-21, where lists are a capped plain array.
 // starting_after: A cursor: the id of an item (the previous page's `next_cursor`); returns the items after it. From API version 2026-11-01; ignored under 2026-10-21, where lists are a capped plain array.
@@ -7002,7 +7342,9 @@ func (p *GetTax1099FilingsParams) values() url.Values {
 //
 // A tax year's filings with their provider status and the documents in each.
 //
-// **Auth:** an API key with `payouts:read` (or `full`), or a session with role `owner`, `admin`, `finance`.
+// **Auth:** an API key with `payouts:read`, or a session with role `owner`, `admin`, `finance`.
+//
+// **Scopes:** `payouts:read`, `payouts:write`, `read`, `full`, `admin`.
 //
 // limit: Items per page, 1 to 100 (default 50). From API version 2026-11-01; ignored under 2026-10-21, where lists are a capped plain array.
 // starting_after: A cursor: the id of an item (the previous page's `next_cursor`); returns the items after it. From API version 2026-11-01; ignored under 2026-10-21, where lists are a capped plain array.
@@ -7047,7 +7389,9 @@ func (p *GetTax1099PreviewParams) values() url.Values {
 //
 // Which partners would get a 1099-NEC for a tax year, with amounts and anything missing (W-9s, TINs), without filing.
 //
-// **Auth:** an API key with `payouts:read` (or `full`), or a session with role `owner`, `admin`, `finance`.
+// **Auth:** an API key with `payouts:read`, or a session with role `owner`, `admin`, `finance`.
+//
+// **Scopes:** `payouts:read`, `payouts:write`, `read`, `full`, `admin`.
 func (c *Client) GetTax1099Preview(ctx context.Context, params *GetTax1099PreviewParams, opts ...RequestOption) (*NecPreview, error) {
 	var out NecPreview
 	if err := c.do(ctx, "GET", "/v1/tax/1099/preview", params.values(), nil, &out, "json", opts); err != nil {
@@ -7060,7 +7404,9 @@ func (c *Client) GetTax1099Preview(ctx context.Context, params *GetTax1099Previe
 //
 // Test mode only (`409 test_mode_only` otherwise). The test org's current time and how far it has been advanced.
 //
-// **Auth:** an API key with `org:read` (or `full`), or a session of any role.
+// **Auth:** an API key with `org:read`, or a session of any role.
+//
+// **Scopes:** `org:read`, `org:write`, `read`, `full`, `admin`.
 func (c *Client) GetTestClock(ctx context.Context, opts ...RequestOption) (*GetTestClockResponse, error) {
 	var out GetTestClockResponse
 	if err := c.do(ctx, "GET", "/v1/test_clock", nil, nil, &out, "json", opts); err != nil {
@@ -7095,7 +7441,9 @@ func (p *GetTestEmailsParams) values() url.Values {
 //
 // Test mode only. Emails the test org would have sent, captured instead of delivered, newest first.
 //
-// **Auth:** an API key with `org:read` (or `full`), or a session of any role.
+// **Auth:** an API key with `org:read`, or a session of any role.
+//
+// **Scopes:** `org:read`, `org:write`, `read`, `full`, `admin`.
 //
 // starting_after: A cursor: the id of an item (the previous page's `next_cursor`); returns the items after it. From API version 2026-11-01; ignored under 2026-10-21, where lists are a capped plain array.
 // ending_before: A cursor: returns the items before this item id (the previous page). Not with `starting_after`. From API version 2026-11-01; ignored under 2026-10-21, where lists are a capped plain array.
@@ -7125,7 +7473,9 @@ func (c *Client) GetTestEmailsEach(ctx context.Context, params *GetTestEmailsPar
 //
 // Progress and result of a background import: status, processed and total rows, recorded and duplicate counts and row errors.
 //
-// **Auth:** an API key with `analytics:read` (or `full`), or a session of any role.
+// **Auth:** an API key with `analytics:read`, or a session of any role.
+//
+// **Scopes:** `analytics:read`, `analytics:write`, `read`, `full`, `admin`.
 func (c *Client) GetValueImportJobID(ctx context.Context, jobId string, opts ...RequestOption) (*GetValueImportJobIdResponse, error) {
 	var out GetValueImportJobIdResponse
 	if err := c.do(ctx, "GET", "/v1/value/import/"+url.PathEscape(jobId), nil, nil, &out, "json", opts); err != nil {
@@ -7175,7 +7525,9 @@ func (p *GetWebhookDeliveriesParams) values() url.Values {
 //
 // Deliveries to every endpoint, newest first: topic, status (`pending`, `delivered`, `failed`), attempts, the last response code and, while pending, when the next attempt is. Filter with `endpointId`.
 //
-// **Auth:** an API key with `webhooks:read` (or `full`), or a session of any role.
+// **Auth:** an API key with `webhooks:read`, or a session of any role.
+//
+// **Scopes:** `webhooks:read`, `webhooks:write`, `read`, `full`, `admin`.
 //
 // endpointId: Only deliveries to this endpoint.
 // limit: Items per page, 1 to 100 (default 50). From API version 2026-11-01; ignored under 2026-10-21, where lists are a capped plain array.
@@ -7207,7 +7559,9 @@ func (c *Client) GetWebhookDeliveriesEach(ctx context.Context, params *GetWebhoo
 //
 // One delivery in full: the exact `payload` sent, its `eventId`, and what the endpoint answered last (`lastStatusCode`, the first 2,000 characters of `lastResponseBody`, or `lastError` when there was no response).
 //
-// **Auth:** an API key with `webhooks:read` (or `full`), or a session of any role.
+// **Auth:** an API key with `webhooks:read`, or a session of any role.
+//
+// **Scopes:** `webhooks:read`, `webhooks:write`, `read`, `full`, `admin`.
 func (c *Client) GetWebhookDeliveriesID(ctx context.Context, id string, opts ...RequestOption) (*GetWebhookDeliveriesIdResponse, error) {
 	var out GetWebhookDeliveriesIdResponse
 	if err := c.do(ctx, "GET", "/v1/webhook-deliveries/"+url.PathEscape(id), nil, nil, &out, "json", opts); err != nil {
@@ -7244,7 +7598,9 @@ func (p *GetWebhookEndpointsParams) values() url.Values {
 //
 // Endpoints with their topics, programs, status (`active`, `paused`, `disabled`), secret-rotation state and failure state. Secrets are never returned. `programId` lists only the endpoints limited to that program (org-wide endpoints, which get every program's events, are left out).
 //
-// **Auth:** an API key with `webhooks:read` (or `full`), or a session of any role.
+// **Auth:** an API key with `webhooks:read`, or a session of any role.
+//
+// **Scopes:** `webhooks:read`, `webhooks:write`, `read`, `full`, `admin`.
 //
 // programId: Only endpoints limited to this program (not the org-wide ones, which get every program's events).
 // limit: Items per page, 1 to 100 (default 50). From API version 2026-11-01; ignored under 2026-10-21, where lists are a capped plain array.
@@ -7276,7 +7632,9 @@ func (c *Client) GetWebhookEndpointsEach(ctx context.Context, params *GetWebhook
 //
 // One endpoint with its status, rotation and failure state.
 //
-// **Auth:** an API key with `webhooks:read` (or `full`), or a session of any role.
+// **Auth:** an API key with `webhooks:read`, or a session of any role.
+//
+// **Scopes:** `webhooks:read`, `webhooks:write`, `read`, `full`, `admin`.
 func (c *Client) GetWebhookEndpointsID(ctx context.Context, id string, opts ...RequestOption) (*WebhookEndpoint, error) {
 	var out WebhookEndpoint
 	if err := c.do(ctx, "GET", "/v1/webhook-endpoints/"+url.PathEscape(id), nil, nil, &out, "json", opts); err != nil {
@@ -7311,7 +7669,9 @@ func (p *GetWebhookEndpointsIDDeliveriesParams) values() url.Values {
 //
 // What one endpoint was sent, newest first.
 //
-// **Auth:** an API key with `webhooks:read` (or `full`), or a session of any role.
+// **Auth:** an API key with `webhooks:read`, or a session of any role.
+//
+// **Scopes:** `webhooks:read`, `webhooks:write`, `read`, `full`, `admin`.
 //
 // limit: Items per page, 1 to 100 (default 50). From API version 2026-11-01; ignored under 2026-10-21, where lists are a capped plain array.
 // starting_after: A cursor: the id of an item (the previous page's `next_cursor`); returns the items after it. From API version 2026-11-01; ignored under 2026-10-21, where lists are a capped plain array.
@@ -7342,7 +7702,9 @@ func (c *Client) GetWebhookEndpointsIDDeliveriesEach(ctx context.Context, id str
 //
 // The event keys Zapier triggers can subscribe to.
 //
-// **Auth:** an API key with `integrations:read` (or `full`), or a session of any role.
+// **Auth:** an API key with `integrations:read`, or a session of any role.
+//
+// **Scopes:** `integrations:read`, `integrations:write`, `read`, `full`, `admin`.
 func (c *Client) GetZapierEvents(ctx context.Context, opts ...RequestOption) (*GetZapierEventsResponse, error) {
 	var out GetZapierEventsResponse
 	if err := c.do(ctx, "GET", "/v1/zapier/events", nil, nil, &out, "json", opts); err != nil {
@@ -7377,7 +7739,9 @@ func (p *GetZapierHooksParams) values() url.Values {
 //
 // Active Zapier REST hook subscriptions, newest first.
 //
-// **Auth:** an API key with `integrations:read` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `integrations:read`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `integrations:read`, `integrations:write`, `read`, `full`, `admin`.
 //
 // limit: Items per page, 1 to 100 (default 50). From API version 2026-11-01; ignored under 2026-10-21, where lists are a capped plain array.
 // starting_after: A cursor: the id of an item (the previous page's `next_cursor`); returns the items after it. From API version 2026-11-01; ignored under 2026-10-21, where lists are a capped plain array.
@@ -7422,7 +7786,9 @@ func (p *GetZapierTriggersEventParams) values() url.Values {
 //
 // Zapier polling and sample data: the latest `limit` events of that kind, newest first, in the shape the hook delivers. Always a plain array (Zapier's contract), whatever the API version.
 //
-// **Auth:** an API key with `integrations:read` (or `full`), or a session of any role.
+// **Auth:** an API key with `integrations:read`, or a session of any role.
+//
+// **Scopes:** `integrations:read`, `integrations:write`, `read`, `full`, `admin`.
 func (c *Client) GetZapierTriggersEvent(ctx context.Context, event string, params *GetZapierTriggersEventParams, opts ...RequestOption) (*GetZapierTriggersEventResponse, error) {
 	var out GetZapierTriggersEventResponse
 	if err := c.do(ctx, "GET", "/v1/zapier/triggers/"+url.PathEscape(event), params.values(), nil, &out, "json", opts); err != nil {
@@ -7448,7 +7814,9 @@ func (c *Client) PatchAdminStatusIncidentsID(ctx context.Context, id string, bod
 //
 // Changes a key's pinned `apiVersion`, `owner`, expiry (`expiresInDays` from now; `null` removes it) or `programIds` (`null` makes it org-wide); `apiVersion: "latest"` pins it to today's newest version. A new expiry re-arms the `api_key.expiring` notices. Revoked keys are 404. Needs an owner or admin session, or an API key with the `admin` scope. Audited.
 //
-// **Auth:** an API key with `team:write` (or `full`), or a session of any role.
+// **Auth:** an API key with `team:write`, or a session of any role.
+//
+// **Scopes:** `team:write`, `full`, `admin`.
 func (c *Client) PatchAPIKeysID(ctx context.Context, id string, body PatchApiKeysIdBody, opts ...RequestOption) (*PatchApiKeysIdResponse, error) {
 	var out PatchApiKeysIdResponse
 	if err := c.do(ctx, "PATCH", "/v1/api-keys/"+url.PathEscape(id), nil, body, &out, "json", opts); err != nil {
@@ -7461,7 +7829,9 @@ func (c *Client) PatchAPIKeysID(ctx context.Context, id string, body PatchApiKey
 //
 // Pauses or resumes a connection, renames it, changes `autoEnrollUsers` or the destination of auto-created links, or (signed-protocol connections) sets `signatureVersion`: `v2` to require request-line signatures, `v1+v2` to accept both again.
 //
-// **Auth:** an API key with `integrations:write` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `integrations:write`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `integrations:write`, `connections:write`, `full`, `admin`.
 func (c *Client) PatchAuthConnectionsID(ctx context.Context, id string, body PatchAuthConnectionsIdBody, opts ...RequestOption) (*PatchAuthConnectionsIdResponse, error) {
 	var out PatchAuthConnectionsIdResponse
 	if err := c.do(ctx, "PATCH", "/v1/auth/connections/"+url.PathEscape(id), nil, body, &out, "json", opts); err != nil {
@@ -7472,9 +7842,11 @@ func (c *Client) PatchAuthConnectionsID(ctx context.Context, id string, body Pat
 
 // PatchBillingConnectionsID calls Update a billing connection. PATCH /v1/billing/connections/{id}.
 //
-// Renames a connection, sets `status` (`paused` makes its webhook URL refuse events until set back to `active`), or sets its product `filter` (`null` removes it). A filter applies to events received from then on. Audited.
+// Renames a connection, sets `status` (`paused` makes its webhook URL refuse events until set back to `active`), or sets its product `filter` (`null` removes it) or `programIds` (`null` = every program). Both apply to events received from then on. Audited.
 //
-// **Auth:** an API key with `billing:write` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `billing:write`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `billing:write`, `full`, `admin`.
 func (c *Client) PatchBillingConnectionsID(ctx context.Context, id string, body PatchBillingConnectionsIdBody, opts ...RequestOption) (*BillingConnection, error) {
 	var out BillingConnection
 	if err := c.do(ctx, "PATCH", "/v1/billing/connections/"+url.PathEscape(id), nil, body, &out, "json", opts); err != nil {
@@ -7487,7 +7859,9 @@ func (c *Client) PatchBillingConnectionsID(ctx context.Context, id string, body 
 //
 // Changes the org name, merges keys into `settings` (a free-form map) and turns `payoutKycRequired` on or off. Audited.
 //
-// **Auth:** an API key with `org:write` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `org:write`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `org:write`, `full`, `admin`.
 func (c *Client) PatchOrg(ctx context.Context, body PatchOrgBody, opts ...RequestOption) (*PatchOrgResponse, error) {
 	var out PatchOrgResponse
 	if err := c.do(ctx, "PATCH", "/v1/org", nil, body, &out, "json", opts); err != nil {
@@ -7500,7 +7874,9 @@ func (c *Client) PatchOrg(ctx context.Context, body PatchOrgBody, opts ...Reques
 //
 // Changes a member's role. Only owners change owner roles, and the last owner can't be demoted (409). Audited. Live mode only.
 //
-// **Auth:** an API key with `team:write` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `team:write`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `team:write`, `full`, `admin`.
 func (c *Client) PatchOrgMembersUserID(ctx context.Context, userId string, body PatchOrgMembersUserIdBody, opts ...RequestOption) (*PatchOrgMembersUserIdResponse, error) {
 	var out PatchOrgMembersUserIdResponse
 	if err := c.do(ctx, "PATCH", "/v1/org/members/"+url.PathEscape(userId), nil, body, &out, "json", opts); err != nil {
@@ -7513,7 +7889,9 @@ func (c *Client) PatchOrgMembersUserID(ctx context.Context, userId string, body 
 //
 // Requires SSO for members on the org's SSO domains (`requireSso`; needs an active connection and the owner signed in through SSO, so nobody is locked out) and maps identity-provider roles to Referalli roles. Owner only. Live mode only.
 //
-// **Auth:** an API key with `org:write` (or `full`), or a session with role `owner`.
+// **Auth:** an API key with `org:write`, or a session with role `owner`.
+//
+// **Scopes:** `org:write`, `full`, `admin`.
 func (c *Client) PatchOrgSSO(ctx context.Context, body PatchOrgSsoBody, opts ...RequestOption) (*PatchOrgSsoResponse, error) {
 	var out PatchOrgSsoResponse
 	if err := c.do(ctx, "PATCH", "/v1/org/sso", nil, body, &out, "json", opts); err != nil {
@@ -7526,7 +7904,9 @@ func (c *Client) PatchOrgSSO(ctx context.Context, body PatchOrgSsoBody, opts ...
 //
 // Changes a group's terms, or archives it (`archived: true`); archived groups take no new members.
 //
-// **Auth:** an API key with `programs:write` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `programs:write`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `programs:write`, `full`, `admin`.
 func (c *Client) PatchPartnerGroupsID(ctx context.Context, id string, body PatchPartnerGroupsIdBody, opts ...RequestOption) (*PartnerGroup, error) {
 	var out PartnerGroup
 	if err := c.do(ctx, "PATCH", "/v1/partner-groups/"+url.PathEscape(id), nil, body, &out, "json", opts); err != nil {
@@ -7539,7 +7919,9 @@ func (c *Client) PatchPartnerGroupsID(ctx context.Context, id string, body Patch
 //
 // Changes the display name, status (`active`, `suspended`, `banned`, `archived`), tags, notes or externalRef (`null` clears it). Suspended partners keep earning but are not paid; banned ones stop attributing. 409 when another partner has the externalRef. Audited.
 //
-// **Auth:** an API key with `partners:write` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `partners:write`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `partners:write`, `full`, `admin`.
 func (c *Client) PatchPartnersID(ctx context.Context, id string, body PatchPartnersIdBody, opts ...RequestOption) (*Partner, error) {
 	var out Partner
 	if err := c.do(ctx, "PATCH", "/v1/partners/"+url.PathEscape(id), nil, body, &out, "json", opts); err != nil {
@@ -7552,7 +7934,9 @@ func (c *Client) PatchPartnersID(ctx context.Context, id string, body PatchPartn
 //
 // Changes only the minimum balance before a payout (`minThresholdMinor`). 404 when the partner has no profile. Audited.
 //
-// **Auth:** an API key with `payouts:write` (or `full`), or a session with role `owner`, `admin`, `finance`.
+// **Auth:** an API key with `payouts:write`, or a session with role `owner`, `admin`, `finance`.
+//
+// **Scopes:** `payouts:write`, `full`, `admin`.
 func (c *Client) PatchPartnersIDPayoutProfile(ctx context.Context, id string, body PatchPartnersIdPayoutProfileBody, opts ...RequestOption) (*PatchPartnersIdPayoutProfileResponse, error) {
 	var out PatchPartnersIdPayoutProfileResponse
 	if err := c.do(ctx, "PATCH", "/v1/partners/"+url.PathEscape(id)+"/payout-profile", nil, body, &out, "json", opts); err != nil {
@@ -7565,7 +7949,9 @@ func (c *Client) PatchPartnersIDPayoutProfile(ctx context.Context, id string, bo
 //
 // Deep-merges into the draft (or, with no draft, into a copy of what is published): objects merge key by key, arrays and values replace, `null` deletes a key. The result is validated as a whole. Owner or admin.
 //
-// **Auth:** an API key with `org:write` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `org:write`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `org:write`, `full`, `admin`.
 func (c *Client) PatchPortalThemeDraft(ctx context.Context, body map[string]any, opts ...RequestOption) (*GetPortalThemeResponse, error) {
 	var out GetPortalThemeResponse
 	if err := c.do(ctx, "PATCH", "/v1/portal/theme/draft", nil, body, &out, "json", opts); err != nil {
@@ -7578,7 +7964,9 @@ func (c *Client) PatchPortalThemeDraft(ctx context.Context, body map[string]any,
 //
 // Changes any program field or setting; omitted fields keep their value, and `publicPage` is merged. Changing `termsMd` records a new terms version. Setting `status` to `paused` or `archived` stops new attribution. `mobileApp` (iOS Team ID and bundle id, Android package and signing-certificate fingerprints) publishes the program's apps in the universal-links and App Links files on the org's link hosts. `destinationUrl` moves the program's default link destination: every link still on the old default (the widget's or a sign-in connection's) is repointed in the same call, custom destinations stay, and links already shared follow at click time; `{code}` in it becomes the link's code. Audited.
 //
-// **Auth:** an API key with `programs:write` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `programs:write`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `programs:write`, `full`, `admin`.
 func (c *Client) PatchProgramsID(ctx context.Context, id string, body PatchProgramsIdBody, opts ...RequestOption) (*Program, error) {
 	var out Program
 	if err := c.do(ctx, "PATCH", "/v1/programs/"+url.PathEscape(id), nil, body, &out, "json", opts); err != nil {
@@ -7591,7 +7979,9 @@ func (c *Client) PatchProgramsID(ctx context.Context, id string, body PatchProgr
 //
 // Sets `status` to `paused` (no new commissions) or back to `active`. Only active referrals can be paused and only paused ones resumed (409 otherwise); setting the current status is a no-op. Publishes `referral.paused` or `referral.resumed`. Audited.
 //
-// **Auth:** an API key with `referrals:write` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `referrals:write`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `referrals:write`, `full`, `admin`.
 func (c *Client) PatchReferralsID(ctx context.Context, id string, body PatchReferralsIdBody, opts ...RequestOption) (*Referral, error) {
 	var out Referral
 	if err := c.do(ctx, "PATCH", "/v1/referrals/"+url.PathEscape(id), nil, body, &out, "json", opts); err != nil {
@@ -7604,7 +7994,9 @@ func (c *Client) PatchReferralsID(ctx context.Context, id string, body PatchRefe
 //
 // Changes the URL, topics, programs (`null` or `[]` for every program) or legacy signature, or pauses it (`status: "paused"`, deliveries held). Setting `active` re-enables a paused or auto-disabled endpoint: held deliveries resume and the failure clock starts over. `warnings` has `domain_changed` when the URL moves to another host. Audited.
 //
-// **Auth:** an API key with `webhooks:write` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `webhooks:write`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `webhooks:write`, `full`, `admin`.
 func (c *Client) PatchWebhookEndpointsID(ctx context.Context, id string, body PatchWebhookEndpointsIdBody, opts ...RequestOption) (*PatchWebhookEndpointsIdResponse, error) {
 	var out PatchWebhookEndpointsIdResponse
 	if err := c.do(ctx, "PATCH", "/v1/webhook-endpoints/"+url.PathEscape(id), nil, body, &out, "json", opts); err != nil {
@@ -7734,7 +8126,9 @@ func (c *Client) PostAgentsRegister(ctx context.Context, body PostAgentsRegister
 //
 // Compares the last 24 hours of clicks, sign-ups and revenue with the trailing 7-day average and returns this org's spikes (3x or more) and drops (under 20%). Findings also become notifications; nothing is changed automatically. Also runs hourly.
 //
-// **Auth:** an API key with `analytics:write` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `analytics:write`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `analytics:write`, `full`, `admin`.
 func (c *Client) PostAnomaliesScan(ctx context.Context, opts ...RequestOption) (*PostAnomaliesScanResponse, error) {
 	var out PostAnomaliesScanResponse
 	if err := c.do(ctx, "POST", "/v1/anomalies/scan", nil, nil, &out, "json", opts); err != nil {
@@ -7745,9 +8139,11 @@ func (c *Client) PostAnomaliesScan(ctx context.Context, opts ...RequestOption) (
 
 // PostAPIKeys calls Create an API key. POST /v1/api-keys.
 //
-// Mints a secret key (`rk_live_…` / `rk_test_…`), shown only in this response (and in its `Idempotency-Key` replay: a retry with the same key and body within 24 hours returns this response again, secret included, without minting another). `scopes` defaults to `full`; a key can't grant scopes it doesn't hold. `mode` picks live, test or a matching pair of both (`both` returns `{ pairId, live, test }`); a test-mode caller can mint test keys only. `publishable: true` mints a browser-safe `rk_pub_` key limited to `programs:read` and `events:write` from `allowedOrigins`. `apiVersion` pins the key to a version, or `latest` (the default) to the newest version at the time of the call; the pin never moves on its own (a key keeps answering in that version after newer ones ship) until you `PATCH` it or send a `referalli-version` header. A key pinned to `2026-10-21` gets every list as a capped plain array instead of the paginated envelope. `programIds` limits the key to those programs (their partners, links, referrals, commissions, enrollments, and webhook endpoints whose `programIds` are all within the key's, with their deliveries); a program-scoped key gets 403 `program_scoped_key` on org-wide endpoints (keys, team, org settings, billing, payouts, the event feed, analytics, creating programs). An `api_keys:mint` key may also call this (and no other key endpoint): it can't mint `admin` or `api_keys:mint` keys or scopes it doesn't hold, and a program-scoped one must send `programIds` within its own (`403` otherwise). Needs an owner or admin session, or an API key with the `admin` scope. Audited.
+// Mints a secret key (`rk_live_…` / `rk_test_…`), shown only in this response (and in its `Idempotency-Key` replay: a retry with the same key and body within 24 hours returns this response again, secret included, without minting another). `scopes` defaults to `full`; a key can't grant scopes it doesn't hold. `mode` picks live, test or a matching pair of both (`both` returns `{ pairId, live, test }`); a test-mode caller can mint test keys only. `publishable: true` mints a browser-safe `rk_pub_` key limited to `programs:read` and `events:write` from `allowedOrigins`. `apiVersion` pins the key to a version, or `latest` (the default) to the newest version at the time of the call; the pin never moves on its own (a key keeps answering in that version after newer ones ship) until you `PATCH` it or send a `referalli-version` header. A key pinned to `2026-10-21` gets every list as a capped plain array instead of the paginated envelope. `programIds` limits the key to those programs (their partners, links, referrals, commissions, enrollments, webhook endpoints whose `programIds` are all within the key's, with their deliveries, and billing connections likewise); a program-scoped key gets 403 `program_scoped_key` on org-wide endpoints (keys, team, org settings, the rest of billing, payouts, the event feed, analytics, creating programs). An `api_keys:mint` key may also call this (and no other key endpoint): it can't mint `admin` or `api_keys:mint` keys or scopes it doesn't hold, and a program-scoped one must send `programIds` within its own (`403` otherwise). Needs an owner or admin session, or an API key with the `admin` scope. Audited.
 //
-// **Auth:** an API key with `team:write` (or `full`), or a session of any role.
+// **Auth:** an API key with `team:write`, or a session of any role.
+//
+// **Scopes:** `team:write`, `api_keys:mint`, `full`, `admin`.
 func (c *Client) PostAPIKeys(ctx context.Context, body PostApiKeysBody, opts ...RequestOption) (*PostApiKeysResponse, error) {
 	var out PostApiKeysResponse
 	if err := c.do(ctx, "POST", "/v1/api-keys", nil, body, &out, "json", opts); err != nil {
@@ -7760,7 +8156,9 @@ func (c *Client) PostAPIKeys(ctx context.Context, body PostApiKeysBody, opts ...
 //
 // Mints a replacement key with the same name, scopes, origins, version pin, owner, programs and lifetime (an expiring key's new expiry is the same length from now), returned once with `rotatedFrom: { id, expiresAt }`. The old key keeps working for `graceHours` (default 24, at most 168, 0 = stop now), then expires; it gets no `api_key.expiring` notice. An expired or revoked key can't be rotated (409 `api_key_expired` / 404). Needs an owner or admin session, or an API key with the `admin` scope. Audited.
 //
-// **Auth:** an API key with `team:write` (or `full`), or a session of any role.
+// **Auth:** an API key with `team:write`, or a session of any role.
+//
+// **Scopes:** `team:write`, `full`, `admin`.
 func (c *Client) PostAPIKeysIDRotate(ctx context.Context, id string, body PostApiKeysIdRotateBody, opts ...RequestOption) (*PostApiKeysIdRotateResponse, error) {
 	var out PostApiKeysIdRotateResponse
 	if err := c.do(ctx, "POST", "/v1/api-keys/"+url.PathEscape(id)+"/rotate", nil, body, &out, "json", opts); err != nil {
@@ -7773,7 +8171,9 @@ func (c *Client) PostAPIKeysIDRotate(ctx context.Context, id string, body PostAp
 //
 // Adds a marketing asset (`banner`, `copy`, `video` or `logo`) to a program for its approved partners, or only for one group's members with `groupId`.
 //
-// **Auth:** an API key with `partners:write` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `partners:write`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `partners:write`, `full`, `admin`.
 func (c *Client) PostAssets(ctx context.Context, body PostAssetsBody, opts ...RequestOption) (*PostAssetsResponse, error) {
 	var out PostAssetsResponse
 	if err := c.do(ctx, "POST", "/v1/assets", nil, body, &out, "json", opts); err != nil {
@@ -7786,7 +8186,9 @@ func (c *Client) PostAssets(ctx context.Context, body PostAssetsBody, opts ...Re
 //
 // Deterministically recomputes attribution for a program's referrals from the recorded clicks and identity links, under its current model. Returns what changed. Audited.
 //
-// **Auth:** an API key with `referrals:write` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `referrals:write`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `referrals:write`, `full`, `admin`.
 func (c *Client) PostAttributionReplay(ctx context.Context, body PostAttributionReplayBody, opts ...RequestOption) (*PostAttributionReplayResponse, error) {
 	var out PostAttributionReplayResponse
 	if err := c.do(ctx, "POST", "/v1/attribution/replay", nil, body, &out, "json", opts); err != nil {
@@ -7812,7 +8214,9 @@ func (c *Client) PostAuthBackchannelLogout(ctx context.Context, body PostAuthBac
 //
 // Connects your sign-up system so new users are attributed server-side without calling associate: `clerk`, `supabase`, `workos` or `generic` receive the platform's user webhooks at the returned URL; `atlas` and `custom` call the signed protocol endpoints under `/v1/auth/connections/{id}/`. `autoEnrollUsers` makes every new user a partner too. Returns the signing secret once. 409 when an Atlas instance already has a connection.
 //
-// **Auth:** an API key with `integrations:write` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `integrations:write`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `integrations:write`, `connections:write`, `full`, `admin`.
 func (c *Client) PostAuthConnections(ctx context.Context, body PostAuthConnectionsBody, opts ...RequestOption) (*CreatedAuthConnection, error) {
 	var out CreatedAuthConnection
 	if err := c.do(ctx, "POST", "/v1/auth/connections", nil, body, &out, "json", opts); err != nil {
@@ -7877,7 +8281,9 @@ func (c *Client) PostAuthConnectionsIDPing(ctx context.Context, id string, body 
 //
 // Ends the rotation overlap at once: only the newest secret verifies from now on.
 //
-// **Auth:** an API key with `integrations:write` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `integrations:write`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `integrations:write`, `connections:write`, `full`, `admin`.
 func (c *Client) PostAuthConnectionsIDRevokePreviousSecret(ctx context.Context, id string, opts ...RequestOption) (*PostAuthConnectionsIdRevokePreviousSecretResponse, error) {
 	var out PostAuthConnectionsIdRevokePreviousSecretResponse
 	if err := c.do(ctx, "POST", "/v1/auth/connections/"+url.PathEscape(id)+"/revoke-previous-secret", nil, nil, &out, "json", opts); err != nil {
@@ -7890,7 +8296,9 @@ func (c *Client) PostAuthConnectionsIDRevokePreviousSecret(ctx context.Context, 
 //
 // Issues a new signing secret, returned once. The previous one keeps verifying for 24 hours, or until revoked.
 //
-// **Auth:** an API key with `integrations:write` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `integrations:write`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `integrations:write`, `connections:write`, `full`, `admin`.
 func (c *Client) PostAuthConnectionsIDRotateSecret(ctx context.Context, id string, opts ...RequestOption) (*PostAuthConnectionsIdRotateSecretResponse, error) {
 	var out PostAuthConnectionsIdRotateSecretResponse
 	if err := c.do(ctx, "POST", "/v1/auth/connections/"+url.PathEscape(id)+"/rotate-secret", nil, nil, &out, "json", opts); err != nil {
@@ -7942,7 +8350,9 @@ func (c *Client) PostAuthConnectionsIDUsers(ctx context.Context, id string, body
 //
 // The dashboard's consent step for `GET /v1/oauth/authorize`: `allow` returns the redirect back to the platform with a single-use code (10 minutes) for the chosen program; `deny` returns it with `error=access_denied`. Owner or admin. Audited.
 //
-// **Auth:** an API key with `integrations:write` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `integrations:write`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `integrations:write`, `connections:write`, `full`, `admin`.
 func (c *Client) PostAuthConnectionsInstall(ctx context.Context, body PostAuthConnectionsInstallBody, opts ...RequestOption) (*PostAuthConnectionsInstallResponse, error) {
 	var out PostAuthConnectionsInstallResponse
 	if err := c.do(ctx, "POST", "/v1/auth/connections/install", nil, body, &out, "json", opts); err != nil {
@@ -7968,7 +8378,9 @@ func (c *Client) PostAuthLogout(ctx context.Context, opts ...RequestOption) (*Po
 //
 // Moves the org to a plan without checkout: anyone may move to Free (after cancelling a subscription); paid plans only for platform admins or self-hosted deployments (403 otherwise). Owner only. Audited.
 //
-// **Auth:** an API key with `billing:write` (or `full`), or a session with role `owner`.
+// **Auth:** an API key with `billing:write`, or a session with role `owner`.
+//
+// **Scopes:** `billing:write`, `full`, `admin`.
 func (c *Client) PostBillingActivate(ctx context.Context, body PostBillingActivateBody, opts ...RequestOption) (*PostBillingActivateResponse, error) {
 	var out PostBillingActivateResponse
 	if err := c.do(ctx, "POST", "/v1/billing/activate", nil, body, &out, "json", opts); err != nil {
@@ -7981,7 +8393,9 @@ func (c *Client) PostBillingActivate(ctx context.Context, body PostBillingActiva
 //
 // Creates a checkout session for a paid plan and returns its `url` to redirect to. 400 when billing is not configured on this deployment.
 //
-// **Auth:** an API key with `billing:write` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `billing:write`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `billing:write`, `full`, `admin`.
 func (c *Client) PostBillingCheckout(ctx context.Context, body PostBillingCheckoutBody, opts ...RequestOption) (*PostBillingCheckoutResponse, error) {
 	var out PostBillingCheckoutResponse
 	if err := c.do(ctx, "POST", "/v1/billing/checkout", nil, body, &out, "json", opts); err != nil {
@@ -7992,9 +8406,11 @@ func (c *Client) PostBillingCheckout(ctx context.Context, body PostBillingChecko
 
 // PostBillingConnections calls Create a billing connection. POST /v1/billing/connections.
 //
-// Connects a billing provider (`stripe`, `paddle`, `lemonsqueezy`, `polar`, `chargebee`, `shopify`, `recurly`, `braintree`, `woocommerce`, `bigcommerce` or `generic`) so its payment webhooks become commissions. Returns the `webhookUrl` path to register with the provider and its signing secret (generated unless you pass the provider's own `webhookSecret`); the secret is returned only here. A `filter` (`productIds`, `priceIds`, `skus` and/or exact `metadata`) limits which payments and subscription events earn when one provider account sells several products; the rest are recorded as `ignored_by_filter`. Audited.
+// Connects a billing provider (`stripe`, `paddle`, `lemonsqueezy`, `polar`, `chargebee`, `shopify`, `recurly`, `braintree`, `woocommerce`, `bigcommerce` or `generic`) so its payment webhooks become commissions. Returns the `webhookUrl` path to register with the provider and its signing secret (generated unless you pass the provider's own `webhookSecret`); the secret is returned only here. For Stripe, pass `stripeKey` (a restricted key with Webhook Endpoints write and Customers write) instead of `webhookSecret`: Referalli registers a webhook endpoint at this connection's URL on your Stripe account with the events it reads and API version 2025-03-31.basil, stores the signing secret Stripe returns and answers with `stripeWebhookEndpointId`; nothing is saved unless Stripe registered it. If an endpoint on the account already points at one of your Stripe connections, it is updated and that connection returned with `reused: true` (one still `awaiting_secret` gets a fresh endpoint and its secret). `creditRail: { programId, ...settings }` also stores the key as that program's Stripe credit key and applies the `PUT /v1/programs/{id}/stripe-credits` settings (`enabled` defaults to true). The key is never returned and is stored only for `creditRail`. Deleting the connection leaves the Stripe endpoint in place. Errors: `422 stripe_key_wrong_mode`, `422 stripe_key_invalid`, `422 stripe_key_permission`, `502 stripe_unavailable`. A `filter` (`productIds`, `priceIds`, `skus` and/or exact `metadata`) limits which payments and subscription events earn when one provider account sells several products; the rest are recorded as `ignored_by_filter`. `programIds` limits the connection to those programs when one org runs several products: its events earn only through referrals in them, and a payment from a customer referred only in another program earns nothing (the event records `ignoredReason: "no_referral_in_scope"`); null or omitted = every program. A program-scoped API key must send `programIds` within its own. `status` is `awaiting_secret` when a provider that issues its own signing secret (Stripe, Paddle, Polar, Shopify, Recurly, Braintree) is connected without `webhookSecret`: its webhooks fail `401` until `PUT …/secret` stores the provider's secret, then it reads `active`. Audited.
 //
-// **Auth:** an API key with `billing:write` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `billing:write`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `billing:write`, `full`, `admin`.
 func (c *Client) PostBillingConnections(ctx context.Context, body PostBillingConnectionsBody, opts ...RequestOption) (*CreatedBillingConnection, error) {
 	var out CreatedBillingConnection
 	if err := c.do(ctx, "POST", "/v1/billing/connections", nil, body, &out, "json", opts); err != nil {
@@ -8007,7 +8423,9 @@ func (c *Client) PostBillingConnections(ctx context.Context, body PostBillingCon
 //
 // Generates a new signing secret, returned once. The previous one keeps verifying until `previousSecretExpiresAt` (24 hours). Audited.
 //
-// **Auth:** an API key with `billing:write` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `billing:write`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `billing:write`, `full`, `admin`.
 func (c *Client) PostBillingConnectionsIDRotateSecret(ctx context.Context, id string, opts ...RequestOption) (*PostBillingConnectionsIdRotateSecretResponse, error) {
 	var out PostBillingConnectionsIdRotateSecretResponse
 	if err := c.do(ctx, "POST", "/v1/billing/connections/"+url.PathEscape(id)+"/rotate-secret", nil, nil, &out, "json", opts); err != nil {
@@ -8020,7 +8438,9 @@ func (c *Client) PostBillingConnectionsIDRotateSecret(ctx context.Context, id st
 //
 // Applies the saved mapping (or a draft `mapping`) to a sample `payload` and returns what would be recorded. Writes nothing. A generic-connector body with `events` gets one result per event.
 //
-// **Auth:** an API key with `billing:write` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `billing:write`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `billing:write`, `full`, `admin`.
 func (c *Client) PostBillingConnectionsIDValueMappingPreview(ctx context.Context, id string, body PostBillingConnectionsIdValueMappingPreviewBody, opts ...RequestOption) (*ValueMappingPreview, error) {
 	var out ValueMappingPreview
 	if err := c.do(ctx, "POST", "/v1/billing/connections/"+url.PathEscape(id)+"/value-mapping/preview", nil, body, &out, "json", opts); err != nil {
@@ -8033,7 +8453,9 @@ func (c *Client) PostBillingConnectionsIDValueMappingPreview(ctx context.Context
 //
 // Marks a customer ref (the provider customer id, or the `referalli_customer_ref` it is linked to) as internal: its payments are recorded as `ignored_by_filter` from now on. Idempotent; a repeat updates the note. Audited.
 //
-// **Auth:** an API key with `billing:write` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `billing:write`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `billing:write`, `full`, `admin`.
 func (c *Client) PostBillingInternalCustomers(ctx context.Context, body PostBillingInternalCustomersBody, opts ...RequestOption) (*PostBillingInternalCustomersResponse, error) {
 	var out PostBillingInternalCustomersResponse
 	if err := c.do(ctx, "POST", "/v1/billing/internal-customers", nil, body, &out, "json", opts); err != nil {
@@ -8046,7 +8468,9 @@ func (c *Client) PostBillingInternalCustomers(ctx context.Context, body PostBill
 //
 // Returns the `url` of the billing portal where the owner manages or cancels the subscription. 400 before there is a subscription.
 //
-// **Auth:** an API key with `billing:write` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `billing:write`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `billing:write`, `full`, `admin`.
 func (c *Client) PostBillingPortal(ctx context.Context, opts ...RequestOption) (*PostBillingPortalResponse, error) {
 	var out PostBillingPortalResponse
 	if err := c.do(ctx, "POST", "/v1/billing/portal", nil, nil, &out, "json", opts); err != nil {
@@ -8059,7 +8483,9 @@ func (c *Client) PostBillingPortal(ctx context.Context, opts ...RequestOption) (
 //
 // Starts serving the partner portal on your own domain (such as `partners.example.com`), in your branding: returns the CNAME and TXT records to add. Needs a plan with custom domains (402 otherwise).
 //
-// **Auth:** an API key with `org:write` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `org:write`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `org:write`, `full`, `admin`.
 func (c *Client) PostBrandingDomain(ctx context.Context, body PostBrandingDomainBody, opts ...RequestOption) (*PostBrandingDomainResponse, error) {
 	var out PostBrandingDomainResponse
 	if err := c.do(ctx, "POST", "/v1/branding/domain", nil, body, &out, "json", opts); err != nil {
@@ -8072,7 +8498,9 @@ func (c *Client) PostBrandingDomain(ctx context.Context, body PostBrandingDomain
 //
 // Checks the portal domain's TXT record and CNAME, routes it and reports `provisioning` or `active` as for the link domain.
 //
-// **Auth:** an API key with `org:write` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `org:write`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `org:write`, `full`, `admin`.
 func (c *Client) PostBrandingDomainVerify(ctx context.Context, opts ...RequestOption) (*PostBrandingLinkDomainVerifyResponse, error) {
 	var out PostBrandingLinkDomainVerifyResponse
 	if err := c.do(ctx, "POST", "/v1/branding/domain/verify", nil, nil, &out, "json", opts); err != nil {
@@ -8085,7 +8513,9 @@ func (c *Client) PostBrandingDomainVerify(ctx context.Context, opts ...RequestOp
 //
 // Starts using your own domain (such as `go.example.com`) for partner links: returns the CNAME target and the TXT record that proves you control it. Links move onto it once verified. Needs a plan with custom domains (402 otherwise); 409 when the domain is in use.
 //
-// **Auth:** an API key with `org:write` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `org:write`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `org:write`, `full`, `admin`.
 func (c *Client) PostBrandingLinkDomain(ctx context.Context, body PostBrandingLinkDomainBody, opts ...RequestOption) (*PostBrandingLinkDomainResponse, error) {
 	var out PostBrandingLinkDomainResponse
 	if err := c.do(ctx, "POST", "/v1/branding/link-domain", nil, body, &out, "json", opts); err != nil {
@@ -8098,7 +8528,9 @@ func (c *Client) PostBrandingLinkDomain(ctx context.Context, body PostBrandingLi
 //
 // Checks the TXT record and the CNAME. When both are right the domain is routed here; it is `active` once HTTPS answers on it (`provisioning` while the certificate is issued, which finishes on its own). 400 with what is missing otherwise.
 //
-// **Auth:** an API key with `org:write` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `org:write`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `org:write`, `full`, `admin`.
 func (c *Client) PostBrandingLinkDomainVerify(ctx context.Context, opts ...RequestOption) (*PostBrandingLinkDomainVerifyResponse, error) {
 	var out PostBrandingLinkDomainVerifyResponse
 	if err := c.do(ctx, "POST", "/v1/branding/link-domain/verify", nil, nil, &out, "json", opts); err != nil {
@@ -8137,7 +8569,9 @@ func (c *Client) PostCliDeviceCodesToken(ctx context.Context, body PostCliDevice
 //
 // Approves the sign-in and mints its API key in this org. `access` picks the scopes: `cli` (webhooks write and read access to the rest, the default), `read` or `full`. Needs a signed-in owner or admin. Audited.
 //
-// **Auth:** an API key with `team:write` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `team:write`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `team:write`, `full`, `admin`.
 func (c *Client) PostCliDeviceCodesUserCodeApprove(ctx context.Context, userCode string, body PostCliDeviceCodesUserCodeApproveBody, opts ...RequestOption) (*PostCliDeviceCodesUserCodeApproveResponse, error) {
 	var out PostCliDeviceCodesUserCodeApproveResponse
 	if err := c.do(ctx, "POST", "/v1/cli/device-codes/"+url.PathEscape(userCode)+"/approve", nil, body, &out, "json", opts); err != nil {
@@ -8150,7 +8584,9 @@ func (c *Client) PostCliDeviceCodesUserCodeApprove(ctx context.Context, userCode
 //
 // Refuses a pending sign-in; the CLI then sees `denied`.
 //
-// **Auth:** an API key with `team:write` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `team:write`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `team:write`, `full`, `admin`.
 func (c *Client) PostCliDeviceCodesUserCodeDeny(ctx context.Context, userCode string, opts ...RequestOption) (*Ok, error) {
 	var out Ok
 	if err := c.do(ctx, "POST", "/v1/cli/device-codes/"+url.PathEscape(userCode)+"/deny", nil, nil, &out, "json", opts); err != nil {
@@ -8163,7 +8599,9 @@ func (c *Client) PostCliDeviceCodesUserCodeDeny(ctx context.Context, userCode st
 //
 // The CLI `listen` command opens a listener for some `topics` (default every topic). Events are queued for it while it polls at least every 2 minutes, and each comes with Standard Webhooks headers signed with the returned `secret`, so the CLI can forward them to a local server.
 //
-// **Auth:** an API key with `webhooks:write` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `webhooks:write`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `webhooks:write`, `full`, `admin`.
 func (c *Client) PostCliListeners(ctx context.Context, body PostCliListenersBody, opts ...RequestOption) (*PostCliListenersResponse, error) {
 	var out PostCliListenersResponse
 	if err := c.do(ctx, "POST", "/v1/cli/listeners", nil, body, &out, "json", opts); err != nil {
@@ -8176,7 +8614,9 @@ func (c *Client) PostCliListeners(ctx context.Context, body PostCliListenersBody
 //
 // The CLI `trigger` command sends a realistic sample event (ids `*_test_…`, `test: true`) to the org's listeners and webhook endpoints. `data` overrides fields of the sample. 400 for a topic with no sample; `GET /v1/cli/topics` lists them.
 //
-// **Auth:** an API key with `webhooks:write` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `webhooks:write`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `webhooks:write`, `full`, `admin`.
 func (c *Client) PostCliTrigger(ctx context.Context, body PostCliTriggerBody, opts ...RequestOption) (*PostCliTriggerResponse, error) {
 	var out PostCliTriggerResponse
 	if err := c.do(ctx, "POST", "/v1/cli/trigger", nil, body, &out, "json", opts); err != nil {
@@ -8189,7 +8629,9 @@ func (c *Client) PostCliTrigger(ctx context.Context, body PostCliTriggerBody, op
 //
 // Publishes a new version of a program's commission rule; the latest version applies to new payments, and past lines keep the version that earned them. A rule has a `base` (percent in basis points, or a fixed amount), what it applies to (gross or net of tax or fees), how long it recurs, a hold before lines can be paid (`holdDays`, default 30), and optional conditions, per-partner/link/product overrides, volume tiers, event bounties, sub-affiliate levels and new-vs-expansion rates. Unknown fields at any depth are rejected. Audited.
 //
-// **Auth:** an API key with `commissions:write` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `commissions:write`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `commissions:write`, `full`, `admin`.
 func (c *Client) PostCommissionRules(ctx context.Context, body PostCommissionRulesBody, opts ...RequestOption) (*PostCommissionRulesResponse, error) {
 	var out PostCommissionRulesResponse
 	if err := c.do(ctx, "POST", "/v1/commission-rules", nil, body, &out, "json", opts); err != nil {
@@ -8202,7 +8644,9 @@ func (c *Client) PostCommissionRules(ctx context.Context, body PostCommissionRul
 //
 // Approves every pending line whose hold has elapsed (this also runs on a schedule). Returns how many were approved. Audited.
 //
-// **Auth:** an API key with `commissions:write` (or `full`), or a session with role `owner`, `admin`, `finance`.
+// **Auth:** an API key with `commissions:write`, or a session with role `owner`, `admin`, `finance`.
+//
+// **Scopes:** `commissions:write`, `full`, `admin`.
 func (c *Client) PostCommissionsApproveDue(ctx context.Context, opts ...RequestOption) (*PostCommissionsApproveDueResponse, error) {
 	var out PostCommissionsApproveDueResponse
 	if err := c.do(ctx, "POST", "/v1/commissions/approve-due", nil, nil, &out, "json", opts); err != nil {
@@ -8215,7 +8659,9 @@ func (c *Client) PostCommissionsApproveDue(ctx context.Context, opts ...RequestO
 //
 // Records an `adjusted` event against an earned line (a correction; the ledger is append-only). `amountMinor` is signed. An adjustment that would take the line below zero is refused unless `allowNegative`. Audited.
 //
-// **Auth:** an API key with `commissions:write` (or `full`), or a session with role `owner`, `admin`, `finance`.
+// **Auth:** an API key with `commissions:write`, or a session with role `owner`, `admin`, `finance`.
+//
+// **Scopes:** `commissions:write`, `full`, `admin`.
 func (c *Client) PostCommissionsIDAdjust(ctx context.Context, id string, body PostCommissionsIdAdjustBody, opts ...RequestOption) (*PostCommissionsIdAdjustResponse, error) {
 	var out PostCommissionsIdAdjustResponse
 	if err := c.do(ctx, "POST", "/v1/commissions/"+url.PathEscape(id)+"/adjust", nil, body, &out, "json", opts); err != nil {
@@ -8228,7 +8674,9 @@ func (c *Client) PostCommissionsIDAdjust(ctx context.Context, id string, body Po
 //
 // Marks an earned line paid because you credited the partner yourself (for example as store credit), with your `reference`: records `approved` (if it isn't yet) and `paid`, and publishes `commission.settled`. The line never reaches a payout run or the 1099 export. Repeating the same reference returns the original settlement; a line already paid otherwise is 409. Audited.
 //
-// **Auth:** an API key with `commissions:write` (or `full`), or a session with role `owner`, `admin`, `finance`.
+// **Auth:** an API key with `commissions:write`, or a session with role `owner`, `admin`, `finance`.
+//
+// **Scopes:** `commissions:write`, `full`, `admin`.
 func (c *Client) PostCommissionsIDSettle(ctx context.Context, id string, body PostCommissionsIdSettleBody, opts ...RequestOption) (*Settlement, error) {
 	var out Settlement
 	if err := c.do(ctx, "POST", "/v1/commissions/"+url.PathEscape(id)+"/settle", nil, body, &out, "json", opts); err != nil {
@@ -8241,7 +8689,9 @@ func (c *Client) PostCommissionsIDSettle(ctx context.Context, id string, body Po
 //
 // A contract offering one partner custom terms (`termsMd`) and `compensation` (percent or fixed) in a program, as a draft or sent at once (`send: true`). When accepted, the compensation becomes a partner override on a new rule version. Audited.
 //
-// **Auth:** an API key with `partners:write` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `partners:write`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `partners:write`, `full`, `admin`.
 func (c *Client) PostContracts(ctx context.Context, body PostContractsBody, opts ...RequestOption) (*PostContractsResponse, error) {
 	var out PostContractsResponse
 	if err := c.do(ctx, "POST", "/v1/contracts", nil, body, &out, "json", opts); err != nil {
@@ -8254,7 +8704,9 @@ func (c *Client) PostContracts(ctx context.Context, body PostContractsBody, opts
 //
 // Sends a draft contract to the partner. 400 when it is not a draft.
 //
-// **Auth:** an API key with `partners:write` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `partners:write`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `partners:write`, `full`, `admin`.
 func (c *Client) PostContractsIDSend(ctx context.Context, id string, opts ...RequestOption) (*OkStatus, error) {
 	var out OkStatus
 	if err := c.do(ctx, "POST", "/v1/contracts/"+url.PathEscape(id)+"/send", nil, nil, &out, "json", opts); err != nil {
@@ -8267,7 +8719,9 @@ func (c *Client) PostContractsIDSend(ctx context.Context, id string, opts ...Req
 //
 // Registers a coupon code for a partner in a program, so checkouts that use it attribute to them (coupon codes win over clicks). Codes match case-insensitively and are unique per org (409).
 //
-// **Auth:** an API key with `links:write` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `links:write`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `links:write`, `full`, `admin`.
 func (c *Client) PostCoupons(ctx context.Context, body PostCouponsBody, opts ...RequestOption) (*PostCouponsResponse, error) {
 	var out PostCouponsResponse
 	if err := c.do(ctx, "POST", "/v1/coupons", nil, body, &out, "json", opts); err != nil {
@@ -8280,7 +8734,9 @@ func (c *Client) PostCoupons(ctx context.Context, body PostCouponsBody, opts ...
 //
 // Invites a listed creator to a program with an optional message. 400 when they do not accept invitations or were already invited to that program.
 //
-// **Auth:** an API key with `growth:write` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `growth:write`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `growth:write`, `full`, `admin`.
 func (c *Client) PostCreatorsAccountIDInvite(ctx context.Context, accountId string, body PostCreatorsAccountIdInviteBody, opts ...RequestOption) (*PostCreatorsAccountIdInviteResponse, error) {
 	var out PostCreatorsAccountIdInviteResponse
 	if err := c.do(ctx, "POST", "/v1/creators/"+url.PathEscape(accountId)+"/invite", nil, body, &out, "json", opts); err != nil {
@@ -8293,7 +8749,9 @@ func (c *Client) PostCreatorsAccountIDInvite(ctx context.Context, accountId stri
 //
 // Approves a submitted deal and protects it for the partner for `protectionDays` (default 90). 404 when there's no submitted deal with that id.
 //
-// **Auth:** an API key with `growth:write` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `growth:write`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `growth:write`, `full`, `admin`.
 func (c *Client) PostDealsIDApprove(ctx context.Context, id string, body PostDealsIdApproveBody, opts ...RequestOption) (*PostDealsIdApproveResponse, error) {
 	var out PostDealsIdApproveResponse
 	if err := c.do(ctx, "POST", "/v1/deals/"+url.PathEscape(id)+"/approve", nil, body, &out, "json", opts); err != nil {
@@ -8306,7 +8764,9 @@ func (c *Client) PostDealsIDApprove(ctx context.Context, id string, body PostDea
 //
 // Rejects a submitted deal.
 //
-// **Auth:** an API key with `growth:write` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `growth:write`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `growth:write`, `full`, `admin`.
 func (c *Client) PostDealsIDReject(ctx context.Context, id string, opts ...RequestOption) (*PostDealsIdRejectResponse, error) {
 	var out PostDealsIdRejectResponse
 	if err := c.do(ctx, "POST", "/v1/deals/"+url.PathEscape(id)+"/reject", nil, nil, &out, "json", opts); err != nil {
@@ -8319,7 +8779,9 @@ func (c *Client) PostDealsIDReject(ctx context.Context, id string, opts ...Reque
 //
 // Marks an approved deal won, within its protection window: creates the referral for `customerRef` so the customer's payments earn the partner commission. Publishes `referral.created`.
 //
-// **Auth:** an API key with `growth:write` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `growth:write`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `growth:write`, `full`, `admin`.
 func (c *Client) PostDealsIDWon(ctx context.Context, id string, body PostDealsIdWonBody, opts ...RequestOption) (*PostDealsIdWonResponse, error) {
 	var out PostDealsIdWonResponse
 	if err := c.do(ctx, "POST", "/v1/deals/"+url.PathEscape(id)+"/won", nil, body, &out, "json", opts); err != nil {
@@ -8332,7 +8794,9 @@ func (c *Client) PostDealsIDWon(ctx context.Context, id string, body PostDealsId
 //
 // Adds up to 500 prospects from your own crawl or data source. Raw page `html` is scanned for affiliate footprints (the competitor programs it recognizes) to enrich the evidence; `keywords` scores fit. Duplicate URLs are skipped. Needs a plan with discovery (402 otherwise).
 //
-// **Auth:** an API key with `growth:write` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `growth:write`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `growth:write`, `full`, `admin`.
 func (c *Client) PostDiscoveryCorpus(ctx context.Context, body PostDiscoveryCorpusBody, opts ...RequestOption) (*PostDiscoveryCorpusResponse, error) {
 	var out PostDiscoveryCorpusResponse
 	if err := c.do(ctx, "POST", "/v1/discovery/corpus", nil, body, &out, "json", opts); err != nil {
@@ -8345,7 +8809,9 @@ func (c *Client) PostDiscoveryCorpus(ctx context.Context, body PostDiscoveryCorp
 //
 // Searches the configured corpus for creators and sites matching `keywords` (and `category`), scores their fit and saves them as prospects. Needs a plan with discovery (402 otherwise).
 //
-// **Auth:** an API key with `growth:write` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `growth:write`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `growth:write`, `full`, `admin`.
 func (c *Client) PostDiscoverySearch(ctx context.Context, body PostDiscoverySearchBody, opts ...RequestOption) (*PostDiscoverySearchResponse, error) {
 	var out PostDiscoverySearchResponse
 	if err := c.do(ctx, "POST", "/v1/discovery/search", nil, body, &out, "json", opts); err != nil {
@@ -8358,7 +8824,9 @@ func (c *Client) PostDiscoverySearch(ctx context.Context, body PostDiscoverySear
 //
 // Resolves an open dispute with a `resolution` note, which the partner sees. Publishes `dispute.resolved`. 404 when not open. Audited.
 //
-// **Auth:** an API key with `commissions:write` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `commissions:write`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `commissions:write`, `full`, `admin`.
 func (c *Client) PostDisputesIDResolve(ctx context.Context, id string, body PostDisputesIdResolveBody, opts ...RequestOption) (*Ok, error) {
 	var out Ok
 	if err := c.do(ctx, "POST", "/v1/disputes/"+url.PathEscape(id)+"/resolve", nil, body, &out, "json", opts); err != nil {
@@ -8371,7 +8839,9 @@ func (c *Client) PostDisputesIDResolve(ctx context.Context, id string, body Post
 //
 // Renders an event's email with sample values, from the stored template or an unsaved draft.
 //
-// **Auth:** an API key with `org:write` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `org:write`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `org:write`, `full`, `admin`.
 func (c *Client) PostEmailPreview(ctx context.Context, body PostEmailPreviewBody, opts ...RequestOption) (*EmailRendered, error) {
 	var out EmailRendered
 	if err := c.do(ctx, "POST", "/v1/email/preview", nil, body, &out, "json", opts); err != nil {
@@ -8384,7 +8854,9 @@ func (c *Client) PostEmailPreview(ctx context.Context, body PostEmailPreviewBody
 //
 // Asks the email provider whether the from address's domain is verified for sending, and stores the result. 400 until a provider, key and from address are set.
 //
-// **Auth:** an API key with `org:write` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `org:write`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `org:write`, `full`, `admin`.
 func (c *Client) PostEmailSettingsVerifyDomain(ctx context.Context, opts ...RequestOption) (*PostEmailSettingsVerifyDomainResponse, error) {
 	var out PostEmailSettingsVerifyDomainResponse
 	if err := c.do(ctx, "POST", "/v1/email/settings/verify-domain", nil, nil, &out, "json", opts); err != nil {
@@ -8397,7 +8869,9 @@ func (c *Client) PostEmailSettingsVerifyDomain(ctx context.Context, opts ...Requ
 //
 // Sends one email with sample values to `to` through the org's provider. 400 without a provider or when the provider refuses it.
 //
-// **Auth:** an API key with `org:write` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `org:write`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `org:write`, `full`, `admin`.
 func (c *Client) PostEmailTest(ctx context.Context, body PostEmailTestBody, opts ...RequestOption) (*PostEmailTestResponse, error) {
 	var out PostEmailTestResponse
 	if err := c.do(ctx, "POST", "/v1/email/test", nil, body, &out, "json", opts); err != nil {
@@ -8410,7 +8884,9 @@ func (c *Client) PostEmailTest(ctx context.Context, body PostEmailTestBody, opts
 //
 // A 15-minute token for the partner with this email, for the partner stats web component (`/embed.js`) in your app.
 //
-// **Auth:** an API key with `links:write` (or `full`), or a session of any role.
+// **Auth:** an API key with `links:write`, or a session of any role.
+//
+// **Scopes:** `links:write`, `full`, `admin`.
 func (c *Client) PostEmbedTokens(ctx context.Context, body PostEmbedTokensBody, opts ...RequestOption) (*PostEmbedTokensResponse, error) {
 	var out PostEmbedTokensResponse
 	if err := c.do(ctx, "POST", "/v1/embed/tokens", nil, body, &out, "json", opts); err != nil {
@@ -8423,7 +8899,9 @@ func (c *Client) PostEmbedTokens(ctx context.Context, body PostEmbedTokensBody, 
 //
 // Closes a case with an `action`: `dismiss` (a held referral is approved), `void_referral`, `suspend_partner` or `ban_partner`. The matching `referral.*` events are published. Audited.
 //
-// **Auth:** an API key with `fraud:write` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `fraud:write`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `fraud:write`, `full`, `admin`.
 func (c *Client) PostFraudCasesIDResolve(ctx context.Context, id string, body PostFraudCasesIdResolveBody, opts ...RequestOption) (*Ok, error) {
 	var out Ok
 	if err := c.do(ctx, "POST", "/v1/fraud/cases/"+url.PathEscape(id)+"/resolve", nil, body, &out, "json", opts); err != nil {
@@ -8436,7 +8914,9 @@ func (c *Client) PostFraudCasesIDResolve(ctx context.Context, id string, body Po
 //
 // Looks for partners who are likely one operator with many accounts (a shared payout destination or a shared non-freemail sign-up domain) and opens a `ring` case for each group.
 //
-// **Auth:** an API key with `fraud:write` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `fraud:write`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `fraud:write`, `full`, `admin`.
 func (c *Client) PostFraudDetectRings(ctx context.Context, opts ...RequestOption) (*PostFraudDetectRingsResponse, error) {
 	var out PostFraudDetectRingsResponse
 	if err := c.do(ctx, "POST", "/v1/fraud/detect-rings", nil, nil, &out, "json", opts); err != nil {
@@ -8449,7 +8929,9 @@ func (c *Client) PostFraudDetectRings(ctx context.Context, opts ...RequestOption
 //
 // Scores each partner's clicks over the last `windowHours` (1 to 168, default 24) for invalid traffic and returns the probability, label and contributing signals per partner, plus how many were flagged.
 //
-// **Auth:** an API key with `fraud:write` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `fraud:write`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `fraud:write`, `full`, `admin`.
 func (c *Client) PostFraudInvalidTrafficScan(ctx context.Context, body PostFraudInvalidTrafficScanBody, opts ...RequestOption) (*PostFraudInvalidTrafficScanResponse, error) {
 	var out PostFraudInvalidTrafficScanResponse
 	if err := c.do(ctx, "POST", "/v1/fraud/invalid-traffic/scan", nil, body, &out, "json", opts); err != nil {
@@ -8462,7 +8944,9 @@ func (c *Client) PostFraudInvalidTrafficScan(ctx context.Context, body PostFraud
 //
 // Records the rate cross-currency payouts convert at, for a currency pair, as a decimal string (`"1.0825"`), effective now or at `effectiveAt`. A manual rate pins its pair over the daily feed until cleared. Audited.
 //
-// **Auth:** an API key with `payouts:write` (or `full`), or a session with role `owner`, `admin`, `finance`.
+// **Auth:** an API key with `payouts:write`, or a session with role `owner`, `admin`, `finance`.
+//
+// **Scopes:** `payouts:write`, `full`, `admin`.
 func (c *Client) PostFXRates(ctx context.Context, body PostFxRatesBody, opts ...RequestOption) (*FxRate, error) {
 	var out FxRate
 	if err := c.do(ctx, "POST", "/v1/fx-rates", nil, body, &out, "json", opts); err != nil {
@@ -8475,7 +8959,9 @@ func (c *Client) PostFXRates(ctx context.Context, body PostFxRatesBody, opts ...
 //
 // Retires the manual rates for a pair, handing it back to the feed. Returns how many were cleared. Audited.
 //
-// **Auth:** an API key with `payouts:write` (or `full`), or a session with role `owner`, `admin`, `finance`.
+// **Auth:** an API key with `payouts:write`, or a session with role `owner`, `admin`, `finance`.
+//
+// **Scopes:** `payouts:write`, `full`, `admin`.
 func (c *Client) PostFXRatesClearOverride(ctx context.Context, body PostFxRatesClearOverrideBody, opts ...RequestOption) (*PostFxRatesClearOverrideResponse, error) {
 	var out PostFxRatesClearOverrideResponse
 	if err := c.do(ctx, "POST", "/v1/fx-rates/clear-override", nil, body, &out, "json", opts); err != nil {
@@ -8488,7 +8974,9 @@ func (c *Client) PostFXRatesClearOverride(ctx context.Context, body PostFxRatesC
 //
 // Fetches the latest ECB reference rates for this org now, instead of waiting for the daily sync.
 //
-// **Auth:** an API key with `payouts:write` (or `full`), or a session with role `owner`, `admin`, `finance`.
+// **Auth:** an API key with `payouts:write`, or a session with role `owner`, `admin`, `finance`.
+//
+// **Scopes:** `payouts:write`, `full`, `admin`.
 func (c *Client) PostFXRatesSync(ctx context.Context, opts ...RequestOption) (*PostFxRatesSyncResponse, error) {
 	var out PostFxRatesSyncResponse
 	if err := c.do(ctx, "POST", "/v1/fx-rates/sync", nil, nil, &out, "json", opts); err != nil {
@@ -8501,7 +8989,9 @@ func (c *Client) PostFXRatesSync(ctx context.Context, opts ...RequestOption) (*P
 //
 // The GraphQL endpoint with the query in a JSON body. Read-only, so a read-scoped API key may call it.
 //
-// **Auth:** an API key with `analytics:read` (or `full`), or a session of any role.
+// **Auth:** an API key with `analytics:read`, or a session of any role.
+//
+// **Scopes:** `analytics:read`, `analytics:write`, `read`, `full`, `admin`.
 func (c *Client) PostGraphql(ctx context.Context, body PostGraphqlBody, opts ...RequestOption) (*PostGraphqlResponse, error) {
 	var out PostGraphqlResponse
 	if err := c.do(ctx, "POST", "/v1/graphql", nil, body, &out, "json", opts); err != nil {
@@ -8532,7 +9022,9 @@ func (p *PostImportProviderParams) values() url.Values {
 //
 // Imports partners, links and codes from a Rewardful, FirstPromoter, Tolt or PartnerStack CSV export (as a `text/csv` body or `{ "csv": "…" }`) into a program. `dryRun=true` reports what would happen; `destinationUrl` is used when the export has no link column. The tool's referral parameter is added to aff.js so shared links keep crediting. Audited.
 //
-// **Auth:** an API key with `integrations:write` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `integrations:write`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `integrations:write`, `full`, `admin`.
 func (c *Client) PostImportProvider(ctx context.Context, provider string, body PostImportProviderBody, params *PostImportProviderParams, opts ...RequestOption) (*PostImportProviderResponse, error) {
 	var out PostImportProviderResponse
 	if err := c.do(ctx, "POST", "/v1/import/"+url.PathEscape(provider), params.values(), body, &out, "json", opts); err != nil {
@@ -8545,7 +9037,9 @@ func (c *Client) PostImportProvider(ctx context.Context, provider string, body P
 //
 // Queues a failed or skipped delivery again. 404 when there is no failed or skipped delivery with that id.
 //
-// **Auth:** an API key with `integrations:write` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `integrations:write`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `integrations:write`, `full`, `admin`.
 func (c *Client) PostIntegrationsDeliveriesIDRetry(ctx context.Context, id string, opts ...RequestOption) (*IntegrationDelivery, error) {
 	var out IntegrationDelivery
 	if err := c.do(ctx, "POST", "/v1/integrations/deliveries/"+url.PathEscape(id)+"/retry", nil, nil, &out, "json", opts); err != nil {
@@ -8558,7 +9052,9 @@ func (c *Client) PostIntegrationsDeliveriesIDRetry(ctx context.Context, id strin
 //
 // Checks the token against HubSpot and (unless `setupProperties: false`) creates the custom properties the sync uses. Returns `ok` and the error, if any, rather than failing.
 //
-// **Auth:** an API key with `integrations:write` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `integrations:write`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `integrations:write`, `full`, `admin`.
 func (c *Client) PostIntegrationsHubspotTest(ctx context.Context, body PostIntegrationsHubspotTestBody, opts ...RequestOption) (*PostIntegrationsHubspotTestResponse, error) {
 	var out PostIntegrationsHubspotTestResponse
 	if err := c.do(ctx, "POST", "/v1/integrations/hubspot/test", nil, body, &out, "json", opts); err != nil {
@@ -8571,7 +9067,9 @@ func (c *Client) PostIntegrationsHubspotTest(ctx context.Context, body PostInteg
 //
 // Sends one test track event with the write key and reports whether Segment accepted it.
 //
-// **Auth:** an API key with `integrations:write` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `integrations:write`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `integrations:write`, `full`, `admin`.
 func (c *Client) PostIntegrationsSegmentTest(ctx context.Context, opts ...RequestOption) (*PostIntegrationsSegmentTestResponse, error) {
 	var out PostIntegrationsSegmentTestResponse
 	if err := c.do(ctx, "POST", "/v1/integrations/segment/test", nil, nil, &out, "json", opts); err != nil {
@@ -8584,7 +9082,9 @@ func (c *Client) PostIntegrationsSegmentTest(ctx context.Context, opts ...Reques
 //
 // Withdraws a pending creator invitation. 400 when it was already answered or withdrawn.
 //
-// **Auth:** an API key with `partners:write` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `partners:write`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `partners:write`, `full`, `admin`.
 func (c *Client) PostInvitationsIDWithdraw(ctx context.Context, id string, opts ...RequestOption) (*OkStatus, error) {
 	var out OkStatus
 	if err := c.do(ctx, "POST", "/v1/invitations/"+url.PathEscape(id)+"/withdraw", nil, nil, &out, "json", opts); err != nil {
@@ -8597,7 +9097,9 @@ func (c *Client) PostInvitationsIDWithdraw(ctx context.Context, id string, opts 
 //
 // Creates a partner's tracked link in a program. `code` (letters, digits, `-`; stored lowercase) is unique per org and generated when omitted. Returns the `shortUrl` to share, on the org's verified link domain when it has one. 409 when the code is taken. Audited.
 //
-// **Auth:** an API key with `links:write` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `links:write`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `links:write`, `full`, `admin`.
 func (c *Client) PostLinks(ctx context.Context, body PostLinksBody, opts ...RequestOption) (*CreatedLink, error) {
 	var out CreatedLink
 	if err := c.do(ctx, "POST", "/v1/links", nil, body, &out, "json", opts); err != nil {
@@ -8610,7 +9112,9 @@ func (c *Client) PostLinks(ctx context.Context, body PostLinksBody, opts ...Requ
 //
 // Your backend reports a validated App Store or Play purchase (or refund), after checking the receipt; it flows through the same commission engine as web billing. Idempotent per `eventId`. Never call this from the app itself.
 //
-// **Auth:** an API key with `billing:write` (or `full`), or a session with role `owner`, `admin`, `finance`.
+// **Auth:** an API key with `billing:write`, or a session with role `owner`, `admin`, `finance`.
+//
+// **Scopes:** `billing:write`, `full`, `admin`.
 func (c *Client) PostMobilePurchases(ctx context.Context, body PostMobilePurchasesBody, opts ...RequestOption) (*PostMobilePurchasesResponse, error) {
 	var out PostMobilePurchasesResponse
 	if err := c.do(ctx, "POST", "/v1/mobile/purchases", nil, body, &out, "json", opts); err != nil {
@@ -8623,7 +9127,9 @@ func (c *Client) PostMobilePurchases(ctx context.Context, body PostMobilePurchas
 //
 // Marks one notification read. Unknown or already-read ids are a no-op.
 //
-// **Auth:** an API key with `org:write` (or `full`), or a session of any role.
+// **Auth:** an API key with `org:write`, or a session of any role.
+//
+// **Scopes:** `org:write`, `full`, `admin`.
 func (c *Client) PostNotificationsIDRead(ctx context.Context, id string, opts ...RequestOption) (*Ok, error) {
 	var out Ok
 	if err := c.do(ctx, "POST", "/v1/notifications/"+url.PathEscape(id)+"/read", nil, nil, &out, "json", opts); err != nil {
@@ -8649,7 +9155,9 @@ func (c *Client) PostOauthToken(ctx context.Context, body json.RawMessage, opts 
 //
 // Connects an on-chain indexer: on-chain conversions posted to its webhook URL become billing events. Returns the webhook URL and signing secret.
 //
-// **Auth:** an API key with `billing:write` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `billing:write`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `billing:write`, `full`, `admin`.
 func (c *Client) PostOnchainConnections(ctx context.Context, body PostOnchainConnectionsBody, opts ...RequestOption) (*PostOnchainConnectionsResponse, error) {
 	var out PostOnchainConnectionsResponse
 	if err := c.do(ctx, "POST", "/v1/onchain/connections", nil, body, &out, "json", opts); err != nil {
@@ -8662,7 +9170,9 @@ func (c *Client) PostOnchainConnections(ctx context.Context, body PostOnchainCon
 //
 // Asks Cookie Munch (`GET /v1/partner/sites/{cbid}/stamps/{stamp}`) what the visitor's consent stamp says on your registered site (`cbid`, or each registered site in turn) and keeps the answer. `verdict`: `consented` (found, with the `referrals` category on: the only verdict that credits a referral's consent), `not_consented`, `withdrawn` (a later decision turned `referrals` off: `withdrawnAt`), `not_found` (the site never recorded the stamp), `no_grant` (Cookie Munch's 403: the site has no live link to Referalli) or `error`. Clicks and consent events that carry a Cookie Munch stamp are checked the same way in the background. 409 when the partner token isn't configured or no site is registered. Owner or admin.
 //
-// **Auth:** an API key with `org:write` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `org:write`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `org:write`, `full`, `admin`.
 func (c *Client) PostOrgConsentPartnersCookiemunchStampsCheck(ctx context.Context, body PostOrgConsentPartnersCookiemunchStampsCheckBody, opts ...RequestOption) (*PostOrgConsentPartnersCookiemunchStampsCheckResponse, error) {
 	var out PostOrgConsentPartnersCookiemunchStampsCheckResponse
 	if err := c.do(ctx, "POST", "/v1/org/consent-partners/cookiemunch/stamps/check", nil, body, &out, "json", opts); err != nil {
@@ -8675,7 +9185,9 @@ func (c *Client) PostOrgConsentPartnersCookiemunchStampsCheck(ctx context.Contex
 //
 // Read-only checks against the vendors: does the Cookie Munch site exist (and a reminder to add your portal domain as its alias), does each script URL answer. Updates `status` and `lastError`. Owner or admin.
 //
-// **Auth:** an API key with `org:write` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `org:write`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `org:write`, `full`, `admin`.
 func (c *Client) PostOrgHostedPagesCheck(ctx context.Context, opts ...RequestOption) (*PostOrgHostedPagesCheckResponse, error) {
 	var out PostOrgHostedPagesCheckResponse
 	if err := c.do(ctx, "POST", "/v1/org/hosted-pages/check", nil, nil, &out, "json", opts); err != nil {
@@ -8688,7 +9200,9 @@ func (c *Client) PostOrgHostedPagesCheck(ctx context.Context, opts ...RequestOpt
 //
 // Adds an existing Referalli user (by email) with a role: `owner`, `admin`, `finance`, `analyst` or `support`. Only an owner can add an owner. 404 when no user has that email; 409 when already a member. Live mode only.
 //
-// **Auth:** an API key with `team:write` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `team:write`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `team:write`, `full`, `admin`.
 func (c *Client) PostOrgMembers(ctx context.Context, body PostOrgMembersBody, opts ...RequestOption) (*PostOrgMembersResponse, error) {
 	var out PostOrgMembersResponse
 	if err := c.do(ctx, "POST", "/v1/org/members", nil, body, &out, "json", opts); err != nil {
@@ -8701,7 +9215,9 @@ func (c *Client) PostOrgMembers(ctx context.Context, body PostOrgMembersBody, op
 //
 // Checks the partner sign-in configuration (JWKS reachable, or OIDC discovery) and records the result.
 //
-// **Auth:** an API key with `org:write` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `org:write`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `org:write`, `full`, `admin`.
 func (c *Client) PostOrgPortalAuthTest(ctx context.Context, opts ...RequestOption) (*PostOrgPortalAuthTestResponse, error) {
 	var out PostOrgPortalAuthTestResponse
 	if err := c.do(ctx, "POST", "/v1/org/portal-auth/test", nil, nil, &out, "json", opts); err != nil {
@@ -8714,7 +9230,9 @@ func (c *Client) PostOrgPortalAuthTest(ctx context.Context, opts ...RequestOptio
 //
 // Creates an organization with the signed-in user as its owner. Needs a user session (not an API key) but no `x-org-id`. Limited to 20 per hour per user. Live mode only.
 //
-// **Auth:** an API key with `team:write` (or `full`), or a session of any role.
+// **Auth:** an API key with `team:write`, or a session of any role.
+//
+// **Scopes:** `team:write`, `full`, `admin`.
 func (c *Client) PostOrgs(ctx context.Context, body PostOrgsBody, opts ...RequestOption) (*PostOrgsResponse, error) {
 	var out PostOrgsResponse
 	if err := c.do(ctx, "POST", "/v1/orgs", nil, body, &out, "json", opts); err != nil {
@@ -8740,7 +9258,9 @@ func (c *Client) PostOrgsOrgIDPrivacyExecutorKey(ctx context.Context, orgId stri
 //
 // Checks the configuration against the IdP (OIDC discovery, or the WorkOS organization) and records the result as the configuration's last success or last error.
 //
-// **Auth:** an API key with `org:write` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `org:write`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `org:write`, `full`, `admin`.
 func (c *Client) PostOrgSSODirectTest(ctx context.Context, opts ...RequestOption) (*PostOrgPortalAuthTestResponse, error) {
 	var out PostOrgPortalAuthTestResponse
 	if err := c.do(ctx, "POST", "/v1/org/sso/direct/test", nil, nil, &out, "json", opts); err != nil {
@@ -8753,7 +9273,9 @@ func (c *Client) PostOrgSSODirectTest(ctx context.Context, opts ...RequestOption
 //
 // Creates the org's directory tenant at the SSO provider, with the calling owner (who must have signed in with the provider) as its first admin. Owner session only. 409 when already linked elsewhere. Live mode only.
 //
-// **Auth:** an API key with `org:write` (or `full`), or a session with role `owner`.
+// **Auth:** an API key with `org:write`, or a session with role `owner`.
+//
+// **Scopes:** `org:write`, `full`, `admin`.
 func (c *Client) PostOrgSSOLink(ctx context.Context, opts ...RequestOption) (*PostOrgSsoLinkResponse, error) {
 	var out PostOrgSsoLinkResponse
 	if err := c.do(ctx, "POST", "/v1/org/sso/link", nil, nil, &out, "json", opts); err != nil {
@@ -8766,7 +9288,9 @@ func (c *Client) PostOrgSSOLink(ctx context.Context, opts ...RequestOption) (*Po
 //
 // A one-time link (valid `expiresInDays`, default 3) for the customer's IT admin to configure SAML or OIDC (and SCIM) on the provider's hosted page. The URL is returned once and never stored. Live mode only.
 //
-// **Auth:** an API key with `org:write` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `org:write`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `org:write`, `full`, `admin`.
 func (c *Client) PostOrgSSOTickets(ctx context.Context, body PostOrgSsoTicketsBody, opts ...RequestOption) (*PostOrgSsoTicketsResponse, error) {
 	var out PostOrgSsoTicketsResponse
 	if err := c.do(ctx, "POST", "/v1/org/sso/tickets", nil, body, &out, "json", opts); err != nil {
@@ -8779,7 +9303,9 @@ func (c *Client) PostOrgSSOTickets(ctx context.Context, body PostOrgSsoTicketsBo
 //
 // Revokes a pending setup link. Live mode only.
 //
-// **Auth:** an API key with `org:write` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `org:write`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `org:write`, `full`, `admin`.
 func (c *Client) PostOrgSSOTicketsIDRevoke(ctx context.Context, id string, opts ...RequestOption) (*PostOrgSsoTicketsIdRevokeResponse, error) {
 	var out PostOrgSsoTicketsIdRevokeResponse
 	if err := c.do(ctx, "POST", "/v1/org/sso/tickets/"+url.PathEscape(id)+"/revoke", nil, nil, &out, "json", opts); err != nil {
@@ -8792,7 +9318,9 @@ func (c *Client) PostOrgSSOTicketsIDRevoke(ctx context.Context, id string, opts 
 //
 // Drafts a recruiting email sequence for a prospect. Drafts are only sent after you approve them.
 //
-// **Auth:** an API key with `growth:write` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `growth:write`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `growth:write`, `full`, `admin`.
 func (c *Client) PostOutreachDraft(ctx context.Context, body PostOutreachDraftBody, opts ...RequestOption) (*PostOutreachDraftResponse, error) {
 	var out PostOutreachDraftResponse
 	if err := c.do(ctx, "POST", "/v1/outreach/draft", nil, body, &out, "json", opts); err != nil {
@@ -8805,7 +9333,9 @@ func (c *Client) PostOutreachDraft(ctx context.Context, body PostOutreachDraftBo
 //
 // Approves a drafted message so `POST /v1/outreach/send-due` sends it when due. Audited.
 //
-// **Auth:** an API key with `growth:write` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `growth:write`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `growth:write`, `full`, `admin`.
 func (c *Client) PostOutreachIDApprove(ctx context.Context, id string, opts ...RequestOption) (*Ok, error) {
 	var out Ok
 	if err := c.do(ctx, "POST", "/v1/outreach/"+url.PathEscape(id)+"/approve", nil, nil, &out, "json", opts); err != nil {
@@ -8818,7 +9348,9 @@ func (c *Client) PostOutreachIDApprove(ctx context.Context, id string, opts ...R
 //
 // Sends approved outreach messages that are due, skipping prospects without an email and addresses on the do-not-contact list (unsubscribed).
 //
-// **Auth:** an API key with `growth:write` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `growth:write`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `growth:write`, `full`, `admin`.
 func (c *Client) PostOutreachSendDue(ctx context.Context, opts ...RequestOption) (*PostOutreachSendDueResponse, error) {
 	var out PostOutreachSendDueResponse
 	if err := c.do(ctx, "POST", "/v1/outreach/send-due", nil, nil, &out, "json", opts); err != nil {
@@ -9039,7 +9571,9 @@ func (c *Client) PostPartnerProgramsProgramIDApply(ctx context.Context, programI
 //
 // Creates a partner. `email` is unique per org, and so is `externalRef` (your own id for them, such as a user id). With `upsert: true` an existing partner matching the email or externalRef is returned instead of a 409 (and gets the externalRef if it had none), with `matchedBy` (`email` or `externalRef`) and `externalRefKept`: true when the partner keeps its own externalRef (another product's) and yours was not applied to it, because yours is the program-scoped one on its enrollment. An email match whose partner has a different externalRef and no enrollment carrying yours is a 409. Over the plan's partner limit this is `402 payment_required`. Audited.
 //
-// **Auth:** an API key with `partners:write` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `partners:write`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `partners:write`, `full`, `admin`.
 func (c *Client) PostPartners(ctx context.Context, body PostPartnersBody, opts ...RequestOption) (*PostPartnersResponse, error) {
 	var out PostPartnersResponse
 	if err := c.do(ctx, "POST", "/v1/partners", nil, body, &out, "json", opts); err != nil {
@@ -9091,7 +9625,9 @@ func (c *Client) PostPartnerSecurityTotpSetup(ctx context.Context, opts ...Reque
 //
 // A single-use `url` (valid 5 minutes) for a "View earnings" button in your app: opening it signs the partner in to the partner portal for `programId`, with no second account. The session is read-only and limited to this partner in your organization (never the partner's other merchants or account settings) and lasts 12 hours. `returnUrl` must be a path inside the portal, such as `/portal/earnings`. 404 for a partner outside your organization or not enrolled in the program. Owner or admin.
 //
-// **Auth:** an API key with `partners:write` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `partners:write`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `partners:write`, `full`, `admin`.
 func (c *Client) PostPartnersIDPortalLink(ctx context.Context, id string, body PostPartnersIdPortalLinkBody, opts ...RequestOption) (*PostPartnersIdPortalLinkResponse, error) {
 	var out PostPartnersIdPortalLinkResponse
 	if err := c.do(ctx, "POST", "/v1/partners/"+url.PathEscape(id)+"/portal-link", nil, body, &out, "json", opts); err != nil {
@@ -9104,7 +9640,9 @@ func (c *Client) PostPartnersIDPortalLink(ctx context.Context, id string, body P
 //
 // Records a W-9, W-8BEN or W-8BEN-E for the partner (`data` is the form's fields). A tax form on file is required before a partner is included in a payout run.
 //
-// **Auth:** an API key with `payouts:write` (or `full`), or a session with role `owner`, `admin`, `finance`.
+// **Auth:** an API key with `payouts:write`, or a session with role `owner`, `admin`, `finance`.
+//
+// **Scopes:** `payouts:write`, `full`, `admin`.
 func (c *Client) PostPartnersIDTaxForm(ctx context.Context, id string, body PostPartnersIdTaxFormBody, opts ...RequestOption) (*Ok, error) {
 	var out Ok
 	if err := c.do(ctx, "POST", "/v1/partners/"+url.PathEscape(id)+"/tax-form", nil, body, &out, "json", opts); err != nil {
@@ -9143,7 +9681,9 @@ func (c *Client) PostPassportVerify(ctx context.Context, body PostPassportVerify
 //
 // Builds a draft run: one payout per partner who has a payout profile, a tax form and an approved, unpaid balance over their threshold, converted into their payout currency at recorded FX, each with a self-billing invoice. Partners left out are listed in `skipped` with the reason. Nothing is paid until you execute it. Audited.
 //
-// **Auth:** an API key with `payouts:write` (or `full`), or a session with role `owner`, `admin`, `finance`.
+// **Auth:** an API key with `payouts:write`, or a session with role `owner`, `admin`, `finance`.
+//
+// **Scopes:** `payouts:write`, `full`, `admin`.
 func (c *Client) PostPayoutRuns(ctx context.Context, opts ...RequestOption) (*PayoutRunCreated, error) {
 	var out PayoutRunCreated
 	if err := c.do(ctx, "POST", "/v1/payout-runs", nil, nil, &out, "json", opts); err != nil {
@@ -9156,7 +9696,9 @@ func (c *Client) PostPayoutRuns(ctx context.Context, opts ...RequestOption) (*Pa
 //
 // Cancels a run that hasn't paid out and releases its lines back to the partners' approved balances. A run with money in flight is 409. Publishes `payout.cancelled` per payout. Audited.
 //
-// **Auth:** an API key with `payouts:write` (or `full`), or a session with role `owner`, `admin`, `finance`.
+// **Auth:** an API key with `payouts:write`, or a session with role `owner`, `admin`, `finance`.
+//
+// **Scopes:** `payouts:write`, `full`, `admin`.
 func (c *Client) PostPayoutRunsIDCancel(ctx context.Context, id string, opts ...RequestOption) (*PostPayoutRunsIdCancelResponse, error) {
 	var out PostPayoutRunsIdCancelResponse
 	if err := c.do(ctx, "POST", "/v1/payout-runs/"+url.PathEscape(id)+"/cancel", nil, nil, &out, "json", opts); err != nil {
@@ -9169,7 +9711,9 @@ func (c *Client) PostPayoutRunsIDCancel(ctx context.Context, id string, opts ...
 //
 // Pays a draft run through the org's own connected payout providers (methods with no connection are simulated and logged; test mode uses the test rail). Returns how many were sent, submitted (settling asynchronously) and failed; each outcome publishes `payout.sent`, `payout.submitted` or `payout.failed`. Audited.
 //
-// **Auth:** an API key with `payouts:write` (or `full`), or a session with role `owner`, `admin`, `finance`.
+// **Auth:** an API key with `payouts:write`, or a session with role `owner`, `admin`, `finance`.
+//
+// **Scopes:** `payouts:write`, `full`, `admin`.
 func (c *Client) PostPayoutRunsIDExecute(ctx context.Context, id string, opts ...RequestOption) (*PostPayoutRunsIdExecuteResponse, error) {
 	var out PostPayoutRunsIdExecuteResponse
 	if err := c.do(ctx, "POST", "/v1/payout-runs/"+url.PathEscape(id)+"/execute", nil, nil, &out, "json", opts); err != nil {
@@ -9182,7 +9726,9 @@ func (c *Client) PostPayoutRunsIDExecute(ctx context.Context, id string, opts ..
 //
 // Creates and executes payout runs for every schedule (org or program) that is due now. This also runs hourly on its own.
 //
-// **Auth:** an API key with `payouts:write` (or `full`), or a session with role `owner`, `admin`, `finance`.
+// **Auth:** an API key with `payouts:write`, or a session with role `owner`, `admin`, `finance`.
+//
+// **Scopes:** `payouts:write`, `full`, `admin`.
 func (c *Client) PostPayoutRunsRunScheduled(ctx context.Context, opts ...RequestOption) (*PostPayoutRunsRunScheduledResponse, error) {
 	var out PostPayoutRunsRunScheduledResponse
 	if err := c.do(ctx, "POST", "/v1/payout-runs/run-scheduled", nil, nil, &out, "json", opts); err != nil {
@@ -9195,7 +9741,9 @@ func (c *Client) PostPayoutRunsRunScheduled(ctx context.Context, opts ...Request
 //
 // A W3C design-tokens (DTCG) brand file, sent as `document` or fetched from an https `url`, merged into the draft: colours (`color.primary`, `color.background`, `color.surface`, `color.text`, `color.muted`, `color.border`, status colours), fonts (`font.body`, `font.heading`, `font.mono`, `font.url`), `radius.base`, `logo.url` and `brand.name`. `applied` lists the tokens used. Owner or admin.
 //
-// **Auth:** an API key with `org:write` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `org:write`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `org:write`, `full`, `admin`.
 func (c *Client) PostPortalThemeImportBrand(ctx context.Context, body PostPortalThemeImportBrandBody, opts ...RequestOption) (*PostPortalThemeImportBrandResponse, error) {
 	var out PostPortalThemeImportBrandResponse
 	if err := c.do(ctx, "POST", "/v1/portal/theme/import-brand", nil, body, &out, "json", opts); err != nil {
@@ -9208,7 +9756,9 @@ func (c *Client) PostPortalThemeImportBrand(ctx context.Context, body PostPortal
 //
 // A link that shows the draft on your verified portal domain (`?themePreview=rpv_…`) for 7 days, to anyone who has it; minting another retires the last. Partners without the link keep seeing the published design. Owner or admin.
 //
-// **Auth:** an API key with `org:write` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `org:write`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `org:write`, `full`, `admin`.
 func (c *Client) PostPortalThemePreview(ctx context.Context, opts ...RequestOption) (*PostPortalThemePreviewResponse, error) {
 	var out PostPortalThemePreviewResponse
 	if err := c.do(ctx, "POST", "/v1/portal/theme/preview", nil, nil, &out, "json", opts); err != nil {
@@ -9221,7 +9771,9 @@ func (c *Client) PostPortalThemePreview(ctx context.Context, opts ...RequestOpti
 //
 // Makes the draft what partners see (within a minute), keeps it as a version you can restore, and retires the preview link. Optional `note`. Owner or admin. Audited.
 //
-// **Auth:** an API key with `org:write` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `org:write`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `org:write`, `full`, `admin`.
 func (c *Client) PostPortalThemePublish(ctx context.Context, body PostPortalThemePublishBody, opts ...RequestOption) (*GetPortalThemeResponse, error) {
 	var out GetPortalThemeResponse
 	if err := c.do(ctx, "POST", "/v1/portal/theme/publish", nil, body, &out, "json", opts); err != nil {
@@ -9234,7 +9786,9 @@ func (c *Client) PostPortalThemePublish(ctx context.Context, body PostPortalThem
 //
 // Copies a published version into the draft; publish it to make it live again. Owner or admin.
 //
-// **Auth:** an API key with `org:write` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `org:write`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `org:write`, `full`, `admin`.
 func (c *Client) PostPortalThemeVersionsIDRestore(ctx context.Context, id string, opts ...RequestOption) (*GetPortalThemeResponse, error) {
 	var out GetPortalThemeResponse
 	if err := c.do(ctx, "POST", "/v1/portal/theme/versions/"+url.PathEscape(id)+"/restore", nil, nil, &out, "json", opts); err != nil {
@@ -9247,7 +9801,9 @@ func (c *Client) PostPortalThemeVersionsIDRestore(ctx context.Context, id string
 //
 // Enables a DSAR tool for your org and mints its executor key (a bearer key, or a `whsec_` secret for Standard Webhooks), returned once. Rotating stops the old key at once. Also stores vendor settings: a Transcend public key and API key for completion callbacks, an Osano webhook secret.
 //
-// **Auth:** an API key with `privacy:write` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `privacy:write`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `privacy:write`, `full`, `admin`.
 func (c *Client) PostPrivacyExecutorKeys(ctx context.Context, body PostPrivacyExecutorKeysBody, opts ...RequestOption) (*PostPrivacyExecutorKeysResponse, error) {
 	var out PostPrivacyExecutorKeysResponse
 	if err := c.do(ctx, "POST", "/v1/privacy/executor-keys", nil, body, &out, "json", opts); err != nil {
@@ -9260,7 +9816,9 @@ func (c *Client) PostPrivacyExecutorKeys(ctx context.Context, body PostPrivacyEx
 //
 // Whether the tool is ready: a key or the vendor credentials it needs, and no failing requests since it was set up. Answers `{ok, detail, fix}`.
 //
-// **Auth:** an API key with `privacy:write` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `privacy:write`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `privacy:write`, `full`, `admin`.
 func (c *Client) PostPrivacyExecutorsAdapterCheck(ctx context.Context, adapter string, opts ...RequestOption) (*PostPrivacyExecutorsAdapterCheckResponse, error) {
 	var out PostPrivacyExecutorsAdapterCheckResponse
 	if err := c.do(ctx, "POST", "/v1/privacy/executors/"+url.PathEscape(adapter)+"/check", nil, nil, &out, "json", opts); err != nil {
@@ -9273,7 +9831,9 @@ func (c *Client) PostPrivacyExecutorsAdapterCheck(ctx context.Context, adapter s
 //
 // Erases (pseudonymizes, keeping the ledger balanced) a customer by `customerRef`, a partner by `partnerId`, or by `email` both the partner with that email and every customer stored under its hash. Send exactly one. 400 when nothing is found. Audited.
 //
-// **Auth:** an API key with `privacy:write` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `privacy:write`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `privacy:write`, `full`, `admin`.
 func (c *Client) PostPrivacyForget(ctx context.Context, body PostPrivacyForgetBody, opts ...RequestOption) (*PostPrivacyForgetResponse, error) {
 	var out PostPrivacyForgetResponse
 	if err := c.do(ctx, "POST", "/v1/privacy/forget", nil, body, &out, "json", opts); err != nil {
@@ -9286,7 +9846,9 @@ func (c *Client) PostPrivacyForget(ctx context.Context, body PostPrivacyForgetBo
 //
 // Which customers and partners an email refers to. The email is hashed on the server and never stored.
 //
-// **Auth:** an API key with `privacy:write` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `privacy:write`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `privacy:write`, `full`, `admin`.
 func (c *Client) PostPrivacyLookup(ctx context.Context, body PostPrivacyLookupBody, opts ...RequestOption) (*PostPrivacyLookupResponse, error) {
 	var out PostPrivacyLookupResponse
 	if err := c.do(ctx, "POST", "/v1/privacy/lookup", nil, body, &out, "json", opts); err != nil {
@@ -9299,7 +9861,9 @@ func (c *Client) PostPrivacyLookup(ctx context.Context, body PostPrivacyLookupBo
 //
 // Opens an `access` or `erasure` request for one subject (`email`, `customerRef` or `partnerId`) and answers `202` with the request to poll. Publishes `privacy.request_completed` when done.
 //
-// **Auth:** an API key with `privacy:write` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `privacy:write`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `privacy:write`, `full`, `admin`.
 func (c *Client) PostPrivacyRequests(ctx context.Context, body PostPrivacyRequestsBody, opts ...RequestOption) (*PostPrivacyRequestsResponse, error) {
 	var out PostPrivacyRequestsResponse
 	if err := c.do(ctx, "POST", "/v1/privacy/requests", nil, body, &out, "json", opts); err != nil {
@@ -9312,7 +9876,9 @@ func (c *Client) PostPrivacyRequests(ctx context.Context, body PostPrivacyReques
 //
 // `{partner, name?, scopes[], expires_at?}` (Unix ms or ISO 8601, at most a year; default a year; never "never"). Scopes are resource scopes (`integrations:write`, `partners:read`, …) or `connections:read|write` (the auth-platform connection routes only, what Atlas asks for); never admin, full or team. Returns `client_id` and `client_secret` once; the partner swaps them at POST /v1/oauth/token (client_credentials) or sends the secret as a bearer. A root action: an API key cannot hand out more than it holds, and an Atlas operator token needs an MFA sign-in at most 5 minutes old (403 `step_up_required` otherwise).
 //
-// **Auth:** an API key with `team:write` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `team:write`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `team:write`, `full`, `admin`.
 func (c *Client) PostProductLinks(ctx context.Context, body PostProductLinksBody, opts ...RequestOption) (*PostProductLinksResponse, error) {
 	var out PostProductLinksResponse
 	if err := c.do(ctx, "POST", "/v1/product-links", nil, body, &out, "json", opts); err != nil {
@@ -9325,7 +9891,9 @@ func (c *Client) PostProductLinks(ctx context.Context, body PostProductLinksBody
 //
 // Recomputes every stored ROI figure from the value events with the current settings and mappings, in the background. Returns a `jobId` to poll; while one rebuild is running, the same job is returned. Audited.
 //
-// **Auth:** an API key with `analytics:write` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `analytics:write`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `analytics:write`, `full`, `admin`.
 func (c *Client) PostProfitabilityRebuild(ctx context.Context, opts ...RequestOption) (*PostProfitabilityRebuildResponse, error) {
 	var out PostProfitabilityRebuildResponse
 	if err := c.do(ctx, "POST", "/v1/profitability/rebuild", nil, nil, &out, "json", opts); err != nil {
@@ -9338,7 +9906,9 @@ func (c *Client) PostProfitabilityRebuild(ctx context.Context, opts ...RequestOp
 //
 // Creates an affiliate program: its attribution model, cookie window, how long after sign-up a conversion still counts (`signupToConversionDays`, 1 to 1095, default 365; `cookieWindowDays` is 1 to 400, default 60), terms, public page and settings. `slug` is unique per org. Terms are versioned so partners can be asked to accept new ones. Over the plan's program limit this is `402 payment_required`.
 //
-// **Auth:** an API key with `programs:write` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `programs:write`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `programs:write`, `full`, `admin`.
 func (c *Client) PostPrograms(ctx context.Context, body PostProgramsBody, opts ...RequestOption) (*Program, error) {
 	var out Program
 	if err := c.do(ctx, "POST", "/v1/programs", nil, body, &out, "json", opts); err != nil {
@@ -9351,7 +9921,9 @@ func (c *Client) PostPrograms(ctx context.Context, body PostProgramsBody, opts .
 //
 // Promotes the program's partners to the highest level their referral count qualifies for (never demotes). Publishes `partner.level_up` per promotion.
 //
-// **Auth:** an API key with `programs:write` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `programs:write`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `programs:write`, `full`, `admin`.
 func (c *Client) PostProgramsIDApplyLeveling(ctx context.Context, id string, opts ...RequestOption) (*PostProgramsIdApplyLevelingResponse, error) {
 	var out PostProgramsIdApplyLevelingResponse
 	if err := c.do(ctx, "POST", "/v1/programs/"+url.PathEscape(id)+"/apply-leveling", nil, nil, &out, "json", opts); err != nil {
@@ -9364,7 +9936,9 @@ func (c *Client) PostProgramsIDApplyLeveling(ctx context.Context, id string, opt
 //
 // Moves each partner's rate toward the target and publishes the new rates as partner overrides on a new rule version. Objective `roas` compares attributed revenue to commission; `roi` uses each partner's matured referral ROI, holding partners with too few matured referrals or an unknown ROI (listed in `held`). 400 when autopricing is off, the program has no percent-based rule, or no partner has a known ROI under `roi`.
 //
-// **Auth:** an API key with `programs:write` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `programs:write`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `programs:write`, `full`, `admin`.
 func (c *Client) PostProgramsIDAutopriceRun(ctx context.Context, id string, body PostProgramsIdAutopriceRunBody, opts ...RequestOption) (*PostProgramsIdAutopriceRunResponse, error) {
 	var out PostProgramsIdAutopriceRunResponse
 	if err := c.do(ctx, "POST", "/v1/programs/"+url.PathEscape(id)+"/autoprice/run", nil, body, &out, "json", opts); err != nil {
@@ -9377,7 +9951,9 @@ func (c *Client) PostProgramsIDAutopriceRun(ctx context.Context, id string, body
 //
 // Enrolls an existing partner in the program, approved at once. Publishes `partner.enrolled`. 409 when already enrolled. `externalRef` is this program's own id for the partner, when their partner `externalRef` belongs to another product sharing the org; this program's webhooks and `GET /v1/partners?externalRef=` then use it. `mint` also gives them a referral code in the program, as `POST /v1/programs/{id}/referrers` does: `coupon: true` a coupon, `link: {}` a tracked link to `link.destinationUrl` or else the program's default destination (`{code}` in it becomes the code; 400 when the program has none and you send none). Their existing code in the program is reused. The response then adds `code` and `linkUrl` (null without a link).
 //
-// **Auth:** an API key with `programs:write` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `programs:write`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `programs:write`, `full`, `admin`.
 func (c *Client) PostProgramsIDEnrollments(ctx context.Context, id string, body PostProgramsIdEnrollmentsBody, opts ...RequestOption) (*PostProgramsIdEnrollmentsResponse, error) {
 	var out PostProgramsIdEnrollmentsResponse
 	if err := c.do(ctx, "POST", "/v1/programs/"+url.PathEscape(id)+"/enrollments", nil, body, &out, "json", opts); err != nil {
@@ -9390,7 +9966,9 @@ func (c *Client) PostProgramsIDEnrollments(ctx context.Context, id string, body 
 //
 // Approves a pending application (`status: "applied"`). Publishes `partner.approved`. 404 when there is no pending application with that id. Audited.
 //
-// **Auth:** an API key with `programs:write` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `programs:write`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `programs:write`, `full`, `admin`.
 func (c *Client) PostProgramsIDEnrollmentsEnrollmentIDApprove(ctx context.Context, id string, enrollmentId string, opts ...RequestOption) (*PostProgramsIdEnrollmentsEnrollmentIdApproveResponse, error) {
 	var out PostProgramsIdEnrollmentsEnrollmentIdApproveResponse
 	if err := c.do(ctx, "POST", "/v1/programs/"+url.PathEscape(id)+"/enrollments/"+url.PathEscape(enrollmentId)+"/approve", nil, nil, &out, "json", opts); err != nil {
@@ -9403,7 +9981,9 @@ func (c *Client) PostProgramsIDEnrollmentsEnrollmentIDApprove(ctx context.Contex
 //
 // Rejects a pending application. 404 when there is no pending application with that id. Audited.
 //
-// **Auth:** an API key with `programs:write` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `programs:write`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `programs:write`, `full`, `admin`.
 func (c *Client) PostProgramsIDEnrollmentsEnrollmentIDReject(ctx context.Context, id string, enrollmentId string, opts ...RequestOption) (*PostProgramsIdEnrollmentsEnrollmentIdRejectResponse, error) {
 	var out PostProgramsIdEnrollmentsEnrollmentIdRejectResponse
 	if err := c.do(ctx, "POST", "/v1/programs/"+url.PathEscape(id)+"/enrollments/"+url.PathEscape(enrollmentId)+"/reject", nil, nil, &out, "json", opts); err != nil {
@@ -9416,7 +9996,9 @@ func (c *Client) PostProgramsIDEnrollmentsEnrollmentIDReject(ctx context.Context
 //
 // A group of partners in a program with its own commission base (or `null` to keep the program rule's), hold days, payout threshold, payout currency, onboarding message and checklist. Names are unique per program (409).
 //
-// **Auth:** an API key with `programs:write` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `programs:write`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `programs:write`, `full`, `admin`.
 func (c *Client) PostProgramsIDGroups(ctx context.Context, id string, body PostProgramsIdGroupsBody, opts ...RequestOption) (*PartnerGroup, error) {
 	var out PartnerGroup
 	if err := c.do(ctx, "POST", "/v1/programs/"+url.PathEscape(id)+"/groups", nil, body, &out, "json", opts); err != nil {
@@ -9429,7 +10011,9 @@ func (c *Client) PostProgramsIDGroups(ctx context.Context, id string, body PostP
 //
 // A time-boxed commission change for the whole program or one group: `replace` the base rate, or `boost` it by `bps`, between `startsAt` and `endsAt`. Payments in that window get it.
 //
-// **Auth:** an API key with `programs:write` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `programs:write`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `programs:write`, `full`, `admin`.
 func (c *Client) PostProgramsIDPromotions(ctx context.Context, id string, body PostProgramsIdPromotionsBody, opts ...RequestOption) (*Promotion, error) {
 	var out Promotion
 	if err := c.do(ctx, "POST", "/v1/programs/"+url.PathEscape(id)+"/promotions", nil, body, &out, "json", opts); err != nil {
@@ -9442,7 +10026,9 @@ func (c *Client) PostProgramsIDPromotions(ctx context.Context, id string, body P
 //
 // One idempotent call for one of your users: finds the partner by `externalRef` (or by `email`, enrolling them under this program's own `externalRef` when they refer for another product in the org), else creates it, then enrolls them and creates a coupon code and a link to the program's default destination when missing. `email` is needed only to create the partner (400 without it). 409 `email_taken` when that email is already enrolled in this program under another id.
 //
-// **Auth:** an API key with `programs:write` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `programs:write`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `programs:write`, `full`, `admin`.
 func (c *Client) PostProgramsIDReferrers(ctx context.Context, id string, body PostProgramsIdReferrersBody, opts ...RequestOption) (*PostProgramsIdReferrersResponse, error) {
 	var out PostProgramsIdReferrersResponse
 	if err := c.do(ctx, "POST", "/v1/programs/"+url.PathEscape(id)+"/referrers", nil, body, &out, "json", opts); err != nil {
@@ -9455,7 +10041,9 @@ func (c *Client) PostProgramsIDReferrers(ctx context.Context, id string, body Po
 //
 // Resets the attempt count of this program's `no_customer`, `ambiguous_customer` and `fx_rate_missing` rows (all of them, or only `creditIds`) so the hourly sweep gives them another 24 tries: call it after adding the billing link, making the customer match unique or recording the FX rate. Rows in other statuses are left alone. Returns the requeued ids. Owner or admin. Audited.
 //
-// **Auth:** an API key with `payouts:write` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `payouts:write`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `payouts:write`, `full`, `admin`.
 func (c *Client) PostProgramsIDStripeCreditsRequeue(ctx context.Context, id string, body PostProgramsIdStripeCreditsRequeueBody, opts ...RequestOption) (*PostProgramsIdStripeCreditsRequeueResponse, error) {
 	var out PostProgramsIdStripeCreditsRequeueResponse
 	if err := c.do(ctx, "POST", "/v1/programs/"+url.PathEscape(id)+"/stripe-credits/requeue", nil, body, &out, "json", opts); err != nil {
@@ -9468,7 +10056,9 @@ func (c *Client) PostProgramsIDStripeCreditsRequeue(ctx context.Context, id stri
 //
 // Ends a promotion now: payments from this moment on no longer get it.
 //
-// **Auth:** an API key with `programs:write` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `programs:write`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `programs:write`, `full`, `admin`.
 func (c *Client) PostPromotionsIDEnd(ctx context.Context, id string, opts ...RequestOption) (*Promotion, error) {
 	var out Promotion
 	if err := c.do(ctx, "POST", "/v1/promotions/"+url.PathEscape(id)+"/end", nil, nil, &out, "json", opts); err != nil {
@@ -9494,7 +10084,9 @@ func (c *Client) PostPublicProgramsHandleJoin(ctx context.Context, handle string
 //
 // Snapshots every partner's quality score now; per the org's policy, low scores open a `quality` case or suspend the partner. Audited.
 //
-// **Auth:** an API key with `partners:write` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `partners:write`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `partners:write`, `full`, `admin`.
 func (c *Client) PostQualityRecompute(ctx context.Context, opts ...RequestOption) (*PostQualityRecomputeResponse, error) {
 	var out PostQualityRecomputeResponse
 	if err := c.do(ctx, "POST", "/v1/quality/recompute", nil, nil, &out, "json", opts); err != nil {
@@ -9507,7 +10099,9 @@ func (c *Client) PostQualityRecompute(ctx context.Context, opts ...RequestOption
 //
 // The key server-side call: tell Referalli a customer signed up, with whatever you know about where they came from (`referralToken`/`ref_click_id`, `anonId`, `couponCode`, `emailHash`, IP and user agent). The attribution engine picks the partner under the program's model and windows. `referral` is `null` when no partner matched (not an error); `reasoning.notes` says why. Repeating `idempotencyKey` returns the existing referral. `occurredAt` records a late call at the real sign-up time (up to 5 minutes of clock skew is tolerated) and backfills payments since. `emailDomain` lets burner-email sign-ups be held for review. Publishes `referral.created` (or `referral.held`).
 //
-// **Auth:** an API key with `referrals:write` (or `full`), or a session of any role.
+// **Auth:** an API key with `referrals:write`, or a session of any role.
+//
+// **Scopes:** `referrals:write`, `full`, `admin`.
 func (c *Client) PostReferralsAssociate(ctx context.Context, body PostReferralsAssociateBody, opts ...RequestOption) (*AssociateResponse, error) {
 	var out AssociateResponse
 	if err := c.do(ctx, "POST", "/v1/referrals/associate", nil, body, &out, "json", opts); err != nil {
@@ -9520,7 +10114,9 @@ func (c *Client) PostReferralsAssociate(ctx context.Context, body PostReferralsA
 //
 // Releases a referral held for review (`pending_review`) back to `active`. 404 when it isn't pending review. Publishes `referral.approved`. Audited.
 //
-// **Auth:** an API key with `referrals:write` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `referrals:write`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `referrals:write`, `full`, `admin`.
 func (c *Client) PostReferralsIDApprove(ctx context.Context, id string, opts ...RequestOption) (*Referral, error) {
 	var out Referral
 	if err := c.do(ctx, "POST", "/v1/referrals/"+url.PathEscape(id)+"/approve", nil, nil, &out, "json", opts); err != nil {
@@ -9533,7 +10129,9 @@ func (c *Client) PostReferralsIDApprove(ctx context.Context, id string, opts ...
 //
 // Moves the referral to another partner (recorded as a manual match). Publishes `referral.reassigned` with the previous partner. Audited.
 //
-// **Auth:** an API key with `referrals:write` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `referrals:write`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `referrals:write`, `full`, `admin`.
 func (c *Client) PostReferralsIDReassign(ctx context.Context, id string, body PostReferralsIdReassignBody, opts ...RequestOption) (*Referral, error) {
 	var out Referral
 	if err := c.do(ctx, "POST", "/v1/referrals/"+url.PathEscape(id)+"/reassign", nil, body, &out, "json", opts); err != nil {
@@ -9546,7 +10144,9 @@ func (c *Client) PostReferralsIDReassign(ctx context.Context, id string, body Po
 //
 // Voids the referral so it earns nothing more. Publishes `referral.voided`. Audited.
 //
-// **Auth:** an API key with `referrals:write` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `referrals:write`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `referrals:write`, `full`, `admin`.
 func (c *Client) PostReferralsIDVoid(ctx context.Context, id string, opts ...RequestOption) (*Referral, error) {
 	var out Referral
 	if err := c.do(ctx, "POST", "/v1/referrals/"+url.PathEscape(id)+"/void", nil, nil, &out, "json", opts); err != nil {
@@ -9559,7 +10159,9 @@ func (c *Client) PostReferralsIDVoid(ctx context.Context, id string, opts ...Req
 //
 // Rewards a partner for something outside a sale (a community answer, an event): one `earned` commission line that is approved and paid like any other. Name the partner by `partnerId` or `partnerExternalRef`; the amount is `amountMinor` (+ `currency`) or comes from a rule (`ruleKey`, or the `event` a rule maps). Idempotent on `idempotencyKey`: a retry returns the first grant with 200; the same key with a different request is 409.
 //
-// **Auth:** an API key with `commissions:write` (or `full`), or a session with role `owner`, `admin`, `finance`.
+// **Auth:** an API key with `commissions:write`, or a session with role `owner`, `admin`, `finance`.
+//
+// **Scopes:** `commissions:write`, `full`, `admin`.
 func (c *Client) PostRewards(ctx context.Context, body PostRewardsBody, opts ...RequestOption) (*PostRewardsResponse, error) {
 	var out PostRewardsResponse
 	if err := c.do(ctx, "POST", "/v1/rewards", nil, body, &out, "json", opts); err != nil {
@@ -9572,7 +10174,9 @@ func (c *Client) PostRewards(ctx context.Context, body PostRewardsBody, opts ...
 //
 // Records a (possibly partial) redemption: `amountMinor` (default the remaining balance) is capped at what's left, and the reward becomes `redeemed` once it is used up. `externalId` makes it idempotent (409 if reused for another reward). Publishes `credit.redeemed`.
 //
-// **Auth:** an API key with `commissions:write` (or `full`), or a session with role `owner`, `admin`, `finance`.
+// **Auth:** an API key with `commissions:write`, or a session with role `owner`, `admin`, `finance`.
+//
+// **Scopes:** `commissions:write`, `full`, `admin`.
 func (c *Client) PostRewardsIDRedeem(ctx context.Context, id string, body PostRewardsIdRedeemBody, opts ...RequestOption) (*PostRewardsRedeemByCodeResponse, error) {
 	var out PostRewardsRedeemByCodeResponse
 	if err := c.do(ctx, "POST", "/v1/rewards/"+url.PathEscape(id)+"/redeem", nil, body, &out, "json", opts); err != nil {
@@ -9585,7 +10189,9 @@ func (c *Client) PostRewardsIDRedeem(ctx context.Context, id string, body PostRe
 //
 // Records a redemption of the reward with this code; see `POST /v1/rewards/{id}/redeem`. 404 for an unknown code.
 //
-// **Auth:** an API key with `commissions:write` (or `full`), or a session with role `owner`, `admin`, `finance`.
+// **Auth:** an API key with `commissions:write`, or a session with role `owner`, `admin`, `finance`.
+//
+// **Scopes:** `commissions:write`, `full`, `admin`.
 func (c *Client) PostRewardsRedeemByCode(ctx context.Context, body PostRewardsRedeemByCodeBody, opts ...RequestOption) (*PostRewardsRedeemByCodeResponse, error) {
 	var out PostRewardsRedeemByCodeResponse
 	if err := c.do(ctx, "POST", "/v1/rewards/redeem-by-code", nil, body, &out, "json", opts); err != nil {
@@ -9598,7 +10204,9 @@ func (c *Client) PostRewardsRedeemByCode(ctx context.Context, body PostRewardsRe
 //
 // Turns one live pattern match (by `customerRef` and/or `partnerId`, optionally `programId`) into a `value_pattern` fraud case against its partner, or returns the open case for the same match. Publishes `fraud.case_opened`. 404 when no such match exists. Audited.
 //
-// **Auth:** an API key with `analytics:write` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `analytics:write`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `analytics:write`, `full`, `admin`.
 func (c *Client) PostRoiPatternsPatternReview(ctx context.Context, pattern string, body PostRoiPatternsPatternReviewBody, opts ...RequestOption) (*FraudCase, error) {
 	var out FraudCase
 	if err := c.do(ctx, "POST", "/v1/roi/patterns/"+url.PathEscape(pattern)+"/review", nil, body, &out, "json", opts); err != nil {
@@ -9611,7 +10219,9 @@ func (c *Client) PostRoiPatternsPatternReview(ctx context.Context, pattern strin
 //
 // Generates deterministic billing history through the real commission pipeline, so you can see commissions flow without a provider: a new sandbox customer referred to the partner, `months` (default 3) of subscription payments at `priceMinor`, then for `scenario: "refund"` a half refund of the first invoice or for `churn` a cancellation. Returns the customer and what was created. Audited.
 //
-// **Auth:** an API key with `billing:write` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `billing:write`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `billing:write`, `full`, `admin`.
 func (c *Client) PostSandboxSimulate(ctx context.Context, body PostSandboxSimulateBody, opts ...RequestOption) (*PostSandboxSimulateResponse, error) {
 	var out PostSandboxSimulateResponse
 	if err := c.do(ctx, "POST", "/v1/sandbox/simulate", nil, body, &out, "json", opts); err != nil {
@@ -9624,7 +10234,9 @@ func (c *Client) PostSandboxSimulate(ctx context.Context, body PostSandboxSimula
 //
 // Test mode only (`409 test_mode_only` otherwise). Builds a realistic Stripe event (`invoice.paid`, `charge.refunded`, `charge.dispute.created`, `customer.created`, `customer.updated`, `customer.subscription.created`, `customer.subscription.updated` or `customer.subscription.deleted`) and runs it through the same pipeline as a signed webhook to the stripe billing connection `connectionId`, so you can watch commissions happen without a Stripe account. `overrides` sets `customerRef` (the Stripe customer id), `amountMinor`, `currency`, `metadata`, `invoiceId` and `chargeId`; refunds and disputes find their payment by `chargeId`, so reuse the `invoice.paid` one. Each call is a new event unless you pass `eventId`, which replays (the second answers `duplicate: true`). Returns the event id, the processing results, the commission events created and the payload sent. Audited.
 //
-// **Auth:** an API key with `billing:write` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `billing:write`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `billing:write`, `full`, `admin`.
 func (c *Client) PostSandboxStripeFixtures(ctx context.Context, body PostSandboxStripeFixturesBody, opts ...RequestOption) (*PostSandboxStripeFixturesResponse, error) {
 	var out PostSandboxStripeFixturesResponse
 	if err := c.do(ctx, "POST", "/v1/sandbox/stripe-fixtures", nil, body, &out, "json", opts); err != nil {
@@ -9637,7 +10249,9 @@ func (c *Client) PostSandboxStripeFixtures(ctx context.Context, body PostSandbox
 //
 // Renders what the tool would show for a contact, from your own session: the context and the tool-format card. Nothing is sent to the tool.
 //
-// **Auth:** an API key with `partners:write` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `partners:write`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `partners:write`, `full`, `admin`.
 func (c *Client) PostSupportAppsAdapterTest(ctx context.Context, adapter string, body PostSupportAppsAdapterTestBody, opts ...RequestOption) (*PostSupportAppsAdapterTestResponse, error) {
 	var out PostSupportAppsAdapterTestResponse
 	if err := c.do(ctx, "POST", "/v1/support/apps/"+url.PathEscape(adapter)+"/test", nil, body, &out, "json", opts); err != nil {
@@ -9676,7 +10290,9 @@ func (c *Client) PostSupportPlatformChatlyCard(ctx context.Context, body map[str
 //
 // Files a corrected form for one document with the partner's current amount. Audited.
 //
-// **Auth:** an API key with `payouts:write` (or `full`), or a session with role `owner`, `admin`, `finance`.
+// **Auth:** an API key with `payouts:write`, or a session with role `owner`, `admin`, `finance`.
+//
+// **Scopes:** `payouts:write`, `full`, `admin`.
 func (c *Client) PostTax1099DocumentsIDCorrect(ctx context.Context, id string, opts ...RequestOption) (*TaxFiling, error) {
 	var out TaxFiling
 	if err := c.do(ctx, "POST", "/v1/tax/1099/documents/"+url.PathEscape(id)+"/correct", nil, nil, &out, "json", opts); err != nil {
@@ -9689,7 +10305,9 @@ func (c *Client) PostTax1099DocumentsIDCorrect(ctx context.Context, id string, o
 //
 // E-files the year's 1099-NEC forms through the connected provider and records one document per partner. Audited.
 //
-// **Auth:** an API key with `payouts:write` (or `full`), or a session with role `owner`, `admin`, `finance`.
+// **Auth:** an API key with `payouts:write`, or a session with role `owner`, `admin`, `finance`.
+//
+// **Scopes:** `payouts:write`, `full`, `admin`.
 func (c *Client) PostTax1099Filings(ctx context.Context, body PostTax1099FilingsBody, opts ...RequestOption) (*TaxFiling, error) {
 	var out TaxFiling
 	if err := c.do(ctx, "POST", "/v1/tax/1099/filings", nil, body, &out, "json", opts); err != nil {
@@ -9702,7 +10320,9 @@ func (c *Client) PostTax1099Filings(ctx context.Context, body PostTax1099Filings
 //
 // Asks the filing provider for the latest status of a filing and its documents; accepted forms are then delivered to partners (`tax.form_delivered`).
 //
-// **Auth:** an API key with `payouts:write` (or `full`), or a session with role `owner`, `admin`, `finance`.
+// **Auth:** an API key with `payouts:write`, or a session with role `owner`, `admin`, `finance`.
+//
+// **Scopes:** `payouts:write`, `full`, `admin`.
 func (c *Client) PostTax1099FilingsIDRefresh(ctx context.Context, id string, opts ...RequestOption) (*PostTax1099FilingsIdRefreshResponse, error) {
 	var out PostTax1099FilingsIdRefreshResponse
 	if err := c.do(ctx, "POST", "/v1/tax/1099/filings/"+url.PathEscape(id)+"/refresh", nil, nil, &out, "json", opts); err != nil {
@@ -9715,7 +10335,9 @@ func (c *Client) PostTax1099FilingsIDRefresh(ctx context.Context, id string, opt
 //
 // Test mode only. Moves the test org's clock forward by `seconds` (never back), then runs what came due: held commissions are approved, payout schedules fire and retention purges run. Returns the new time and what ran. Audited.
 //
-// **Auth:** an API key with `org:write` (or `full`), or a session with role `owner`, `admin`, `finance`.
+// **Auth:** an API key with `org:write`, or a session with role `owner`, `admin`, `finance`.
+//
+// **Scopes:** `org:write`, `full`, `admin`.
 func (c *Client) PostTestClockAdvance(ctx context.Context, body PostTestClockAdvanceBody, opts ...RequestOption) (*PostTestClockAdvanceResponse, error) {
 	var out PostTestClockAdvanceResponse
 	if err := c.do(ctx, "POST", "/v1/test_clock/advance", nil, body, &out, "json", opts); err != nil {
@@ -9728,7 +10350,9 @@ func (c *Client) PostTestClockAdvance(ctx context.Context, body PostTestClockAdv
 //
 // Records one event. `type: "event"` is a product event for a known customer (`event`, such as `trial_started`) that can pay a bounty under the program's commission rule; it returns whether it was recorded and the commission. `idempotencyKey` deduplicates. `type: "click"` records a server-side click for a partner; `type: "custom"` records an audited custom event. Publishable keys may send only custom events.
 //
-// **Auth:** an API key with `events:write` (or `full`), or a session of any role.
+// **Auth:** an API key with `events:write`, or a session of any role.
+//
+// **Scopes:** `events:write`, `full`, `admin`.
 func (c *Client) PostTrackEvents(ctx context.Context, body json.RawMessage, opts ...RequestOption) (*PostTrackEventsResponse, error) {
 	var out PostTrackEventsResponse
 	if err := c.do(ctx, "POST", "/v1/track/events", nil, body, &out, "json", opts); err != nil {
@@ -9754,7 +10378,9 @@ func (c *Client) PostUnsubscribeToken(ctx context.Context, token string, opts ..
 //
 // Reports up to 500 value facts from your platform: `payment`, `refund`, `credit_granted`, `credit_redeemed`, `credit_expired`, `credit_revoked`, `cost` or `adjustment`. Each needs `kind`, `currency`, `externalId` (your stable id, which makes it idempotent) and `occurredAt`, plus the customer, partner (`partnerId` or `partnerExternalRef`), grant, program, product and amount fields (`cashMinor`, `creditAppliedMinor`, `discountMinor`, `taxMinor`, `feesMinor`, `costMinor`, `faceMinor`) that apply. Each event is validated and recorded on its own: `results` and `errors` are by index. A repeat of an `externalId` with new figures supersedes the earlier one.
 //
-// **Auth:** an API key with `analytics:write` (or `full`), or a session of any role.
+// **Auth:** an API key with `analytics:write`, or a session of any role.
+//
+// **Scopes:** `analytics:write`, `full`, `admin`.
 func (c *Client) PostValueEvents(ctx context.Context, body PostValueEventsBody, opts ...RequestOption) (*PostValueEventsResponse, error) {
 	var out PostValueEventsResponse
 	if err := c.do(ctx, "POST", "/v1/value/events", nil, body, &out, "json", opts); err != nil {
@@ -9767,7 +10393,9 @@ func (c *Client) PostValueEvents(ctx context.Context, body PostValueEventsBody, 
 //
 // Imports value events from CSV text (up to 10,000 rows and 5 MB, else `413 payload_too_large`) with a `mapping` from column names to event fields (money as `<field>Minor` or `<field>Major`). `kind` applies to every row unless a column maps to it. Up to 500 rows are recorded before the response; a larger file answers `202` with a `jobId` to poll. `dryRun` returns the first 20 parsed rows and every row error without recording.
 //
-// **Auth:** an API key with `analytics:write` (or `full`), or a session of any role.
+// **Auth:** an API key with `analytics:write`, or a session of any role.
+//
+// **Scopes:** `analytics:write`, `full`, `admin`.
 func (c *Client) PostValueImport(ctx context.Context, body PostValueImportBody, opts ...RequestOption) (*PostValueImportResponse, error) {
 	var out PostValueImportResponse
 	if err := c.do(ctx, "POST", "/v1/value/import", nil, body, &out, "json", opts); err != nil {
@@ -9780,7 +10408,9 @@ func (c *Client) PostValueImport(ctx context.Context, body PostValueImportBody, 
 //
 // Queues the delivery again at once with its attempt count reset. It keeps its `webhook-id`, so receivers can deduplicate.
 //
-// **Auth:** an API key with `webhooks:write` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `webhooks:write`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `webhooks:write`, `full`, `admin`.
 func (c *Client) PostWebhookDeliveriesIDReplay(ctx context.Context, id string, opts ...RequestOption) (*Ok, error) {
 	var out Ok
 	if err := c.do(ctx, "POST", "/v1/webhook-deliveries/"+url.PathEscape(id)+"/replay", nil, nil, &out, "json", opts); err != nil {
@@ -9793,7 +10423,9 @@ func (c *Client) PostWebhookDeliveriesIDReplay(ctx context.Context, id string, o
 //
 // Subscribes an HTTPS URL to event topics (default `["*"]`, every event; see the `webhooks` section of this document for each topic's payload). `programIds` limits it to events about those programs (org-wide events such as payouts are then not sent). Deliveries are signed the Standard Webhooks way with the returned `secret` (`whsec_…`), shown only here. `legacySignature: true` also sends the deprecated body-only signature. `alertContacts` (up to 10 emails) are emailed, with the org owner, when the endpoint has failed for 1 hour and again at 24 hours; it is disabled after 72 hours of failures or 1,000 failed attempts in a row. `status: "paused"` creates it without delivering anything until you `PATCH` it to `active` (default `active`).
 //
-// **Auth:** an API key with `webhooks:write` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `webhooks:write`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `webhooks:write`, `full`, `admin`.
 func (c *Client) PostWebhookEndpoints(ctx context.Context, body PostWebhookEndpointsBody, opts ...RequestOption) (*PostWebhookEndpointsResponse, error) {
 	var out PostWebhookEndpointsResponse
 	if err := c.do(ctx, "POST", "/v1/webhook-endpoints", nil, body, &out, "json", opts); err != nil {
@@ -9820,7 +10452,9 @@ func (p *PostWebhookEndpointsIDReplayParams) values() url.Values {
 //
 // Requeues the endpoint's failed deliveries created at or after `since` (ISO 8601), for after an outage. Each keeps its `webhook-id`, so receivers can dedupe. Audited.
 //
-// **Auth:** an API key with `webhooks:write` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `webhooks:write`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `webhooks:write`, `full`, `admin`.
 //
 // since: Requeue failed deliveries created at or after this time.
 func (c *Client) PostWebhookEndpointsIDReplay(ctx context.Context, id string, params *PostWebhookEndpointsIDReplayParams, opts ...RequestOption) (*PostWebhookEndpointsIdReplayResponse, error) {
@@ -9835,7 +10469,9 @@ func (c *Client) PostWebhookEndpointsIDReplay(ctx context.Context, id string, pa
 //
 // Issues a new signing secret, returned once. For 24 hours (`previousSecretExpiresAt`) every delivery carries a signature from each secret, so receivers can switch without dropping any. Audited.
 //
-// **Auth:** an API key with `webhooks:write` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `webhooks:write`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `webhooks:write`, `full`, `admin`.
 func (c *Client) PostWebhookEndpointsIDRotateSecret(ctx context.Context, id string, opts ...RequestOption) (*PostWebhookEndpointsIdRotateSecretResponse, error) {
 	var out PostWebhookEndpointsIdRotateSecretResponse
 	if err := c.do(ctx, "POST", "/v1/webhook-endpoints/"+url.PathEscape(id)+"/rotate-secret", nil, nil, &out, "json", opts); err != nil {
@@ -9848,7 +10484,9 @@ func (c *Client) PostWebhookEndpointsIDRotateSecret(ctx context.Context, id stri
 //
 // Your backend mints a short-lived token (60 to 3600 seconds, default 900) for a signed-in customer, identified by `customerRef` or `partnerExternalRef`, for the in-app referral widget. When the program has `settings.widget.autoEnroll`, a customer who isn't a partner yet is created on demand (send `email`). The token only reads that partner's own data.
 //
-// **Auth:** an API key with `partners:write` (or `full`), or a session of any role.
+// **Auth:** an API key with `partners:write`, or a session of any role.
+//
+// **Scopes:** `partners:write`, `full`, `admin`.
 func (c *Client) PostWidgetTokens(ctx context.Context, body PostWidgetTokensBody, opts ...RequestOption) (*PostWidgetTokensResponse, error) {
 	var out PostWidgetTokensResponse
 	if err := c.do(ctx, "POST", "/v1/widget/tokens", nil, body, &out, "json", opts); err != nil {
@@ -9861,7 +10499,9 @@ func (c *Client) PostWidgetTokens(ctx context.Context, body PostWidgetTokensBody
 //
 // Zapier's "Record conversion" action: a payment (or refund) for a customer through a generic billing connection (the org's first active one unless `connectionId`), with no signature needed. Idempotent by `providerEventId`. 400 without a generic billing connection.
 //
-// **Auth:** an API key with `billing:write` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `billing:write`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `billing:write`, `full`, `admin`.
 func (c *Client) PostZapierConversions(ctx context.Context, body PostZapierConversionsBody, opts ...RequestOption) (*PostZapierConversionsResponse, error) {
 	var out PostZapierConversionsResponse
 	if err := c.do(ctx, "POST", "/v1/zapier/conversions", nil, body, &out, "json", opts); err != nil {
@@ -9874,7 +10514,9 @@ func (c *Client) PostZapierConversions(ctx context.Context, body PostZapierConve
 //
 // REST hook subscribe, called by Zapier when a Zap turns on: events of `event` are posted to the HTTPS `target_url`.
 //
-// **Auth:** an API key with `integrations:write` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `integrations:write`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `integrations:write`, `full`, `admin`.
 func (c *Client) PostZapierHooks(ctx context.Context, body PostZapierHooksBody, opts ...RequestOption) (*ZapierHook, error) {
 	var out ZapierHook
 	if err := c.do(ctx, "POST", "/v1/zapier/hooks", nil, body, &out, "json", opts); err != nil {
@@ -9887,7 +10529,9 @@ func (c *Client) PostZapierHooks(ctx context.Context, body PostZapierHooksBody, 
 //
 // For webhook connectors whose vendor issues the signing secret (Clerk, Stytch, WorkOS) or key set (Kinde's JWKS document): replaces the connection's secret. The previous one keeps verifying for 24 hours. Signed-protocol connections rotate instead. Audited.
 //
-// **Auth:** an API key with `integrations:write` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `integrations:write`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `integrations:write`, `connections:write`, `full`, `admin`.
 func (c *Client) PutAuthConnectionsIDSecret(ctx context.Context, id string, body PutAuthConnectionsIdSecretBody, opts ...RequestOption) (*PutAuthConnectionsIdSecretResponse, error) {
 	var out PutAuthConnectionsIdSecretResponse
 	if err := c.do(ctx, "PUT", "/v1/auth/connections/"+url.PathEscape(id)+"/secret", nil, body, &out, "json", opts); err != nil {
@@ -9900,7 +10544,9 @@ func (c *Client) PutAuthConnectionsIDSecret(ctx context.Context, id string, body
 //
 // For providers that send thin webhooks (Recurly, BigCommerce), the API credentials used to fetch the full event: `apiKey`, or `apiToken` plus `storeHash`, and `region`. Stored encrypted. 400 for providers that take no credentials or when a required field is missing. Audited.
 //
-// **Auth:** an API key with `billing:write` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `billing:write`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `billing:write`, `full`, `admin`.
 func (c *Client) PutBillingConnectionsIDCredentials(ctx context.Context, id string, body PutBillingConnectionsIdCredentialsBody, opts ...RequestOption) (*PutBillingConnectionsIdCredentialsResponse, error) {
 	var out PutBillingConnectionsIdCredentialsResponse
 	if err := c.do(ctx, "PUT", "/v1/billing/connections/"+url.PathEscape(id)+"/credentials", nil, body, &out, "json", opts); err != nil {
@@ -9911,9 +10557,11 @@ func (c *Client) PutBillingConnectionsIDCredentials(ctx context.Context, id stri
 
 // PutBillingConnectionsIDSecret calls Set the webhook signing secret. PUT /v1/billing/connections/{id}/secret.
 //
-// Replaces the connection's signing secret with the provider's own (at least 8 characters). The previous secret keeps verifying for 24 hours. Audited.
+// Replaces the connection's signing secret with the provider's own (at least 8 characters). The previous secret keeps verifying for 24 hours. A connection reading `awaiting_secret` reads `active` from then on. Audited.
 //
-// **Auth:** an API key with `billing:write` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `billing:write`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `billing:write`, `full`, `admin`.
 func (c *Client) PutBillingConnectionsIDSecret(ctx context.Context, id string, body PutBillingConnectionsIdSecretBody, opts ...RequestOption) (*PutBillingConnectionsIdSecretResponse, error) {
 	var out PutBillingConnectionsIdSecretResponse
 	if err := c.do(ctx, "PUT", "/v1/billing/connections/"+url.PathEscape(id)+"/secret", nil, body, &out, "json", opts); err != nil {
@@ -9926,7 +10574,9 @@ func (c *Client) PutBillingConnectionsIDSecret(ctx context.Context, id string, b
 //
 // Where cash, credit applied, discount, cost and product live in this connection's payloads, as dot paths (`[]` sums an array, for example `data.discounts[].amount`), and whether amounts are in minor or major units. Each save bumps the mapping version; a rebuild re-applies it to stored events. Audited.
 //
-// **Auth:** an API key with `billing:write` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `billing:write`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `billing:write`, `full`, `admin`.
 func (c *Client) PutBillingConnectionsIDValueMapping(ctx context.Context, id string, body PutBillingConnectionsIdValueMappingBody, opts ...RequestOption) (*PutBillingConnectionsIdValueMappingResponse, error) {
 	var out PutBillingConnectionsIdValueMappingResponse
 	if err := c.do(ctx, "PUT", "/v1/billing/connections/"+url.PathEscape(id)+"/value-mapping", nil, body, &out, "json", opts); err != nil {
@@ -9939,7 +10589,9 @@ func (c *Client) PutBillingConnectionsIDValueMapping(ctx context.Context, id str
 //
 // Sets the logo URL, theme (only the documented `--r-*` tokens, with plain CSS values) and email sender. Omitted fields keep their value. `warnings` lists theme text/background pairs (`--r-accent-ink` on `--r-accent`, `--r-ink` on `--r-paper`) below the 4.5:1 WCAG AA contrast; the theme is saved anyway.
 //
-// **Auth:** an API key with `org:write` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `org:write`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `org:write`, `full`, `admin`.
 func (c *Client) PutBranding(ctx context.Context, body PutBrandingBody, opts ...RequestOption) (*PutBrandingResponse, error) {
 	var out PutBrandingResponse
 	if err := c.do(ctx, "PUT", "/v1/branding", nil, body, &out, "json", opts); err != nil {
@@ -9952,7 +10604,9 @@ func (c *Client) PutBranding(ctx context.Context, body PutBrandingBody, opts ...
 //
 // Sets the email provider and its API key (write-only: omit to keep it, `null` to remove), the from address and name, reply-to, logo and primary color for partner emails. Without a provider, no email is sent.
 //
-// **Auth:** an API key with `org:write` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `org:write`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `org:write`, `full`, `admin`.
 func (c *Client) PutEmailSettings(ctx context.Context, body PutEmailSettingsBody, opts ...RequestOption) (*EmailSettings, error) {
 	var out EmailSettings
 	if err := c.do(ctx, "PUT", "/v1/email/settings", nil, body, &out, "json", opts); err != nil {
@@ -9965,7 +10619,9 @@ func (c *Client) PutEmailSettings(ctx context.Context, body PutEmailSettingsBody
 //
 // Replaces the subject, text and optional HTML of one event in one locale. 404 for an unknown event or locale.
 //
-// **Auth:** an API key with `org:write` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `org:write`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `org:write`, `full`, `admin`.
 func (c *Client) PutEmailTemplatesEventLocale(ctx context.Context, event string, locale string, body PutEmailTemplatesEventLocaleBody, opts ...RequestOption) (*PutEmailTemplatesEventLocaleResponse, error) {
 	var out PutEmailTemplatesEventLocaleResponse
 	if err := c.do(ctx, "PUT", "/v1/email/templates/"+url.PathEscape(event)+"/"+url.PathEscape(locale), nil, body, &out, "json", opts); err != nil {
@@ -9978,7 +10634,9 @@ func (c *Client) PutEmailTemplatesEventLocale(ctx context.Context, event string,
 //
 // Connects HubSpot with your private-app `token` (required the first time; omit to keep it) to sync partners as contacts and referrals as deals in `pipeline`, moving them to `paidDealStage` when they pay. `status: "paused"` stops syncing.
 //
-// **Auth:** an API key with `integrations:write` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `integrations:write`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `integrations:write`, `full`, `admin`.
 func (c *Client) PutIntegrationsHubspot(ctx context.Context, body PutIntegrationsHubspotBody, opts ...RequestOption) (*IntegrationConnection, error) {
 	var out IntegrationConnection
 	if err := c.do(ctx, "PUT", "/v1/integrations/hubspot", nil, body, &out, "json", opts); err != nil {
@@ -9991,7 +10649,9 @@ func (c *Client) PutIntegrationsHubspot(ctx context.Context, body PutIntegration
 //
 // Connects a Segment source with its `writeKey` (required the first time) and sends referral, commission, payout and partner events as track calls; `events` limits which topics (`null` for all).
 //
-// **Auth:** an API key with `integrations:write` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `integrations:write`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `integrations:write`, `full`, `admin`.
 func (c *Client) PutIntegrationsSegment(ctx context.Context, body PutIntegrationsSegmentBody, opts ...RequestOption) (*IntegrationConnection, error) {
 	var out IntegrationConnection
 	if err := c.do(ctx, "PUT", "/v1/integrations/segment", nil, body, &out, "json", opts); err != nil {
@@ -10004,7 +10664,9 @@ func (c *Client) PutIntegrationsSegment(ctx context.Context, body PutIntegration
 //
 // Creates or updates the marketplace listing of a program: visibility (`public` or `unlisted`), category, headline, description and sponsored placement. Audited.
 //
-// **Auth:** an API key with `growth:write` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `growth:write`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `growth:write`, `full`, `admin`.
 func (c *Client) PutMarketplaceListing(ctx context.Context, body PutMarketplaceListingBody, opts ...RequestOption) (*Ok, error) {
 	var out Ok
 	if err := c.do(ctx, "PUT", "/v1/marketplace/listing", nil, body, &out, "json", opts); err != nil {
@@ -10017,7 +10679,9 @@ func (c *Client) PutMarketplaceListing(ctx context.Context, body PutMarketplaceL
 //
 // The signed-in user's preferred locale for emails. User session only.
 //
-// **Auth:** an API key with `team:write` (or `full`), or a session of any role.
+// **Auth:** an API key with `team:write`, or a session of any role.
+//
+// **Scopes:** `team:write`, `full`, `admin`.
 func (c *Client) PutMeLocale(ctx context.Context, body PutMeLocaleBody, opts ...RequestOption) (*PutMeLocaleResponse, error) {
 	var out PutMeLocaleResponse
 	if err := c.do(ctx, "PUT", "/v1/me/locale", nil, body, &out, "json", opts); err != nil {
@@ -10030,7 +10694,9 @@ func (c *Client) PutMeLocale(ctx context.Context, body PutMeLocaleBody, opts ...
 //
 // Whether the signed-in member receives this org's periodic credit ROI digest email. User session only.
 //
-// **Auth:** an API key with `team:write` (or `full`), or a session of any role.
+// **Auth:** an API key with `team:write`, or a session of any role.
+//
+// **Scopes:** `team:write`, `full`, `admin`.
 func (c *Client) PutMeRoiDigest(ctx context.Context, body PutMeRoiDigestBody, opts ...RequestOption) (*PutMeRoiDigestResponse, error) {
 	var out PutMeRoiDigestResponse
 	if err := c.do(ctx, "PUT", "/v1/me/roi-digest", nil, body, &out, "json", opts); err != nil {
@@ -10043,7 +10709,9 @@ func (c *Client) PutMeRoiDigest(ctx context.Context, body PutMeRoiDigestBody, op
 //
 // Opts the org in or out of the cross-merchant attribution network: contributing its referral touchpoints (as hashed customer identities and partner accounts, never merchant identity or PII) and, in return, reading the network journey.
 //
-// **Auth:** an API key with `growth:write` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `growth:write`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `growth:write`, `full`, `admin`.
 func (c *Client) PutNetworkSettings(ctx context.Context, body PutNetworkSettingsBody, opts ...RequestOption) (*PutNetworkSettingsResponse, error) {
 	var out PutNetworkSettingsResponse
 	if err := c.do(ctx, "PUT", "/v1/network/settings", nil, body, &out, "json", opts); err != nil {
@@ -10056,7 +10724,9 @@ func (c *Client) PutNetworkSettings(ctx context.Context, body PutNetworkSettings
 //
 // Replaces the list of Cookie Munch sites (cbids) whose signed consent events this org keeps. An event for any other site is acknowledged and dropped, since the org a delivery names is chosen by whoever made the link. Owner or admin. Audited.
 //
-// **Auth:** an API key with `org:write` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `org:write`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `org:write`, `full`, `admin`.
 func (c *Client) PutOrgConsentPartnersCookiemunch(ctx context.Context, body PutOrgConsentPartnersCookiemunchBody, opts ...RequestOption) (*GetOrgConsentPartnersCookiemunchResponse, error) {
 	var out GetOrgConsentPartnersCookiemunchResponse
 	if err := c.do(ctx, "PUT", "/v1/org/consent-partners/cookiemunch", nil, body, &out, "json", opts); err != nil {
@@ -10069,7 +10739,9 @@ func (c *Client) PutOrgConsentPartnersCookiemunch(ctx context.Context, body PutO
 //
 // Turns the daily ECB reference-rate feed on or off. Turning it on syncs once at once and returns how many rates were inserted. Audited.
 //
-// **Auth:** an API key with `org:write` (or `full`), or a session with role `owner`, `admin`, `finance`.
+// **Auth:** an API key with `org:write`, or a session with role `owner`, `admin`, `finance`.
+//
+// **Scopes:** `org:write`, `full`, `admin`.
 func (c *Client) PutOrgFXFeed(ctx context.Context, body PutOrgFxFeedBody, opts ...RequestOption) (*PutOrgFxFeedResponse, error) {
 	var out PutOrgFxFeedResponse
 	if err := c.do(ctx, "PUT", "/v1/org/fx-feed", nil, body, &out, "json", opts); err != nil {
@@ -10082,7 +10754,9 @@ func (c *Client) PutOrgFXFeed(ctx context.Context, body PutOrgFxFeedBody, opts .
 //
 // Validates and saves the adapters. A CMP's `scriptUrl` must be https on that vendor's own hosts; `custom` needs every origin listed; every chat vendor also takes `origins` for hosts its account needs beyond the documented list. `chat.identitySecret` (write-only, sealed) is your chat vendor's identity-verification secret, used to sign partners in to your chat: a string sets it, `null` removes it, absent keeps it, and switching vendors drops it. `customOrigins` adds origins per CSP directive (https or wss, no wildcards, no keywords). Owner or admin. Audited.
 //
-// **Auth:** an API key with `org:write` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `org:write`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `org:write`, `full`, `admin`.
 func (c *Client) PutOrgHostedPages(ctx context.Context, body PutOrgHostedPagesBody, opts ...RequestOption) (*GetOrgHostedPagesResponse, error) {
 	var out GetOrgHostedPagesResponse
 	if err := c.do(ctx, "PUT", "/v1/org/hosted-pages", nil, body, &out, "json", opts); err != nil {
@@ -10095,7 +10769,9 @@ func (c *Client) PutOrgHostedPages(ctx context.Context, body PutOrgHostedPagesBo
 //
 // When payouts run automatically for every program without its own schedule: a `schedule` (`monthly`, `weekly`, `twice_monthly` or `custom` dates), the older `dayOfMonth` form, or `null` to turn automatic payouts off. Send exactly one of `schedule` and `dayOfMonth`. Audited.
 //
-// **Auth:** an API key with `payouts:write` (or `full`), or a session with role `owner`, `admin`, `finance`.
+// **Auth:** an API key with `payouts:write`, or a session with role `owner`, `admin`, `finance`.
+//
+// **Scopes:** `payouts:write`, `full`, `admin`.
 func (c *Client) PutOrgPayoutSchedule(ctx context.Context, body PutOrgPayoutScheduleBody, opts ...RequestOption) (*PutOrgPayoutScheduleResponse, error) {
 	var out PutOrgPayoutScheduleResponse
 	if err := c.do(ctx, "PUT", "/v1/org/payout-schedule", nil, body, &out, "json", opts); err != nil {
@@ -10108,7 +10784,9 @@ func (c *Client) PutOrgPayoutSchedule(ctx context.Context, body PutOrgPayoutSche
 //
 // Chooses the portal sign-in adapter and its settings. `custom`: `issuer` and `jwksUrl` (https), or `preset` + `tenant` for a known platform (`jwtPresets` in the GET lists them: Clerk, Supabase, Firebase, Auth0, Cognito, Stytch, Kinde, Okta, Entra ID, Google, Keycloak, Descope, FusionAuth), or `keyType: hs256` with a write-only `sharedSecret` (≥ 32 characters, sealed); optional `audience` (default `referalli:<org>`), `maxAgeS` (30 to 3600, default 300), `claims` (where `sub`, `email`, `name`, `emailVerified` live, by name or dot path), `loginUrl` (your page that mints the token) and `autoEnrollProgramId`. `oidc`: `issuer`, `clientId`, `clientSecret`. `referalli` removes any configuration. Owner only.
 //
-// **Auth:** an API key with `org:write` (or `full`), or a session with role `owner`.
+// **Auth:** an API key with `org:write`, or a session with role `owner`.
+//
+// **Scopes:** `org:write`, `full`, `admin`.
 func (c *Client) PutOrgPortalAuth(ctx context.Context, body json.RawMessage, opts ...RequestOption) (*PutOrgPortalAuthResponse, error) {
 	var out PutOrgPortalAuthResponse
 	if err := c.do(ctx, "PUT", "/v1/org/portal-auth", nil, body, &out, "json", opts); err != nil {
@@ -10121,7 +10799,9 @@ func (c *Client) PutOrgPortalAuth(ctx context.Context, body json.RawMessage, opt
 //
 // Replaces the extra query parameters aff.js reads a referral code from (up to 10; lowercase letters, digits and `_`). Built-in names are dropped. Imports add the previous tool's parameter here so already-shared links keep crediting. Audited.
 //
-// **Auth:** an API key with `org:write` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `org:write`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `org:write`, `full`, `admin`.
 func (c *Client) PutOrgReferralParams(ctx context.Context, body PutOrgReferralParamsBody, opts ...RequestOption) (*GetOrgReferralParamsResponse, error) {
 	var out GetOrgReferralParamsResponse
 	if err := c.do(ctx, "PUT", "/v1/org/referral-params", nil, body, &out, "json", opts); err != nil {
@@ -10134,7 +10814,9 @@ func (c *Client) PutOrgReferralParams(ctx context.Context, body PutOrgReferralPa
 //
 // Changes retention days for one or more kinds of raw data (others keep their value). Values below a kind's minimum are rejected. Audited.
 //
-// **Auth:** an API key with `org:write` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `org:write`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `org:write`, `full`, `admin`.
 func (c *Client) PutOrgRetention(ctx context.Context, body PutOrgRetentionBody, opts ...RequestOption) (*Retention, error) {
 	var out Retention
 	if err := c.do(ctx, "PUT", "/v1/org/retention", nil, body, &out, "json", opts); err != nil {
@@ -10147,7 +10829,9 @@ func (c *Client) PutOrgRetention(ctx context.Context, body PutOrgRetentionBody, 
 //
 // Team SSO with the org's own IdP, no broker: `adapter` `oidc` (issuer, client id and secret, the claim that holds roles) or `workos` (client id, organization id, the org's own API key). `roleMapping` maps IdP groups or roles to `admin`, `finance`, `analyst` or `support` (never owner); `defaultRole` covers everyone else, or null to keep them out; `domains` are the email domains "require SSO" applies to. The secret is encrypted and never returned; leave it out to keep the stored one. 409 while the org uses the Atlas broker. Owner only.
 //
-// **Auth:** an API key with `org:write` (or `full`), or a session with role `owner`.
+// **Auth:** an API key with `org:write`, or a session with role `owner`.
+//
+// **Scopes:** `org:write`, `full`, `admin`.
 func (c *Client) PutOrgSSODirect(ctx context.Context, body json.RawMessage, opts ...RequestOption) (*PutOrgSsoDirectResponse, error) {
 	var out PutOrgSsoDirectResponse
 	if err := c.do(ctx, "PUT", "/v1/org/sso/direct", nil, body, &out, "json", opts); err != nil {
@@ -10160,7 +10844,9 @@ func (c *Client) PutOrgSSODirect(ctx context.Context, body json.RawMessage, opts
 //
 // Chooses who e-files 1099-NEC forms: `test` (simulated) or `tax1099` with your own API key (stored encrypted). Audited.
 //
-// **Auth:** an API key with `org:write` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `org:write`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `org:write`, `full`, `admin`.
 func (c *Client) PutOrgTaxFiling(ctx context.Context, body PutOrgTaxFilingBody, opts ...RequestOption) (*PutOrgTaxFilingResponse, error) {
 	var out PutOrgTaxFilingResponse
 	if err := c.do(ctx, "PUT", "/v1/org/tax-filing", nil, body, &out, "json", opts); err != nil {
@@ -10173,7 +10859,9 @@ func (c *Client) PutOrgTaxFiling(ctx context.Context, body PutOrgTaxFilingBody, 
 //
 // Sets any of the tax profile fields; `null` clears one. A VAT id must be a valid EU VAT number; an EIN looks like `12-3456789`. Audited.
 //
-// **Auth:** an API key with `org:write` (or `full`), or a session with role `owner`, `admin`, `finance`.
+// **Auth:** an API key with `org:write`, or a session with role `owner`, `admin`, `finance`.
+//
+// **Scopes:** `org:write`, `full`, `admin`.
 func (c *Client) PutOrgTaxProfile(ctx context.Context, body PutOrgTaxProfileBody, opts ...RequestOption) (*TaxProfile, error) {
 	var out TaxProfile
 	if err := c.do(ctx, "PUT", "/v1/org/tax-profile", nil, body, &out, "json", opts); err != nil {
@@ -10186,7 +10874,9 @@ func (c *Client) PutOrgTaxProfile(ctx context.Context, body PutOrgTaxProfileBody
 //
 // Sets the consent default served inside `/t/{token}/aff.js` (cached up to 5 minutes). Owner or admin. Audited.
 //
-// **Auth:** an API key with `org:write` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `org:write`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `org:write`, `full`, `admin`.
 func (c *Client) PutOrgTrackingConsent(ctx context.Context, body PutOrgTrackingConsentBody, opts ...RequestOption) (*GetOrgTrackingConsentResponse, error) {
 	var out GetOrgTrackingConsentResponse
 	if err := c.do(ctx, "PUT", "/v1/org/tracking-consent", nil, body, &out, "json", opts); err != nil {
@@ -10264,7 +10954,9 @@ func (c *Client) PutPartnerProfile(ctx context.Context, body PutPartnerProfileBo
 //
 // How the partner is paid: `method` (`paypal`, `wise`, `stripe_connect`, `ach`, `crypto`, `payoneer`, `tremendous` or `csv`), method `details` (a free-form map such as `{ "paypalEmail": … }`), the currency to pay in and the minimum balance before a payout. Partners can also set this themselves in the portal.
 //
-// **Auth:** an API key with `payouts:write` (or `full`), or a session with role `owner`, `admin`, `finance`.
+// **Auth:** an API key with `payouts:write`, or a session with role `owner`, `admin`, `finance`.
+//
+// **Scopes:** `payouts:write`, `full`, `admin`.
 func (c *Client) PutPartnersIDPayoutProfile(ctx context.Context, id string, body PutPartnersIdPayoutProfileBody, opts ...RequestOption) (*PutPartnersIdPayoutProfileResponse, error) {
 	var out PutPartnersIdPayoutProfileResponse
 	if err := c.do(ctx, "PUT", "/v1/partners/"+url.PathEscape(id)+"/payout-profile", nil, body, &out, "json", opts); err != nil {
@@ -10277,7 +10969,9 @@ func (c *Client) PutPartnersIDPayoutProfile(ctx context.Context, id string, body
 //
 // Sets (or clears with `null`) the partner's EU VAT number on their payout profile. With `viesCheck` on, VIES must list it as registered. 404 until the partner has payout details. Audited.
 //
-// **Auth:** an API key with `partners:write` (or `full`), or a session with role `owner`, `admin`, `finance`.
+// **Auth:** an API key with `partners:write`, or a session with role `owner`, `admin`, `finance`.
+//
+// **Scopes:** `partners:write`, `full`, `admin`.
 func (c *Client) PutPartnersIDVAT(ctx context.Context, id string, body PutPartnersIdVatBody, opts ...RequestOption) (*PutPartnersIdVatResponse, error) {
 	var out PutPartnersIdVatResponse
 	if err := c.do(ctx, "PUT", "/v1/partners/"+url.PathEscape(id)+"/vat", nil, body, &out, "json", opts); err != nil {
@@ -10290,7 +10984,9 @@ func (c *Client) PutPartnersIDVAT(ctx context.Context, id string, body PutPartne
 //
 // Connects (or replaces) your own account with a payout provider, so payouts move money from your account: `paypal` (`clientId`, `secret`), `stripe` (`secretKey`), `circle` (`apiKey`, `walletId`), `wise` (`apiToken`, `profileId`), `payoneer` (`clientId`, `secret`, `programId`) or `tremendous` (`apiKey`, `fundingSourceId`), each with `env`. Stored encrypted and never echoed. Live mode only (`409 test_mode_unsupported` in test mode). Audited.
 //
-// **Auth:** an API key with `payouts:write` (or `full`), or a session with role `owner`, `admin`, `finance`.
+// **Auth:** an API key with `payouts:write`, or a session with role `owner`, `admin`, `finance`.
+//
+// **Scopes:** `payouts:write`, `full`, `admin`.
 func (c *Client) PutPayoutConnectionsProvider(ctx context.Context, provider string, body json.RawMessage, opts ...RequestOption) (*PutPayoutConnectionsProviderResponse, error) {
 	var out PutPayoutConnectionsProviderResponse
 	if err := c.do(ctx, "PUT", "/v1/payout-connections/"+url.PathEscape(provider), nil, body, &out, "json", opts); err != nil {
@@ -10303,7 +10999,9 @@ func (c *Client) PutPayoutConnectionsProvider(ctx context.Context, provider stri
 //
 // Replaces the whole draft: keys you leave out are gone. Unknown keys are refused with 422 naming each one by its full path. Owner or admin.
 //
-// **Auth:** an API key with `org:write` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `org:write`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `org:write`, `full`, `admin`.
 func (c *Client) PutPortalThemeDraft(ctx context.Context, body map[string]any, opts ...RequestOption) (*GetPortalThemeResponse, error) {
 	var out GetPortalThemeResponse
 	if err := c.do(ctx, "PUT", "/v1/portal/theme/draft", nil, body, &out, "json", opts); err != nil {
@@ -10316,7 +11014,9 @@ func (c *Client) PutPortalThemeDraft(ctx context.Context, body map[string]any, o
 //
 // Sets a product's margin (`marginBps`) or unit cost (`unitCostMinor`, in `currency`, default the reporting currency); exactly one of the two. Audited.
 //
-// **Auth:** an API key with `analytics:write` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `analytics:write`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `analytics:write`, `full`, `admin`.
 func (c *Client) PutProfitabilityProductsProductRef(ctx context.Context, productRef string, body PutProfitabilityProductsProductRefBody, opts ...RequestOption) (*GetProfitabilityProductsProductRefResponse, error) {
 	var out GetProfitabilityProductsProductRefResponse
 	if err := c.do(ctx, "PUT", "/v1/profitability/products/"+url.PathEscape(productRef), nil, body, &out, "json", opts); err != nil {
@@ -10329,7 +11029,9 @@ func (c *Client) PutProfitabilityProductsProductRef(ctx context.Context, product
 //
 // Changes the org's economics settings, or with `programId` that program's overrides (a program can't override org-only fields such as the reporting currency). Returns the resolved settings. Re-run `POST /v1/profitability/rebuild` to apply changes to past figures. Audited.
 //
-// **Auth:** an API key with `analytics:write` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `analytics:write`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `analytics:write`, `full`, `admin`.
 func (c *Client) PutProfitabilitySettings(ctx context.Context, body PutProfitabilitySettingsBody, opts ...RequestOption) (*GetProfitabilitySettingsResponse, error) {
 	var out GetProfitabilitySettingsResponse
 	if err := c.do(ctx, "PUT", "/v1/profitability/settings", nil, body, &out, "json", opts); err != nil {
@@ -10342,7 +11044,9 @@ func (c *Client) PutProfitabilitySettings(ctx context.Context, body PutProfitabi
 //
 // Self-pricing commissions: a target (`targetRoas`, or with `objective: "roi"` a `targetRoi`) and the `minBps`/`maxBps` band partner rates may move within. `enabled: false` turns it off.
 //
-// **Auth:** an API key with `programs:write` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `programs:write`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `programs:write`, `full`, `admin`.
 func (c *Client) PutProgramsIDAutopricing(ctx context.Context, id string, body PutProgramsIdAutopricingBody, opts ...RequestOption) (*PutProgramsIdAutopricingResponse, error) {
 	var out PutProgramsIdAutopricingResponse
 	if err := c.do(ctx, "PUT", "/v1/programs/"+url.PathEscape(id)+"/autopricing", nil, body, &out, "json", opts); err != nil {
@@ -10355,7 +11059,9 @@ func (c *Client) PutProgramsIDAutopricing(ctx context.Context, id string, body P
 //
 // Holds out a random control share of referrals (`holdoutBps`, up to 5000 = 50%) from being commissioned, so comparing control and treatment conversion measures the true lift partners cause. 0 turns it off.
 //
-// **Auth:** an API key with `programs:write` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `programs:write`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `programs:write`, `full`, `admin`.
 func (c *Client) PutProgramsIDIncrementality(ctx context.Context, id string, body PutProgramsIdIncrementalityBody, opts ...RequestOption) (*PutProgramsIdIncrementalityResponse, error) {
 	var out PutProgramsIdIncrementalityResponse
 	if err := c.do(ctx, "PUT", "/v1/programs/"+url.PathEscape(id)+"/incrementality", nil, body, &out, "json", opts); err != nil {
@@ -10368,7 +11074,9 @@ func (c *Client) PutProgramsIDIncrementality(ctx context.Context, id string, bod
 //
 // What an agent may negotiate to in this program: rates between `minBps` and `maxBps`, accepted automatically up to `autoAcceptMaxBps`. Requires `minBps <= autoAcceptMaxBps <= maxBps`. `enabled: false` closes the program to negotiation.
 //
-// **Auth:** an API key with `programs:write` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `programs:write`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `programs:write`, `full`, `admin`.
 func (c *Client) PutProgramsIDNegotiationPolicy(ctx context.Context, id string, body PutProgramsIdNegotiationPolicyBody, opts ...RequestOption) (*PutProgramsIdNegotiationPolicyResponse, error) {
 	var out PutProgramsIdNegotiationPolicyResponse
 	if err := c.do(ctx, "PUT", "/v1/programs/"+url.PathEscape(id)+"/negotiation-policy", nil, body, &out, "json", opts); err != nil {
@@ -10381,7 +11089,9 @@ func (c *Client) PutProgramsIDNegotiationPolicy(ctx context.Context, id string, 
 //
 // Puts an enrolled partner in one of the program's groups, or none (`groupId: null`). A partner is in at most one group per program.
 //
-// **Auth:** an API key with `programs:write` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `programs:write`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `programs:write`, `full`, `admin`.
 func (c *Client) PutProgramsIDPartnersPartnerIDGroup(ctx context.Context, id string, partnerId string, body PutProgramsIdPartnersPartnerIdGroupBody, opts ...RequestOption) (*PutProgramsIdPartnersPartnerIdGroupResponse, error) {
 	var out PutProgramsIdPartnersPartnerIdGroupResponse
 	if err := c.do(ctx, "PUT", "/v1/programs/"+url.PathEscape(id)+"/partners/"+url.PathEscape(partnerId)+"/group", nil, body, &out, "json", opts); err != nil {
@@ -10394,7 +11104,9 @@ func (c *Client) PutProgramsIDPartnersPartnerIDGroup(ctx context.Context, id str
 //
 // Overrides the org payout schedule for this program: a schedule, `{ "kind": "off" }` to never pay it automatically, or `null` to follow the org schedule again. Returns the next run date. Audited.
 //
-// **Auth:** an API key with `programs:write` (or `full`), or a session with role `owner`, `admin`, `finance`.
+// **Auth:** an API key with `programs:write`, or a session with role `owner`, `admin`, `finance`.
+//
+// **Scopes:** `programs:write`, `full`, `admin`.
 func (c *Client) PutProgramsIDPayoutSchedule(ctx context.Context, id string, body PutProgramsIdPayoutScheduleBody, opts ...RequestOption) (*PutProgramsIdPayoutScheduleResponse, error) {
 	var out PutProgramsIdPayoutScheduleResponse
 	if err := c.do(ctx, "PUT", "/v1/programs/"+url.PathEscape(id)+"/payout-schedule", nil, body, &out, "json", opts); err != nil {
@@ -10407,7 +11119,9 @@ func (c *Client) PutProgramsIDPayoutSchedule(ctx context.Context, id string, bod
 //
 // What a referred customer gets: `store_credit`, a `coupon` or a `gift_card`, either a flat `amountMinor` or a percent (`bps`, optionally capped with `capMinor`) of their first payment, issued on their first commission or first payment. A percent reward needs `on: "first_payment"`. `enabled: false` removes it. Each reward issued publishes `referee_reward.earned`.
 //
-// **Auth:** an API key with `programs:write` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `programs:write`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `programs:write`, `full`, `admin`.
 func (c *Client) PutProgramsIDRefereeReward(ctx context.Context, id string, body PutProgramsIdRefereeRewardBody, opts ...RequestOption) (*PutProgramsIdRefereeRewardResponse, error) {
 	var out PutProgramsIdRefereeRewardResponse
 	if err := c.do(ctx, "PUT", "/v1/programs/"+url.PathEscape(id)+"/referee-reward", nil, body, &out, "json", opts); err != nil {
@@ -10418,9 +11132,11 @@ func (c *Client) PutProgramsIDRefereeReward(ctx context.Context, id string, body
 
 // PutProgramsIDStripeCredits calls Set a program's Stripe balance credit settings. PUT /v1/programs/{id}/stripe-credits.
 //
-// Turns the rail on or off for a program. Each `commission.settled` line with method `merchant_credit` is credited to the referrer's Stripe customer balance; a later `commission.reversed` debits it back. `referrerMatch`: `billing_link` (the partner's externalRef is a `cus_…` id or is billing-linked to one), `metadata` (Stripe customer search on `metadata[metadataKey]` = the partner's externalRef) or `email` (the one Stripe customer with the partner's email). `refereeRewards: true` also credits `store_credit` referee rewards to the referred customer. Custom units (`x_…`) are never credited. `balanceCurrency` (ISO code, stored lowercase) forces the currency every credit is sent in; without it a credit goes in the Stripe customer's balance currency, or the commission's when the customer has none yet. When that differs from the commission's currency the amount is converted at your FX rate (`POST /v1/fx-rates`, half-even rounding); with no rate the credit waits as `fx_rate_missing`. `createCustomerIfMissing: { metadata }` creates a Stripe customer for a referrer none matches (the partner's email, `metadata[metadataKey]` = the partner's externalRef, plus your metadata) and credits it; referee credits never create customers. Metadata and email matching need exactly one Stripe customer: several is `ambiguous_customer`, never a guess. `balanceCurrency` and `createCustomerIfMissing` are replaced on every PUT (omitted = off). Enabling needs a key (`409 stripe_key_required`). `secretKey` gives the program its own Stripe key, used instead of the org's for all of its credits and debits (a separate Stripe account per product, say); `null` removes it, omitting it keeps it. The key is checked with Stripe before it is saved: `422 stripe_key_invalid` (Stripe rejects it), `422 stripe_key_wrong_mode` (a test key in live mode or a live key in test mode) or `422 stripe_key_permission` (no Customers write), `502 stripe_unavailable` if Stripe cannot be reached. Owner or admin; setting or removing a key needs a recent sign-in. Audited (never the key).
+// Turns the rail on or off for a program. Each `commission.settled` line with method `merchant_credit` is credited to the referrer's Stripe customer balance; a later `commission.reversed` debits it back. `referrerMatch`: `billing_link` (the partner's externalRef is a `cus_…` id or is billing-linked to one; with several linked customers, the one with the most recent activity on a still-active subscription, then the most recently linked, `ambiguous_customer` only on a tie), `metadata` (Stripe customer search on `metadata[metadataKey]` = the partner's externalRef) or `email` (the one Stripe customer with the partner's email). `refereeRewards: true` also credits `store_credit` referee rewards to the referred customer. Custom units (`x_…`) are never credited. `balanceCurrency` (ISO code, stored lowercase) forces the currency every credit is sent in; without it a credit goes in the Stripe customer's balance currency, or the commission's when the customer has none yet. When that differs from the commission's currency the amount is converted at your FX rate (`POST /v1/fx-rates`, half-even rounding); with no rate the credit waits as `fx_rate_missing`. `createCustomerIfMissing: { metadata }` creates a Stripe customer for a referrer none matches (the partner's email, `metadata[metadataKey]` = the partner's externalRef, plus your metadata) and credits it; referee credits never create customers. `waitForCustomer: true` keeps a credit no customer matches `pending` with no attempt cap (instead of `no_customer`) and retries it as soon as a billing webhook links a `cus_…` to that externalRef. Metadata and email matching need exactly one Stripe customer: several is `ambiguous_customer`, never a guess. `balanceCurrency`, `createCustomerIfMissing` and `waitForCustomer` are replaced on every PUT (omitted = off). Enabling needs a key (`409 stripe_key_required`). `secretKey` gives the program its own Stripe key, used instead of the org's for all of its credits and debits (a separate Stripe account per product, say); `null` removes it, omitting it keeps it. The key is checked with Stripe before it is saved: `422 stripe_key_invalid` (Stripe rejects it), `422 stripe_key_wrong_mode` (a test key in live mode or a live key in test mode) or `422 stripe_key_permission` (no Customers write), `502 stripe_unavailable` if Stripe cannot be reached. Owner or admin; setting or removing a key needs a recent sign-in. Audited (never the key).
 //
-// **Auth:** an API key with `payouts:write` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `payouts:write`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `payouts:write`, `full`, `admin`.
 func (c *Client) PutProgramsIDStripeCredits(ctx context.Context, id string, body PutProgramsIdStripeCreditsBody, opts ...RequestOption) (*GetProgramsIdStripeCreditsResponse, error) {
 	var out GetProgramsIdStripeCreditsResponse
 	if err := c.do(ctx, "PUT", "/v1/programs/"+url.PathEscape(id)+"/stripe-credits", nil, body, &out, "json", opts); err != nil {
@@ -10433,7 +11149,9 @@ func (c *Client) PutProgramsIDStripeCredits(ctx context.Context, id string, body
 //
 // Creates or replaces a rule: the amount, the reason, an optional program and an optional `event` it rewards (one rule per event).
 //
-// **Auth:** an API key with `commissions:write` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `commissions:write`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `commissions:write`, `full`, `admin`.
 func (c *Client) PutRewardsRulesKey(ctx context.Context, key string, body PutRewardsRulesKeyBody, opts ...RequestOption) (*PutRewardsRulesKeyResponse, error) {
 	var out PutRewardsRulesKeyResponse
 	if err := c.do(ctx, "PUT", "/v1/rewards/rules/"+url.PathEscape(key), nil, body, &out, "json", opts); err != nil {
@@ -10446,7 +11164,9 @@ func (c *Client) PutRewardsRulesKey(ctx context.Context, key string, body PutRew
 //
 // Stores your own Stripe restricted key (`rk_…`, with Customers write) for the balance credit rail, encrypted and never echoed. Without one the rail uses the secret key of your Stripe payout connection, if any. A program can override it with its own key (`PUT /v1/programs/{id}/stripe-credits`). The key is checked with Stripe before it is saved: `422 stripe_key_invalid` (Stripe rejects it), `422 stripe_key_wrong_mode` (a test key in live mode or a live key in test mode) or `422 stripe_key_permission` (no Customers write), `502 stripe_unavailable` if Stripe cannot be reached. Owner or admin, recent sign-in. Audited.
 //
-// **Auth:** an API key with `payouts:write` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `payouts:write`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `payouts:write`, `full`, `admin`.
 func (c *Client) PutStripeCreditsConnection(ctx context.Context, body PutStripeCreditsConnectionBody, opts ...RequestOption) (*GetStripeCreditsConnectionResponse, error) {
 	var out GetStripeCreditsConnectionResponse
 	if err := c.do(ctx, "PUT", "/v1/stripe-credits/connection", nil, body, &out, "json", opts); err != nil {
@@ -10459,7 +11179,9 @@ func (c *Client) PutStripeCreditsConnection(ctx context.Context, body PutStripeC
 //
 // Enable a support tool and store its signing secret (vendor-issued; write-only) or, for Zendesk, the app public key in `config.publicKeyPem`. For `custom` Referalli mints the secret: it is returned once, and `rotate: true` mints a new one.
 //
-// **Auth:** an API key with `partners:write` (or `full`), or a session with role `owner`, `admin`.
+// **Auth:** an API key with `partners:write`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `partners:write`, `full`, `admin`.
 func (c *Client) PutSupportAppsAdapter(ctx context.Context, adapter string, body PutSupportAppsAdapterBody, opts ...RequestOption) (*PutSupportAppsAdapterResponse, error) {
 	var out PutSupportAppsAdapterResponse
 	if err := c.do(ctx, "PUT", "/v1/support/apps/"+url.PathEscape(adapter), nil, body, &out, "json", opts); err != nil {
@@ -11198,6 +11920,8 @@ func (c *Client) Call(ctx context.Context, operationID string, path map[string]s
 			return nil, err
 		}
 		return c.GetProgramsIDStripeCreditsLog(ctx, path["id"], &p, opts...)
+	case "getProgramsIdTerms":
+		return c.GetProgramsIDTerms(ctx, path["id"], opts...)
 	case "getProgramsIdTermsAcceptances":
 		var p GetProgramsIDTermsAcceptancesParams
 		if err := decodeQuery(query, &p); err != nil {
