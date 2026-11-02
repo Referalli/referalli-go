@@ -58,6 +58,16 @@ type AccessSuspendedError struct{ *APIError }
 
 func (e *AccessSuspendedError) Unwrap() error { return e.APIError }
 
+// ProgramScopedKeyError is the `program_scoped_key` error (HTTP 403). Match it with errors.As.
+type ProgramScopedKeyError struct{ *APIError }
+
+func (e *ProgramScopedKeyError) Unwrap() error { return e.APIError }
+
+// RestrictedSessionError is the `restricted_session` error (HTTP 403). Match it with errors.As.
+type RestrictedSessionError struct{ *APIError }
+
+func (e *RestrictedSessionError) Unwrap() error { return e.APIError }
+
 // NotFoundError is the `not_found` error (HTTP 404). Match it with errors.As.
 type NotFoundError struct{ *APIError }
 
@@ -72,6 +82,11 @@ func (e *ConflictError) Unwrap() error { return e.APIError }
 type IdempotencyInProgressError struct{ *APIError }
 
 func (e *IdempotencyInProgressError) Unwrap() error { return e.APIError }
+
+// StripeKeyRequiredError is the `stripe_key_required` error (HTTP 409). Match it with errors.As.
+type StripeKeyRequiredError struct{ *APIError }
+
+func (e *StripeKeyRequiredError) Unwrap() error { return e.APIError }
 
 // ReplayError is the `replay` error (HTTP 409). Match it with errors.As.
 type ReplayError struct{ *APIError }
@@ -162,12 +177,18 @@ func typedError(base *APIError) error {
 		return &SsoRequiredError{base}
 	case "access_suspended":
 		return &AccessSuspendedError{base}
+	case "program_scoped_key":
+		return &ProgramScopedKeyError{base}
+	case "restricted_session":
+		return &RestrictedSessionError{base}
 	case "not_found":
 		return &NotFoundError{base}
 	case "conflict":
 		return &ConflictError{base}
 	case "idempotency_in_progress":
 		return &IdempotencyInProgressError{base}
+	case "stripe_key_required":
+		return &StripeKeyRequiredError{base}
 	case "replay":
 		return &ReplayError{base}
 	case "live_mode_only":

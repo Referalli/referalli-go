@@ -129,10 +129,11 @@ type NetworkWarning struct {
 
 // Enrollment is generated from the OpenAPI component of the same name.
 type Enrollment struct {
-	ID        string `json:"id"`
-	ProgramID string `json:"programId"`
-	PartnerID string `json:"partnerId"`
-	Status    string `json:"status"`
+	ID          string  `json:"id"`
+	ProgramID   string  `json:"programId"`
+	PartnerID   string  `json:"partnerId"`
+	ExternalRef *string `json:"externalRef"` // This program's own externalRef for the partner, or null.
+	Status      string  `json:"status"`
 }
 
 // Link is generated from the OpenAPI component of the same name.
@@ -433,26 +434,28 @@ type BillingConnectionRotation struct {
 
 // BillingConnection is generated from the OpenAPI component of the same name.
 type BillingConnection struct {
-	ID               string                    `json:"id"`
-	Provider         string                    `json:"provider"`
-	Name             string                    `json:"name"`
-	Status           string                    `json:"status"` // paused: its webhook URL refuses events until resumed.
-	CreatedAt        string                    `json:"createdAt"`
-	WebhookURL       string                    `json:"webhookUrl"`
-	NeedsCredentials bool                      `json:"needsCredentials"` // The provider sends thin webhooks: set API credentials (Recurly, BigCommerce).
-	HasCredentials   bool                      `json:"hasCredentials"`
-	ValueMapping     *ValueMapping             `json:"valueMapping"` // Where cash / credit / discount / cost live in this connection's payload; null uses the built-in extractor.
-	Filter           *BillingFilter            `json:"filter"`       // Only matching events earn; the rest are recorded as ignored_by_filter. null takes every event.
-	Rotation         BillingConnectionRotation `json:"rotation"`
+	ID                     string                    `json:"id"`
+	Provider               string                    `json:"provider"`
+	Name                   string                    `json:"name"`
+	Status                 string                    `json:"status"` // paused: its webhook URL refuses events until resumed.
+	CreatedAt              string                    `json:"createdAt"`
+	WebhookURL             string                    `json:"webhookUrl"`
+	NeedsCredentials       bool                      `json:"needsCredentials"` // The provider sends thin webhooks: set API credentials (Recurly, BigCommerce).
+	HasCredentials         bool                      `json:"hasCredentials"`
+	ValueMapping           *ValueMapping             `json:"valueMapping"`                     // Where cash / credit / discount / cost live in this connection's payload; null uses the built-in extractor.
+	Filter                 *BillingFilter            `json:"filter"`                           // Only matching events earn; the rest are recorded as ignored_by_filter. null takes every event.
+	CustomerRefMetadataKey *string                   `json:"customerRefMetadataKey,omitempty"` // The provider metadata key that holds your customerRef, when it is not referalli_customer_ref.
+	Rotation               BillingConnectionRotation `json:"rotation"`
 }
 
 // CreatedBillingConnection is generated from the OpenAPI component of the same name.
 type CreatedBillingConnection struct {
-	ID            string         `json:"id"`
-	Provider      string         `json:"provider"`
-	WebhookSecret string         `json:"webhookSecret"` // Returned only here.
-	WebhookURL    string         `json:"webhookUrl"`    // Path to register with the provider.
-	Filter        *BillingFilter `json:"filter"`
+	ID                     string         `json:"id"`
+	Provider               string         `json:"provider"`
+	WebhookSecret          string         `json:"webhookSecret"` // Returned only here.
+	WebhookURL             string         `json:"webhookUrl"`    // Path to register with the provider.
+	Filter                 *BillingFilter `json:"filter"`
+	CustomerRefMetadataKey *string        `json:"customerRefMetadataKey,omitempty"` // The provider metadata key that holds your customerRef, when it is not referalli_customer_ref.
 }
 
 // BillingEvent is generated from the OpenAPI component of the same name.
@@ -733,6 +736,18 @@ type FxRate struct {
 	RetiredAt   *string `json:"retiredAt"` // When a manual override was cleared, handing the pair back to the feed.
 }
 
+// OrgLimits: The plan's caps (null: unlimited). A test org runs on its live org's plan.
+type OrgLimits struct {
+	Programs *int64 `json:"programs"`
+	Partners *int64 `json:"partners"`
+}
+
+// OrgUsage: What counts against the caps: programs that are not archived, and partners.
+type OrgUsage struct {
+	Programs int64 `json:"programs"`
+	Partners int64 `json:"partners"`
+}
+
 // Org is generated from the OpenAPI component of the same name.
 type Org struct {
 	ID                string                 `json:"id"`
@@ -742,6 +757,9 @@ type Org struct {
 	TrackingToken     string                 `json:"trackingToken"`
 	PayoutKYCRequired bool                   `json:"payoutKycRequired"`
 	Livemode          bool                   `json:"livemode"`            // False for the org's test org (test mode).
+	Limits            OrgLimits              `json:"limits"`              // The plan's caps (null: unlimited). A test org runs on its live org's plan.
+	Usage             OrgUsage               `json:"usage"`               // What counts against the caps: programs that are not archived, and partners.
+	PortalURL         string                 `json:"portalUrl"`           // Where partners sign in: the org's verified portal domain, else Referalli's own portal.
 	LiveOrgID         *string                `json:"liveOrgId,omitempty"` // On a test org: the live org it belongs to.
 }
 
@@ -765,6 +783,7 @@ type IssuedApiKey struct {
 	Owner          *string  `json:"owner"`
 	ExpiresAt      *string  `json:"expiresAt"`
 	PairID         *string  `json:"pairId"`
+	ProgramIds     []string `json:"programIds"` // The programs this key is limited to; null = the whole org.
 }
 
 // ApiKeyCreatedByOption1 is generated from the OpenAPI component of the same name.
@@ -783,8 +802,9 @@ type ApiKey struct {
 	Publishable    bool                    `json:"publishable"`
 	AllowedOrigins []string                `json:"allowedOrigins"`
 	Livemode       bool                    `json:"livemode"`
-	Owner          *string                 `json:"owner"`  // The developer or service the key belongs to.
-	PairID         *string                 `json:"pairId"` // Shared by a live/test pair minted together.
+	Owner          *string                 `json:"owner"`      // The developer or service the key belongs to.
+	PairID         *string                 `json:"pairId"`     // Shared by a live/test pair minted together.
+	ProgramIds     []string                `json:"programIds"` // The programs this key is limited to; null = the whole org.
 	CreatedBy      *ApiKeyCreatedByOption1 `json:"createdBy"`
 	ExpiresAt      *string                 `json:"expiresAt"`
 	Expired        bool                    `json:"expired"`
@@ -809,6 +829,7 @@ type AuthConnection struct {
 	CreatedAt        string                 `json:"createdAt"`
 	Rotation         AuthConnectionRotation `json:"rotation"`
 	InstanceID       *string                `json:"instanceId,omitempty"` // Signed-protocol connections: the Atlas instance, or a custom label.
+	AppID            *string                `json:"appId,omitempty"`      // Atlas connections serving an Atlas ID app instead of an instance.
 	AutoEnrollUsers  *bool                  `json:"autoEnrollUsers,omitempty"`
 	DestinationURL   *string                `json:"destinationUrl,omitempty"`
 	SignatureVersion *string                `json:"signatureVersion,omitempty"`
@@ -825,6 +846,7 @@ type CreatedAuthConnection struct {
 	MetadataKeys    map[string]string `json:"metadataKeys,omitempty"`
 	ProgramID       *string           `json:"programId,omitempty"` // Signed-protocol connections (atlas, custom).
 	InstanceID      *string           `json:"instanceId,omitempty"`
+	AppID           *string           `json:"appId,omitempty"`
 	AutoEnrollUsers *bool             `json:"autoEnrollUsers,omitempty"`
 	DestinationURL  *string           `json:"destinationUrl,omitempty"`
 	SignupsURL      *string           `json:"signupsUrl,omitempty"`
@@ -1665,14 +1687,20 @@ type CommissionReversedEvent struct {
 
 // CommissionSettledEventData: `data` of a `commission.settled` event: The merchant paid the line itself (`store_credit`, or `merchant_credit` for programs that settle as they earn), outside payout runs.
 type CommissionSettledEventData struct {
-	CommissionID string  `json:"commissionId"`
-	PartnerID    string  `json:"partnerId"`
-	ProgramID    string  `json:"programId"`
-	ReferralID   *string `json:"referralId"`
-	AmountMinor  int64   `json:"amountMinor"` // Integer minor units (cents).
-	Currency     string  `json:"currency"`    // Lowercase ISO 4217 code.
-	Method       string  `json:"method"`
-	Reference    string  `json:"reference"`
+	CommissionID        string  `json:"commissionId"`
+	PartnerID           string  `json:"partnerId"`
+	ProgramID           string  `json:"programId"`
+	ReferralID          *string `json:"referralId"`
+	AmountMinor         int64   `json:"amountMinor"` // Integer minor units (cents).
+	Currency            string  `json:"currency"`    // Lowercase ISO 4217 code.
+	Method              string  `json:"method"`
+	Reference           string  `json:"reference"`
+	CustomerRef         *string `json:"customerRef"`
+	BillingEventID      *string `json:"billingEventId"`
+	ProviderEventID     *string `json:"providerEventId"` // The billing provider's own event id.
+	InvoiceRef          *string `json:"invoiceRef"`
+	CustomerExternalRef *string `json:"customerExternalRef"` // Your own id for the customer when known (an auth-connection user id), or null.
+	PartnerExternalRef  *string `json:"partnerExternalRef"`  // Your own id for the partner to credit: this program's externalRef for them, else the partner's.
 }
 
 // CommissionSettledEvent: A commission line was settled by the merchant: the `commission.settled` delivery body.
@@ -2073,6 +2101,66 @@ type WebhookEndpointFailingEvent struct {
 	Data      WebhookEndpointFailingEventData `json:"data"`
 }
 
+// StripeCreditAppliedEventData: `data` of a `stripe_credit.applied` event: The Stripe balance credit rail applied a credit (or a reversal debit) to a Stripe customer balance with your key. `stripeBalanceTransactionId` is the Stripe balance transaction.
+type StripeCreditAppliedEventData struct {
+	ID                         string  `json:"id"`
+	ProgramID                  string  `json:"programId"`
+	SourceEventID              string  `json:"sourceEventId"` // The settled commission line, the reversal, or the referee reward this applies.
+	Kind                       string  `json:"kind"`
+	CommissionID               *string `json:"commissionId"`
+	PartnerID                  *string `json:"partnerId"`
+	CustomerRef                *string `json:"customerRef"`
+	AmountMinor                int64   `json:"amountMinor"` // Positive, integer minor units. Credits are sent to Stripe as a negative amount, debits as positive.
+	Currency                   string  `json:"currency"`
+	StripeCustomerID           *string `json:"stripeCustomerId"`
+	Status                     string  `json:"status"`
+	Attempts                   int64   `json:"attempts"`
+	StripeBalanceTransactionID *string `json:"stripeBalanceTransactionId"`
+	LastError                  *string `json:"lastError"`
+	CreatedAt                  string  `json:"createdAt"`
+	UpdatedAt                  string  `json:"updatedAt"`
+}
+
+// StripeCreditAppliedEvent: A Stripe balance credit or debit was applied: the `stripe_credit.applied` delivery body.
+type StripeCreditAppliedEvent struct {
+	ID        string                       `json:"id"` // The event id (`evt_…`); the same event delivered to several endpoints has the same id.
+	Topic     string                       `json:"topic"`
+	OrgID     string                       `json:"orgId"`
+	Livemode  bool                         `json:"livemode"` // false for events from test mode.
+	CreatedAt string                       `json:"createdAt"`
+	Data      StripeCreditAppliedEventData `json:"data"`
+}
+
+// StripeCreditFailedEventData: `data` of a `stripe_credit.failed` event: The Stripe balance credit rail stopped retrying a credit or debit after its last attempt: no Stripe customer matched (`no_customer`) or Stripe refused it (`failed`). `lastError` says why.
+type StripeCreditFailedEventData struct {
+	ID                         string  `json:"id"`
+	ProgramID                  string  `json:"programId"`
+	SourceEventID              string  `json:"sourceEventId"` // The settled commission line, the reversal, or the referee reward this applies.
+	Kind                       string  `json:"kind"`
+	CommissionID               *string `json:"commissionId"`
+	PartnerID                  *string `json:"partnerId"`
+	CustomerRef                *string `json:"customerRef"`
+	AmountMinor                int64   `json:"amountMinor"` // Positive, integer minor units. Credits are sent to Stripe as a negative amount, debits as positive.
+	Currency                   string  `json:"currency"`
+	StripeCustomerID           *string `json:"stripeCustomerId"`
+	Status                     string  `json:"status"`
+	Attempts                   int64   `json:"attempts"`
+	StripeBalanceTransactionID *string `json:"stripeBalanceTransactionId"`
+	LastError                  *string `json:"lastError"`
+	CreatedAt                  string  `json:"createdAt"`
+	UpdatedAt                  string  `json:"updatedAt"`
+}
+
+// StripeCreditFailedEvent: A Stripe balance credit or debit gave up: the `stripe_credit.failed` delivery body.
+type StripeCreditFailedEvent struct {
+	ID        string                      `json:"id"` // The event id (`evt_…`); the same event delivered to several endpoints has the same id.
+	Topic     string                      `json:"topic"`
+	OrgID     string                      `json:"orgId"`
+	Livemode  bool                        `json:"livemode"` // false for events from test mode.
+	CreatedAt string                      `json:"createdAt"`
+	Data      StripeCreditFailedEventData `json:"data"`
+}
+
 // WebhookEndpointRecoveredEventData: `data` of a `webhook_endpoint.recovered` event: Sent to your active endpoints, including the recovered one, when a delivery succeeds after the endpoint was failing.
 type WebhookEndpointRecoveredEventData struct {
 	EndpointID   string `json:"endpointId"`
@@ -2190,6 +2278,34 @@ type PostTOrgTokenMobileInstallResponse struct {
 	ProgramID  string  `json:"programId"`
 }
 
+// GetWellKnownReferalliEmbedJsonResponseSurfacesValueStorageItem is generated from the OpenAPI component of the same name.
+type GetWellKnownReferalliEmbedJsonResponseSurfacesValueStorageItem struct {
+	Name     string            `json:"name"`
+	Type     string            `json:"type"`
+	Category string            `json:"category"`
+	Lifetime string            `json:"lifetime"`
+	Purpose  map[string]string `json:"purpose"`
+}
+
+// GetWellKnownReferalliEmbedJsonResponseSurfacesValue is generated from the OpenAPI component of the same name.
+type GetWellKnownReferalliEmbedJsonResponseSurfacesValue struct {
+	Csp             map[string][]string                                              `json:"csp"`
+	ConsentCategory string                                                           `json:"consentCategory"`
+	Storage         []GetWellKnownReferalliEmbedJsonResponseSurfacesValueStorageItem `json:"storage"`
+}
+
+// GetWellKnownReferalliEmbedJsonResponse: An embed-v1 manifest (https://cookiemunch.net/schemas/embed-v1.json).
+type GetWellKnownReferalliEmbedJsonResponse struct {
+	Schema   string                                                         `json:"schema"`
+	Product  string                                                         `json:"product"`
+	Updated  string                                                         `json:"updated"`
+	Openapi  string                                                         `json:"openapi"`
+	Status   string                                                         `json:"status"`
+	Docs     string                                                         `json:"docs"`
+	Surfaces map[string]GetWellKnownReferalliEmbedJsonResponseSurfacesValue `json:"surfaces"`
+	Changes  []any                                                          `json:"changes"`
+}
+
 // GetWellKnownAppleAppSiteAssociationResponseApplinksDetailsItemComponentsItem is generated from the OpenAPI component of the same name.
 type GetWellKnownAppleAppSiteAssociationResponseApplinksDetailsItemComponentsItem struct {
 	Value string `json:"/"`
@@ -2226,99 +2342,6 @@ type GetWellKnownAssetlinksJsonResponseValueItem struct {
 
 // GetWellKnownAssetlinksJsonResponse is generated from the OpenAPI component of the same name.
 type GetWellKnownAssetlinksJsonResponse = []GetWellKnownAssetlinksJsonResponseValueItem
-
-// GetWellKnownForgedeckEmbedJsonResponseCheckers is generated from the OpenAPI component of the same name.
-type GetWellKnownForgedeckEmbedJsonResponseCheckers struct {
-	UserAgent string   `json:"userAgent"`
-	Egress    []string `json:"egress"`
-}
-
-// GetWellKnownForgedeckEmbedJsonResponseSurfacesTrackingSnippetCookieDaysOption2 is generated from the OpenAPI component of the same name.
-type GetWellKnownForgedeckEmbedJsonResponseSurfacesTrackingSnippetCookieDaysOption2 struct {
-	Default int64  `json:"default"`
-	Max     int64  `json:"max"`
-	Note    string `json:"note"`
-}
-
-// GetWellKnownForgedeckEmbedJsonResponseSurfacesTrackingSnippetStorageItemPurpose is generated from the OpenAPI component of the same name.
-type GetWellKnownForgedeckEmbedJsonResponseSurfacesTrackingSnippetStorageItemPurpose struct {
-	En string `json:"en"`
-}
-
-// GetWellKnownForgedeckEmbedJsonResponseSurfacesTrackingSnippetStorageItem is generated from the OpenAPI component of the same name.
-type GetWellKnownForgedeckEmbedJsonResponseSurfacesTrackingSnippetStorageItem struct {
-	Name     string                                                                          `json:"name"`
-	Type     string                                                                          `json:"type"`
-	Category string                                                                          `json:"category"`
-	Lifetime string                                                                          `json:"lifetime"`
-	Purpose  GetWellKnownForgedeckEmbedJsonResponseSurfacesTrackingSnippetStorageItemPurpose `json:"purpose"`
-	Legacy   *bool                                                                           `json:"legacy,omitempty"`
-}
-
-// GetWellKnownForgedeckEmbedJsonResponseSurfacesTrackingSnippet is generated from the OpenAPI component of the same name.
-type GetWellKnownForgedeckEmbedJsonResponseSurfacesTrackingSnippet struct {
-	Script                  string                                                                     `json:"script"`
-	Csp                     map[string][]string                                                        `json:"csp"`
-	ConsentCategory         string                                                                     `json:"consentCategory"`
-	ConsentFallbackCategory string                                                                     `json:"consentFallbackCategory"`
-	ConsentAdapters         []string                                                                   `json:"consentAdapters"`
-	ConsentDefault          map[string]any                                                             `json:"consentDefault,omitempty"`
-	CookieDays              json.RawMessage                                                            `json:"cookieDays"`
-	Storage                 []GetWellKnownForgedeckEmbedJsonResponseSurfacesTrackingSnippetStorageItem `json:"storage"`
-}
-
-// GetWellKnownForgedeckEmbedJsonResponseSurfacesPortalEmbedStorageItemPurpose is generated from the OpenAPI component of the same name.
-type GetWellKnownForgedeckEmbedJsonResponseSurfacesPortalEmbedStorageItemPurpose struct {
-	En string `json:"en"`
-}
-
-// GetWellKnownForgedeckEmbedJsonResponseSurfacesPortalEmbedStorageItem is generated from the OpenAPI component of the same name.
-type GetWellKnownForgedeckEmbedJsonResponseSurfacesPortalEmbedStorageItem struct {
-	Name     string                                                                      `json:"name"`
-	Type     string                                                                      `json:"type"`
-	Category string                                                                      `json:"category"`
-	Lifetime string                                                                      `json:"lifetime"`
-	Purpose  GetWellKnownForgedeckEmbedJsonResponseSurfacesPortalEmbedStorageItemPurpose `json:"purpose"`
-	Legacy   *bool                                                                       `json:"legacy,omitempty"`
-}
-
-// GetWellKnownForgedeckEmbedJsonResponseSurfacesPortalEmbed is generated from the OpenAPI component of the same name.
-type GetWellKnownForgedeckEmbedJsonResponseSurfacesPortalEmbed struct {
-	Script          string                                                                 `json:"script"`
-	Csp             map[string][]string                                                    `json:"csp"`
-	ConsentCategory string                                                                 `json:"consentCategory"`
-	Storage         []GetWellKnownForgedeckEmbedJsonResponseSurfacesPortalEmbedStorageItem `json:"storage"`
-}
-
-// GetWellKnownForgedeckEmbedJsonResponseSurfaces is generated from the OpenAPI component of the same name.
-type GetWellKnownForgedeckEmbedJsonResponseSurfaces struct {
-	TrackingSnippet GetWellKnownForgedeckEmbedJsonResponseSurfacesTrackingSnippet `json:"tracking-snippet"`
-	PortalEmbed     GetWellKnownForgedeckEmbedJsonResponseSurfacesPortalEmbed     `json:"portal-embed"`
-}
-
-// GetWellKnownForgedeckEmbedJsonResponseChangesItem is generated from the OpenAPI component of the same name.
-type GetWellKnownForgedeckEmbedJsonResponseChangesItem struct {
-	Effective string   `json:"effective"`
-	Surface   string   `json:"surface"`
-	Add       []string `json:"add,omitempty"`
-	Remove    []string `json:"remove,omitempty"`
-	Note      string   `json:"note"`
-}
-
-// GetWellKnownForgedeckEmbedJsonResponse is generated from the OpenAPI component of the same name.
-type GetWellKnownForgedeckEmbedJsonResponse struct {
-	Schema   string                                              `json:"schema"`
-	Product  string                                              `json:"product"`
-	Updated  string                                              `json:"updated"`
-	Openapi  string                                              `json:"openapi"`
-	Llms     string                                              `json:"llms"`
-	Status   string                                              `json:"status"`
-	Docs     string                                              `json:"docs"`
-	Checkers GetWellKnownForgedeckEmbedJsonResponseCheckers      `json:"checkers"`
-	Org      *string                                             `json:"org,omitempty"`
-	Surfaces GetWellKnownForgedeckEmbedJsonResponseSurfaces      `json:"surfaces"`
-	Changes  []GetWellKnownForgedeckEmbedJsonResponseChangesItem `json:"changes"`
-}
 
 // PostAgentsRegisterResponse is generated from the OpenAPI component of the same name.
 type PostAgentsRegisterResponse struct {
@@ -2419,6 +2442,7 @@ type GetMeResponseApiKey struct {
 	Publishable bool     `json:"publishable"`
 	Owner       *string  `json:"owner"`
 	ExpiresAt   *string  `json:"expiresAt"`
+	ProgramIds  []string `json:"programIds"` // The programs this key is limited to; null = the whole org.
 }
 
 // GetMeResponseOrg is generated from the OpenAPI component of the same name.
@@ -2544,14 +2568,15 @@ type GetHostsCurrentResponseValueOption1ChatOption1 struct {
 
 // GetHostsCurrentResponseValueOption1 is generated from the OpenAPI component of the same name.
 type GetHostsCurrentResponseValueOption1 struct {
-	Kind     string                                            `json:"kind"` // A merchant's verified partner-portal domain.
-	OrgID    string                                            `json:"orgId"`
-	OrgName  string                                            `json:"orgName"`
-	Branding GetHostsCurrentResponseValueOption1Branding       `json:"branding"`
-	Programs []GetHostsCurrentResponseValueOption1ProgramsItem `json:"programs"` // The org's active programs with a public signup page (/join/:handle).
-	Consent  GetHostsCurrentResponseValueOption1Consent        `json:"consent"`
-	Chat     *GetHostsCurrentResponseValueOption1ChatOption1   `json:"chat"`
-	Csp      string                                            `json:"csp"` // The Content-Security-Policy for this host's pages, built from the enabled adapters.
+	Kind        string                                            `json:"kind"` // A merchant's verified partner-portal domain.
+	OrgID       string                                            `json:"orgId"`
+	OrgName     string                                            `json:"orgName"`
+	Branding    GetHostsCurrentResponseValueOption1Branding       `json:"branding"`
+	Programs    []GetHostsCurrentResponseValueOption1ProgramsItem `json:"programs"`    // The org's active programs with a public signup page (/join/:handle).
+	PortalTheme map[string]any                                    `json:"portalTheme"` // Portal design: colour scheme, brand lockup, font stylesheet, announcement, header and footer, home and navigation layout, string overrides, embed switches (the look itself is /v1/hosts/current/theme.css).
+	Consent     GetHostsCurrentResponseValueOption1Consent        `json:"consent"`
+	Chat        *GetHostsCurrentResponseValueOption1ChatOption1   `json:"chat"`
+	Csp         string                                            `json:"csp"` // The Content-Security-Policy for this host's pages, built from the enabled adapters.
 }
 
 // GetHostsCurrentResponseValueOption2 is generated from the OpenAPI component of the same name.
@@ -2570,10 +2595,8 @@ type GetHostsCurrentResponse = json.RawMessage
 
 // GetChatlyIdentityResponseIdentityOption1 is generated from the OpenAPI component of the same name.
 type GetChatlyIdentityResponseIdentityOption1 struct {
-	ExternalID string  `json:"externalId"` // `merchant:<user id>` or `partner:<partner account id>`.
-	Email      string  `json:"email"`
-	Name       *string `json:"name,omitempty"`
-	UserHash   string  `json:"userHash"` // HMAC-SHA256 of `externalId` (hex), for the widget's identity verification.
+	ExternalID string `json:"externalId"` // `merchant:<user id>` or `partner:<partner account id>`: kept on the page to notice an account switch, not sent to Chatly.
+	UserToken  string `json:"userToken"`  // Atlas's Chatly token for this session (at most 120 s): pass it to the widget as `userToken`.
 }
 
 // GetChatlyIdentityResponse is generated from the OpenAPI component of the same name.
@@ -2788,12 +2811,22 @@ type GetProgramsResponse struct {
 	NextCursor *string   `json:"next_cursor"`
 }
 
+// PostProgramsIdReferrersResponse is generated from the OpenAPI component of the same name.
+type PostProgramsIdReferrersResponse struct {
+	PartnerID   string  `json:"partnerId"`
+	ProgramID   string  `json:"programId"`
+	ExternalRef string  `json:"externalRef"`
+	Code        string  `json:"code"`
+	LinkURL     *string `json:"linkUrl"`
+}
+
 // GetProgramsIdEnrollmentsResponseDataItem is generated from the OpenAPI component of the same name.
 type GetProgramsIdEnrollmentsResponseDataItem struct {
 	ID             string         `json:"id"`
 	PartnerID      string         `json:"partnerId"`
 	PartnerEmail   string         `json:"partnerEmail"`
 	PartnerName    string         `json:"partnerName"`
+	ExternalRef    *string        `json:"externalRef"` // This program's own externalRef for the partner, when it differs from the partner's.
 	Status         string         `json:"status"`
 	CreatedAt      string         `json:"createdAt"`
 	NetworkWarning NetworkWarning `json:"networkWarning"`
@@ -2837,6 +2870,7 @@ type GetPartnersIdEnrollmentsResponseDataItem struct {
 	ProgramName string  `json:"programName"`
 	Status      string  `json:"status"`
 	GroupID     *string `json:"groupId"`
+	ExternalRef *string `json:"externalRef"` // This program's own externalRef for the partner, or null (the partner's own applies).
 	CreatedAt   string  `json:"createdAt"`
 }
 
@@ -2871,10 +2905,11 @@ type GetApiKeysResponse struct {
 
 // PatchApiKeysIdResponse is generated from the OpenAPI component of the same name.
 type PatchApiKeysIdResponse struct {
-	ID         string  `json:"id"`
-	APIVersion string  `json:"apiVersion"`
-	Owner      *string `json:"owner"`
-	ExpiresAt  *string `json:"expiresAt"`
+	ID         string   `json:"id"`
+	APIVersion string   `json:"apiVersion"`
+	Owner      *string  `json:"owner"`
+	ExpiresAt  *string  `json:"expiresAt"`
+	ProgramIds []string `json:"programIds"`
 }
 
 // DeleteApiKeysIdResponse is generated from the OpenAPI component of the same name.
@@ -3142,6 +3177,46 @@ type GetPartnersIdBalancesResponse struct {
 	Data       []Balance `json:"data"`
 	HasMore    bool      `json:"has_more"` // Whether another page follows; pass next_cursor as starting_after to get it.
 	NextCursor *string   `json:"next_cursor"`
+}
+
+// GetPartnersIdStatsResponseReferrals is generated from the OpenAPI component of the same name.
+type GetPartnersIdStatsResponseReferrals struct {
+	Total         int64 `json:"total"`
+	Active        int64 `json:"active"`
+	PendingReview int64 `json:"pendingReview"`
+	Paused        int64 `json:"paused"`
+	Void          int64 `json:"void"`
+}
+
+// GetPartnersIdStatsResponse is generated from the OpenAPI component of the same name.
+type GetPartnersIdStatsResponse struct {
+	PartnerID          string                              `json:"partnerId"`
+	ProgramID          *string                             `json:"programId"`
+	Clicks             int64                               `json:"clicks"` // Eligible clicks on their links.
+	Referrals          GetPartnersIdStatsResponseReferrals `json:"referrals"`
+	ConvertedCustomers int64                               `json:"convertedCustomers"` // Referred customers (not void) with at least one payment.
+	Balances           []Balance                           `json:"balances"`
+}
+
+// GetPartnersIdSummaryResponseReferrals is generated from the OpenAPI component of the same name.
+type GetPartnersIdSummaryResponseReferrals struct {
+	Total         int64 `json:"total"`
+	Active        int64 `json:"active"`
+	PendingReview int64 `json:"pendingReview"`
+	Paused        int64 `json:"paused"`
+	Void          int64 `json:"void"`
+}
+
+// GetPartnersIdSummaryResponse is generated from the OpenAPI component of the same name.
+type GetPartnersIdSummaryResponse struct {
+	PartnerID          string                                `json:"partnerId"`
+	ProgramID          *string                               `json:"programId"`
+	Clicks             int64                                 `json:"clicks"` // Eligible clicks on their links.
+	Referrals          GetPartnersIdSummaryResponseReferrals `json:"referrals"`
+	ConvertedCustomers int64                                 `json:"convertedCustomers"` // Referred customers (not void) with at least one payment.
+	Balances           []Balance                             `json:"balances"`
+	Code               *string                               `json:"code"`    // Their current code in the program (coupon, else link).
+	LinkURL            *string                               `json:"linkUrl"` // Their newest link in the program; null when they have only a coupon.
 }
 
 // PostCommissionsApproveDueResponse is generated from the OpenAPI component of the same name.
@@ -3756,6 +3831,16 @@ type GetPartnerMeResponseAccount struct {
 	Name  *string `json:"name"`
 }
 
+// GetPartnerMeResponseRestricted is generated from the OpenAPI component of the same name.
+type GetPartnerMeResponseRestricted struct {
+	OrgID       string `json:"orgId"`
+	OrgName     string `json:"orgName"`
+	PartnerID   string `json:"partnerId"`
+	PartnerName string `json:"partnerName"`
+	ProgramID   string `json:"programId"`
+	ProgramName string `json:"programName"`
+}
+
 // GetPartnerMeResponseMembershipsItemProgramsItem is generated from the OpenAPI component of the same name.
 type GetPartnerMeResponseMembershipsItemProgramsItem struct {
 	ProgramID        string `json:"programId"`
@@ -3776,6 +3861,7 @@ type GetPartnerMeResponseMembershipsItem struct {
 // GetPartnerMeResponse is generated from the OpenAPI component of the same name.
 type GetPartnerMeResponse struct {
 	Account     *GetPartnerMeResponseAccount          `json:"account,omitempty"`
+	Restricted  *GetPartnerMeResponseRestricted       `json:"restricted,omitempty"`
 	Memberships []GetPartnerMeResponseMembershipsItem `json:"memberships"`
 }
 
@@ -3945,6 +4031,48 @@ type GetPartnerProgramsProgramIdLeaderboardResponse struct {
 type PostPartnerProgramsProgramIdApplyResponse struct {
 	EnrollmentID string `json:"enrollmentId"`
 	Status       string `json:"status"`
+}
+
+// GetPartnerApiTokensResponseDataItem is generated from the OpenAPI component of the same name.
+type GetPartnerApiTokensResponseDataItem struct {
+	ID         string   `json:"id"`
+	Name       string   `json:"name"`
+	Prefix     string   `json:"prefix"` // The first characters, to tell tokens apart.
+	Scopes     []string `json:"scopes"`
+	CreatedAt  string   `json:"createdAt"`
+	LastUsedAt *string  `json:"lastUsedAt"`
+	ExpiresAt  *string  `json:"expiresAt"`
+}
+
+// GetPartnerApiTokensResponse is generated from the OpenAPI component of the same name.
+type GetPartnerApiTokensResponse struct {
+	Object  string                                `json:"object"`
+	Data    []GetPartnerApiTokensResponseDataItem `json:"data"`
+	HasMore bool                                  `json:"has_more"`
+}
+
+// PostPartnerApiTokensResponse is generated from the OpenAPI component of the same name.
+type PostPartnerApiTokensResponse struct {
+	ID         string   `json:"id"`
+	Name       string   `json:"name"`
+	Prefix     string   `json:"prefix"` // The first characters, to tell tokens apart.
+	Scopes     []string `json:"scopes"`
+	CreatedAt  string   `json:"createdAt"`
+	LastUsedAt *string  `json:"lastUsedAt"`
+	ExpiresAt  *string  `json:"expiresAt"`
+	Token      string   `json:"token"` // The rpt_ token. Shown once.
+}
+
+// DeletePartnerApiTokensIdResponse is generated from the OpenAPI component of the same name.
+type DeletePartnerApiTokensIdResponse struct {
+	ID      string `json:"id"`
+	Revoked bool   `json:"revoked"`
+}
+
+// PostPartnersIdPortalLinkResponse is generated from the OpenAPI component of the same name.
+type PostPartnersIdPortalLinkResponse struct {
+	URL       string `json:"url"` // Single-use; opens the portal signed in, read-only, for this partner and program.
+	ExpiresAt string `json:"expiresAt"`
 }
 
 // PostWebhookEndpointsResponse is generated from the OpenAPI component of the same name.
@@ -5486,14 +5614,20 @@ type GetAuthConnectionsIdExportResponse struct {
 	Partner  *PartnerExport `json:"partner"`
 }
 
+// PostAuthConnectionsIdPingResponseCapabilities: What the connection takes beyond sign-ups: `partners` is user-chosen referral codes through `/partners`.
+type PostAuthConnectionsIdPingResponseCapabilities struct {
+	Partners bool `json:"partners"`
+}
+
 // PostAuthConnectionsIdPingResponse is generated from the OpenAPI component of the same name.
 type PostAuthConnectionsIdPingResponse struct {
-	Ok              bool   `json:"ok"`
-	ConnectionID    string `json:"connectionId"`
-	ProgramID       string `json:"programId"`
-	OrgName         string `json:"orgName"`
-	AutoEnrollUsers bool   `json:"autoEnrollUsers"`
-	ServerTime      string `json:"serverTime"`
+	Ok              bool                                          `json:"ok"`
+	ConnectionID    string                                        `json:"connectionId"`
+	ProgramID       string                                        `json:"programId"`
+	OrgName         string                                        `json:"orgName"`
+	AutoEnrollUsers bool                                          `json:"autoEnrollUsers"`
+	ServerTime      string                                        `json:"serverTime"`
+	Capabilities    PostAuthConnectionsIdPingResponseCapabilities `json:"capabilities"` // What the connection takes beyond sign-ups: `partners` is user-chosen referral codes through `/partners`.
 }
 
 // PostAuthConnectionsIdAliasesResponse is generated from the OpenAPI component of the same name.
@@ -5569,8 +5703,8 @@ type PostAuthConnectionsInstallResponse struct {
 	RedirectTo string `json:"redirectTo"` // Send the browser here: back to the platform with a code, or error=access_denied.
 }
 
-// PostOauthTokenResponse is generated from the OpenAPI component of the same name.
-type PostOauthTokenResponse struct {
+// PostOauthTokenResponseValueOption1 is generated from the OpenAPI component of the same name.
+type PostOauthTokenResponseValueOption1 struct {
 	TokenType    string `json:"token_type"`
 	ConnectionID string `json:"connectionId"`
 	Provider     string `json:"provider"`
@@ -5582,6 +5716,66 @@ type PostOauthTokenResponse struct {
 	PartnersURL  string `json:"partnersUrl"`
 	EraseURL     string `json:"eraseUrl"`
 	ExportURL    string `json:"exportUrl"`
+	AccessToken  string `json:"access_token"` // A one-hour `rat_…` token for this org, scoped `connections:write webhooks:write`: require v2 signatures and register the sync webhook.
+	ExpiresIn    int64  `json:"expires_in"`
+	Scope        string `json:"scope"`
+}
+
+// PostOauthTokenResponseValueOption2 is generated from the OpenAPI component of the same name.
+type PostOauthTokenResponseValueOption2 struct {
+	AccessToken     string  `json:"access_token"` // A one-hour `rat_…` bearer token (client_credentials or token exchange, REF-S28).
+	TokenType       string  `json:"token_type"`
+	ExpiresIn       int64   `json:"expires_in"`
+	Scope           string  `json:"scope"`
+	IssuedTokenType *string `json:"issued_token_type,omitempty"`
+	Resource        *string `json:"resource,omitempty"`
+}
+
+// PostOauthTokenResponse is generated from the OpenAPI component of the same name.
+type PostOauthTokenResponse = json.RawMessage
+
+// GetProductLinksResponse is generated from the OpenAPI component of the same name.
+type GetProductLinksResponse struct {
+	Object     string                         `json:"object"`
+	Data       []DeleteProductLinksIdResponse `json:"data"`
+	NextCursor *string                        `json:"next_cursor"`
+}
+
+// PostProductLinksResponse is generated from the OpenAPI component of the same name.
+type PostProductLinksResponse struct {
+	Object             string   `json:"object"`
+	ID                 string   `json:"id"`
+	ClientID           string   `json:"client_id"`
+	Partner            string   `json:"partner"`
+	Name               *string  `json:"name"`
+	Scopes             []string `json:"scopes"`
+	ClientSecretPrefix string   `json:"client_secret_prefix"`
+	TokenEndpoint      string   `json:"token_endpoint"`
+	AuthMethods        []string `json:"auth_methods"`
+	Status             string   `json:"status"`
+	ExpiresAt          int64    `json:"expires_at"`
+	RevokedAt          *int64   `json:"revoked_at"`
+	LastUsedAt         *int64   `json:"last_used_at"`
+	CreatedAt          int64    `json:"created_at"`
+	ClientSecret       string   `json:"client_secret"` // Shown once.
+}
+
+// DeleteProductLinksIdResponse is generated from the OpenAPI component of the same name.
+type DeleteProductLinksIdResponse struct {
+	Object             string   `json:"object"`
+	ID                 string   `json:"id"`
+	ClientID           string   `json:"client_id"`
+	Partner            string   `json:"partner"`
+	Name               *string  `json:"name"`
+	Scopes             []string `json:"scopes"`
+	ClientSecretPrefix string   `json:"client_secret_prefix"`
+	TokenEndpoint      string   `json:"token_endpoint"`
+	AuthMethods        []string `json:"auth_methods"`
+	Status             string   `json:"status"`
+	ExpiresAt          int64    `json:"expires_at"`
+	RevokedAt          *int64   `json:"revoked_at"`
+	LastUsedAt         *int64   `json:"last_used_at"`
+	CreatedAt          int64    `json:"created_at"`
 }
 
 // GetOrgSsoResponseProviderOption1 is generated from the OpenAPI component of the same name.
@@ -5892,8 +6086,8 @@ type PostSupportAppsAdapterTestResponse struct {
 	Rendered any                        `json:"rendered"`
 }
 
-// PostSupportCardsOrgIdAdapterResponse is generated from the OpenAPI component of the same name.
-type PostSupportCardsOrgIdAdapterResponse = map[string]any
+// GetSupportPlatformChatlyAnswersResponse is generated from the OpenAPI component of the same name.
+type GetSupportPlatformChatlyAnswersResponse = map[string]any
 
 // GetPrivacyExecutorsResponseValueItemInstall is generated from the OpenAPI component of the same name.
 type GetPrivacyExecutorsResponseValueItemInstall struct {
@@ -6032,6 +6226,106 @@ type GetOrgTrackingConsentResponse struct {
 	Adapters    []GetOrgTrackingConsentResponseAdaptersItem `json:"adapters"`
 }
 
+// GetOrgConsentPartnersCookiemunchResponseStampCheck is generated from the OpenAPI component of the same name.
+type GetOrgConsentPartnersCookiemunchResponseStampCheck struct {
+	Status string `json:"status"` // `live`: stamps are checked with Cookie Munch; `not_configured`: no partner token, stamps are kept as received.
+	Detail string `json:"detail"`
+}
+
+// GetOrgConsentPartnersCookiemunchResponseGrantsItem is generated from the OpenAPI component of the same name.
+type GetOrgConsentPartnersCookiemunchResponseGrantsItem struct {
+	Cbid   string  `json:"cbid"`
+	State  string  `json:"state"`
+	LinkID *string `json:"linkId"`
+	Label  *string `json:"label"`
+}
+
+// GetOrgConsentPartnersCookiemunchResponseGrantCheck is generated from the OpenAPI component of the same name.
+type GetOrgConsentPartnersCookiemunchResponseGrantCheck struct {
+	Status string  `json:"status"`
+	Detail *string `json:"detail"`
+}
+
+// GetOrgConsentPartnersCookiemunchResponse is generated from the OpenAPI component of the same name.
+type GetOrgConsentPartnersCookiemunchResponse struct {
+	Provider    string                                               `json:"provider"`
+	ExternalID  string                                               `json:"externalId"` // Your org id: the externalId of the `referalli` partner link in Cookie Munch.
+	ReceiverURL string                                               `json:"receiverUrl"`
+	Sites       []string                                             `json:"sites"`
+	StampCheck  GetOrgConsentPartnersCookiemunchResponseStampCheck   `json:"stampCheck"`
+	Grants      []GetOrgConsentPartnersCookiemunchResponseGrantsItem `json:"grants"` // Per registered site: whether its owner granted Referalli that site in Cookie Munch (GET /v1/partner/links).
+	GrantCheck  GetOrgConsentPartnersCookiemunchResponseGrantCheck   `json:"grantCheck"`
+}
+
+// GetOrgConsentPartnersCookiemunchEventsResponseDataItem is generated from the OpenAPI component of the same name.
+type GetOrgConsentPartnersCookiemunchEventsResponseDataItem struct {
+	ID         string          `json:"id"`
+	EventID    string          `json:"eventId"` // Cookie Munch's event id (`evt_…`).
+	Type       string          `json:"type"`
+	Cbid       string          `json:"cbid"`
+	Stamp      *string         `json:"stamp"` // The visitor's consent-receipt id.
+	Choices    map[string]bool `json:"choices"`
+	Withdrawn  []string        `json:"withdrawn"`
+	Region     *string         `json:"region"`
+	KeyID      string          `json:"keyId"` // The Cookie Munch key that signed the delivery.
+	OccurredAt string          `json:"occurredAt"`
+	ReceivedAt string          `json:"receivedAt"`
+}
+
+// GetOrgConsentPartnersCookiemunchEventsResponseStampCheck is generated from the OpenAPI component of the same name.
+type GetOrgConsentPartnersCookiemunchEventsResponseStampCheck struct {
+	Status string `json:"status"` // `live`: stamps are checked with Cookie Munch; `not_configured`: no partner token, stamps are kept as received.
+	Detail string `json:"detail"`
+}
+
+// GetOrgConsentPartnersCookiemunchEventsResponseChecksItem is generated from the OpenAPI component of the same name.
+type GetOrgConsentPartnersCookiemunchEventsResponseChecksItem struct {
+	Cbid        string          `json:"cbid"`
+	Verdict     string          `json:"verdict"` // `consented` only when Cookie Munch found the stamp with `referrals` on.
+	Categories  map[string]bool `json:"categories"`
+	Withdrawn   []string        `json:"withdrawn"`
+	WithdrawnAt *string         `json:"withdrawnAt"`
+	DecidedAt   *string         `json:"decidedAt"`
+	Detail      *string         `json:"detail"`
+	CheckedAt   string          `json:"checkedAt"`
+	Stamp       string          `json:"stamp"`
+	Credited    bool            `json:"credited"`
+	ClickID     *string         `json:"clickId"`
+	EventID     *string         `json:"eventId"`
+}
+
+// GetOrgConsentPartnersCookiemunchEventsResponse is generated from the OpenAPI component of the same name.
+type GetOrgConsentPartnersCookiemunchEventsResponse struct {
+	Data       []GetOrgConsentPartnersCookiemunchEventsResponseDataItem   `json:"data"`
+	StampCheck GetOrgConsentPartnersCookiemunchEventsResponseStampCheck   `json:"stampCheck"`
+	Checks     []GetOrgConsentPartnersCookiemunchEventsResponseChecksItem `json:"checks,omitempty"` // With `stamp`: what Cookie Munch said about it, newest first.
+}
+
+// PostOrgConsentPartnersCookiemunchStampsCheckResponse is generated from the OpenAPI component of the same name.
+type PostOrgConsentPartnersCookiemunchStampsCheckResponse struct {
+	Stamp       string          `json:"stamp"`
+	Credited    bool            `json:"credited"`
+	Cbid        string          `json:"cbid"`
+	Verdict     string          `json:"verdict"` // `consented` only when Cookie Munch found the stamp with `referrals` on.
+	Categories  map[string]bool `json:"categories"`
+	Withdrawn   []string        `json:"withdrawn"`
+	WithdrawnAt *string         `json:"withdrawnAt"`
+	DecidedAt   *string         `json:"decidedAt"`
+	Detail      *string         `json:"detail"`
+	CheckedAt   string          `json:"checkedAt"`
+}
+
+// PostOrgsOrgIdPrivacyExecutorKeyResponse is generated from the OpenAPI component of the same name.
+type PostOrgsOrgIdPrivacyExecutorKeyResponse struct {
+	Secret      string `json:"secret"` // The cm-standard-v2 bearer key for `executorUrl`. Shown once.
+	ExecutorURL string `json:"executorUrl"`
+	Contract    string `json:"contract"`
+	OrgID       string `json:"orgId"`
+	LinkID      string `json:"linkId"`
+	Cbid        string `json:"cbid"`
+	Rotated     bool   `json:"rotated"` // An earlier key existed and stopped working.
+}
+
 // GetOrgHostedPagesResponseConsent is generated from the OpenAPI component of the same name.
 type GetOrgHostedPagesResponseConsent struct {
 	Adapter string         `json:"adapter"`
@@ -6142,6 +6436,1458 @@ type PostOrgHostedPagesCheckResponse struct {
 	Checks []PostOrgHostedPagesCheckResponseChecksItem `json:"checks"`
 }
 
+// GetHostsCurrentChatIdentityResponseTagsItem is generated from the OpenAPI component of the same name.
+type GetHostsCurrentChatIdentityResponseTagsItem struct {
+	Tag    string                     `json:"tag"`
+	Attrs  map[string]json.RawMessage `json:"attrs"`
+	Inline *string                    `json:"inline,omitempty"`
+}
+
+// GetHostsCurrentChatIdentityResponse is generated from the OpenAPI component of the same name.
+type GetHostsCurrentChatIdentityResponse struct {
+	Provider *string                                       `json:"provider"` // The merchant's chat adapter on this portal domain, or null.
+	Tags     []GetHostsCurrentChatIdentityResponseTagsItem `json:"tags"`     // Head tags that identify the signed-in partner to that chat (empty when there is nothing to identify).
+}
+
+// GetPortalThemeResponsePublishedPalette is generated from the OpenAPI component of the same name.
+type GetPortalThemeResponsePublishedPalette struct {
+	Background       *string `json:"background,omitempty"`
+	Surface          *string `json:"surface,omitempty"`
+	SurfaceAlt       *string `json:"surfaceAlt,omitempty"`
+	Ink              *string `json:"ink,omitempty"`
+	Muted            *string `json:"muted,omitempty"`
+	Faint            *string `json:"faint,omitempty"`
+	Line             *string `json:"line,omitempty"`
+	LineStrong       *string `json:"lineStrong,omitempty"`
+	Primary          *string `json:"primary,omitempty"`
+	OnPrimary        *string `json:"onPrimary,omitempty"`
+	PrimarySoft      *string `json:"primarySoft,omitempty"`
+	HeaderBackground *string `json:"header_background,omitempty"`
+	HeaderPrimary    *string `json:"header_primary,omitempty"`
+	Sidebar          *string `json:"sidebar,omitempty"`
+	FooterBackground *string `json:"footer_background,omitempty"`
+	FooterPrimary    *string `json:"footer_primary,omitempty"`
+	Success          *string `json:"success,omitempty"`
+	Warning          *string `json:"warning,omitempty"`
+	Danger           *string `json:"danger,omitempty"`
+	Info             *string `json:"info,omitempty"`
+	Chart            *string `json:"chart,omitempty"`
+	Money            *string `json:"money,omitempty"`
+}
+
+// GetPortalThemeResponsePublishedPaletteDark is generated from the OpenAPI component of the same name.
+type GetPortalThemeResponsePublishedPaletteDark struct {
+	Background       *string `json:"background,omitempty"`
+	Surface          *string `json:"surface,omitempty"`
+	SurfaceAlt       *string `json:"surfaceAlt,omitempty"`
+	Ink              *string `json:"ink,omitempty"`
+	Muted            *string `json:"muted,omitempty"`
+	Faint            *string `json:"faint,omitempty"`
+	Line             *string `json:"line,omitempty"`
+	LineStrong       *string `json:"lineStrong,omitempty"`
+	Primary          *string `json:"primary,omitempty"`
+	OnPrimary        *string `json:"onPrimary,omitempty"`
+	PrimarySoft      *string `json:"primarySoft,omitempty"`
+	HeaderBackground *string `json:"header_background,omitempty"`
+	HeaderPrimary    *string `json:"header_primary,omitempty"`
+	Sidebar          *string `json:"sidebar,omitempty"`
+	FooterBackground *string `json:"footer_background,omitempty"`
+	FooterPrimary    *string `json:"footer_primary,omitempty"`
+	Success          *string `json:"success,omitempty"`
+	Warning          *string `json:"warning,omitempty"`
+	Danger           *string `json:"danger,omitempty"`
+	Info             *string `json:"info,omitempty"`
+	Chart            *string `json:"chart,omitempty"`
+	Money            *string `json:"money,omitempty"`
+}
+
+// GetPortalThemeResponsePublishedFontsFacesItem is generated from the OpenAPI component of the same name.
+type GetPortalThemeResponsePublishedFontsFacesItem struct {
+	Family  string          `json:"family"`
+	Src     string          `json:"src"`
+	Format  *string         `json:"format,omitempty"`
+	Weight  json.RawMessage `json:"weight,omitempty"`
+	Style   *string         `json:"style,omitempty"`
+	Display *string         `json:"display,omitempty"`
+}
+
+// GetPortalThemeResponsePublishedFonts is generated from the OpenAPI component of the same name.
+type GetPortalThemeResponsePublishedFonts struct {
+	Faces []GetPortalThemeResponsePublishedFontsFacesItem `json:"faces,omitempty"`
+}
+
+// GetPortalThemeResponsePublishedTypography is generated from the OpenAPI component of the same name.
+type GetPortalThemeResponsePublishedTypography struct {
+	BaseSize         *float64 `json:"baseSize,omitempty"`
+	HeadingScale     *float64 `json:"headingScale,omitempty"`
+	HeadingWeight    *int64   `json:"headingWeight,omitempty"`
+	BodyWeight       *int64   `json:"bodyWeight,omitempty"`
+	HeadingTransform *string  `json:"headingTransform,omitempty"`
+	HeadingTracking  *float64 `json:"headingTracking,omitempty"`
+	BodyLeading      *float64 `json:"bodyLeading,omitempty"`
+	Numerals         *string  `json:"numerals,omitempty"`
+}
+
+// GetPortalThemeResponsePublishedComponentsCards is generated from the OpenAPI component of the same name.
+type GetPortalThemeResponsePublishedComponentsCards struct {
+	Border    *bool   `json:"border,omitempty"`
+	Elevation *string `json:"elevation,omitempty"`
+}
+
+// GetPortalThemeResponsePublishedComponentsButtons is generated from the OpenAPI component of the same name.
+type GetPortalThemeResponsePublishedComponentsButtons struct {
+	Radius *float64 `json:"radius,omitempty"`
+	Case   *string  `json:"case,omitempty"`
+	Weight *int64   `json:"weight,omitempty"`
+	Style  *string  `json:"style,omitempty"`
+}
+
+// GetPortalThemeResponsePublishedComponentsInputs is generated from the OpenAPI component of the same name.
+type GetPortalThemeResponsePublishedComponentsInputs struct {
+	Radius *float64 `json:"radius,omitempty"`
+	Style  *string  `json:"style,omitempty"`
+}
+
+// GetPortalThemeResponsePublishedComponentsFocusRing is generated from the OpenAPI component of the same name.
+type GetPortalThemeResponsePublishedComponentsFocusRing struct {
+	Color *string  `json:"color,omitempty"`
+	Width *float64 `json:"width,omitempty"`
+}
+
+// GetPortalThemeResponsePublishedComponentsLinks is generated from the OpenAPI component of the same name.
+type GetPortalThemeResponsePublishedComponentsLinks struct {
+	Underline *string `json:"underline,omitempty"`
+	Color     *string `json:"color,omitempty"`
+	ColorDark *string `json:"colorDark,omitempty"`
+}
+
+// GetPortalThemeResponsePublishedComponents is generated from the OpenAPI component of the same name.
+type GetPortalThemeResponsePublishedComponents struct {
+	Radius      *float64                                            `json:"radius,omitempty"`
+	RadiusSmall *float64                                            `json:"radiusSmall,omitempty"`
+	Shadow      *string                                             `json:"shadow,omitempty"`
+	Cards       *GetPortalThemeResponsePublishedComponentsCards     `json:"cards,omitempty"`
+	Buttons     *GetPortalThemeResponsePublishedComponentsButtons   `json:"buttons,omitempty"`
+	Inputs      *GetPortalThemeResponsePublishedComponentsInputs    `json:"inputs,omitempty"`
+	FocusRing   *GetPortalThemeResponsePublishedComponentsFocusRing `json:"focusRing,omitempty"`
+	Links       *GetPortalThemeResponsePublishedComponentsLinks     `json:"links,omitempty"`
+}
+
+// GetPortalThemeResponsePublishedAnnouncementLink is generated from the OpenAPI component of the same name.
+type GetPortalThemeResponsePublishedAnnouncementLink struct {
+	Label        string            `json:"label"`
+	Href         string            `json:"href"`
+	NewTab       *bool             `json:"newTab,omitempty"`
+	Translations map[string]string `json:"translations,omitempty"`
+}
+
+// GetPortalThemeResponsePublishedAnnouncement is generated from the OpenAPI component of the same name.
+type GetPortalThemeResponsePublishedAnnouncement struct {
+	Text        string                                           `json:"text"`
+	Level       *string                                          `json:"level,omitempty"`
+	Link        *GetPortalThemeResponsePublishedAnnouncementLink `json:"link,omitempty"`
+	Dismissible *bool                                            `json:"dismissible,omitempty"`
+	Background  *string                                          `json:"background,omitempty"`
+	Ink         *string                                          `json:"ink,omitempty"`
+	StartsAt    *string                                          `json:"startsAt,omitempty"`
+	EndsAt      *string                                          `json:"endsAt,omitempty"`
+}
+
+// GetPortalThemeResponsePublishedChromeHeaderLinksItem is generated from the OpenAPI component of the same name.
+type GetPortalThemeResponsePublishedChromeHeaderLinksItem struct {
+	Label        string            `json:"label"`
+	Href         string            `json:"href"`
+	NewTab       *bool             `json:"newTab,omitempty"`
+	Translations map[string]string `json:"translations,omitempty"`
+}
+
+// GetPortalThemeResponsePublishedChromeHeaderCta is generated from the OpenAPI component of the same name.
+type GetPortalThemeResponsePublishedChromeHeaderCta struct {
+	Label        string            `json:"label"`
+	Href         string            `json:"href"`
+	NewTab       *bool             `json:"newTab,omitempty"`
+	Translations map[string]string `json:"translations,omitempty"`
+}
+
+// GetPortalThemeResponsePublishedChromeHeader is generated from the OpenAPI component of the same name.
+type GetPortalThemeResponsePublishedChromeHeader struct {
+	Links              []GetPortalThemeResponsePublishedChromeHeaderLinksItem `json:"links,omitempty"`
+	Cta                *GetPortalThemeResponsePublishedChromeHeaderCta        `json:"cta,omitempty"`
+	Sticky             *bool                                                  `json:"sticky,omitempty"`
+	ShowLocaleSwitcher *bool                                                  `json:"showLocaleSwitcher,omitempty"`
+	ShowThemeToggle    *bool                                                  `json:"showThemeToggle,omitempty"`
+	BrandAlign         *string                                                `json:"brandAlign,omitempty"`
+	Border             *bool                                                  `json:"border,omitempty"`
+}
+
+// GetPortalThemeResponsePublishedChromeFooterColumnsItemLinksItem is generated from the OpenAPI component of the same name.
+type GetPortalThemeResponsePublishedChromeFooterColumnsItemLinksItem struct {
+	Label        string            `json:"label"`
+	Href         string            `json:"href"`
+	NewTab       *bool             `json:"newTab,omitempty"`
+	Translations map[string]string `json:"translations,omitempty"`
+}
+
+// GetPortalThemeResponsePublishedChromeFooterColumnsItem is generated from the OpenAPI component of the same name.
+type GetPortalThemeResponsePublishedChromeFooterColumnsItem struct {
+	Heading string                                                            `json:"heading"`
+	Links   []GetPortalThemeResponsePublishedChromeFooterColumnsItemLinksItem `json:"links"`
+}
+
+// GetPortalThemeResponsePublishedChromeFooterSocialItem is generated from the OpenAPI component of the same name.
+type GetPortalThemeResponsePublishedChromeFooterSocialItem struct {
+	Platform string `json:"platform"`
+	Href     string `json:"href"`
+}
+
+// GetPortalThemeResponsePublishedChromeFooter is generated from the OpenAPI component of the same name.
+type GetPortalThemeResponsePublishedChromeFooter struct {
+	Columns       []GetPortalThemeResponsePublishedChromeFooterColumnsItem `json:"columns,omitempty"`
+	Text          *string                                                  `json:"text,omitempty"`
+	Social        []GetPortalThemeResponsePublishedChromeFooterSocialItem  `json:"social,omitempty"`
+	ShowPoweredBy *bool                                                    `json:"showPoweredBy,omitempty"`
+}
+
+// GetPortalThemeResponsePublishedChrome is generated from the OpenAPI component of the same name.
+type GetPortalThemeResponsePublishedChrome struct {
+	Header *GetPortalThemeResponsePublishedChromeHeader `json:"header,omitempty"`
+	Footer *GetPortalThemeResponsePublishedChromeFooter `json:"footer,omitempty"`
+}
+
+// GetPortalThemeResponsePublishedPortalSectionsItem is generated from the OpenAPI component of the same name.
+type GetPortalThemeResponsePublishedPortalSectionsItem struct {
+	ID          string  `json:"id"`
+	Enabled     *bool   `json:"enabled,omitempty"`
+	Title       *string `json:"title,omitempty"`
+	Description *string `json:"description,omitempty"`
+}
+
+// GetPortalThemeResponsePublishedPortalWelcomeCta is generated from the OpenAPI component of the same name.
+type GetPortalThemeResponsePublishedPortalWelcomeCta struct {
+	Label        string            `json:"label"`
+	Href         string            `json:"href"`
+	NewTab       *bool             `json:"newTab,omitempty"`
+	Translations map[string]string `json:"translations,omitempty"`
+}
+
+// GetPortalThemeResponsePublishedPortalWelcome is generated from the OpenAPI component of the same name.
+type GetPortalThemeResponsePublishedPortalWelcome struct {
+	Title string                                           `json:"title"`
+	Body  *string                                          `json:"body,omitempty"`
+	Image *string                                          `json:"image,omitempty"`
+	Cta   *GetPortalThemeResponsePublishedPortalWelcomeCta `json:"cta,omitempty"`
+}
+
+// GetPortalThemeResponsePublishedPortalNavigation is generated from the OpenAPI component of the same name.
+type GetPortalThemeResponsePublishedPortalNavigation struct {
+	Primary []string          `json:"primary,omitempty"`
+	Hidden  []string          `json:"hidden,omitempty"`
+	Labels  map[string]string `json:"labels,omitempty"`
+	Style   *string           `json:"style,omitempty"`
+}
+
+// GetPortalThemeResponsePublishedPortalSignIn is generated from the OpenAPI component of the same name.
+type GetPortalThemeResponsePublishedPortalSignIn struct {
+	Title    *string `json:"title,omitempty"`
+	Subtitle *string `json:"subtitle,omitempty"`
+	Image    *string `json:"image,omitempty"`
+	Layout   *string `json:"layout,omitempty"`
+	Footnote *string `json:"footnote,omitempty"`
+}
+
+// GetPortalThemeResponsePublishedPortalMoney is generated from the OpenAPI component of the same name.
+type GetPortalThemeResponsePublishedPortalMoney struct {
+	ShowCurrencyCode *bool `json:"showCurrencyCode,omitempty"`
+	Compact          *bool `json:"compact,omitempty"`
+}
+
+// GetPortalThemeResponsePublishedPortal is generated from the OpenAPI component of the same name.
+type GetPortalThemeResponsePublishedPortal struct {
+	Sections   []GetPortalThemeResponsePublishedPortalSectionsItem `json:"sections,omitempty"`
+	Welcome    *GetPortalThemeResponsePublishedPortalWelcome       `json:"welcome,omitempty"`
+	Navigation *GetPortalThemeResponsePublishedPortalNavigation    `json:"navigation,omitempty"`
+	SignIn     *GetPortalThemeResponsePublishedPortalSignIn        `json:"signIn,omitempty"`
+	Money      *GetPortalThemeResponsePublishedPortalMoney         `json:"money,omitempty"`
+}
+
+// GetPortalThemeResponsePublishedSettingsSchemaItem is generated from the OpenAPI component of the same name.
+type GetPortalThemeResponsePublishedSettingsSchemaItem struct {
+	Key     string          `json:"key"`
+	Type    string          `json:"type"`
+	Label   *string         `json:"label,omitempty"`
+	Default json.RawMessage `json:"default,omitempty"`
+	Options []string        `json:"options,omitempty"`
+}
+
+// GetPortalThemeResponsePublishedCssSnippetsItem is generated from the OpenAPI component of the same name.
+type GetPortalThemeResponsePublishedCssSnippetsItem struct {
+	Name    string `json:"name"`
+	Css     string `json:"css"`
+	Enabled *bool  `json:"enabled,omitempty"`
+}
+
+// GetPortalThemeResponsePublishedMobile is generated from the OpenAPI component of the same name.
+type GetPortalThemeResponsePublishedMobile struct {
+	FontScale    *float64 `json:"fontScale,omitempty"`
+	Density      *string  `json:"density,omitempty"`
+	LogoURL      *string  `json:"logoUrl,omitempty"`
+	HideSections []string `json:"hideSections,omitempty"`
+	Css          *string  `json:"css,omitempty"`
+}
+
+// GetPortalThemeResponsePublishedEmbed is generated from the OpenAPI component of the same name.
+type GetPortalThemeResponsePublishedEmbed struct {
+	Enabled        *bool    `json:"enabled,omitempty"`
+	AllowedOrigins []string `json:"allowedOrigins,omitempty"`
+	HideChrome     *bool    `json:"hideChrome,omitempty"`
+}
+
+// GetPortalThemeResponsePublished: What partners see now.
+type GetPortalThemeResponsePublished struct {
+	PrimaryColor      *string                                             `json:"primaryColor,omitempty"`
+	PrimaryColorDark  *string                                             `json:"primaryColorDark,omitempty"`
+	AccentColor       *string                                             `json:"accentColor,omitempty"`
+	Palette           *GetPortalThemeResponsePublishedPalette             `json:"palette,omitempty"`
+	PaletteDark       *GetPortalThemeResponsePublishedPaletteDark         `json:"paletteDark,omitempty"`
+	ColorScheme       *string                                             `json:"colorScheme,omitempty"`
+	ColorSchemeStrict *bool                                               `json:"colorSchemeStrict,omitempty"`
+	ContentWidth      *string                                             `json:"contentWidth,omitempty"`
+	Density           *string                                             `json:"density,omitempty"`
+	Font              *string                                             `json:"font,omitempty"`
+	CustomFontURL     *string                                             `json:"customFontUrl,omitempty"`
+	CustomFontFamily  *string                                             `json:"customFontFamily,omitempty"`
+	HeadingFontFamily *string                                             `json:"headingFontFamily,omitempty"`
+	BodyFontFamily    *string                                             `json:"bodyFontFamily,omitempty"`
+	MoneyFontFamily   *string                                             `json:"moneyFontFamily,omitempty"`
+	MonoFontFamily    *string                                             `json:"monoFontFamily,omitempty"`
+	Fonts             *GetPortalThemeResponsePublishedFonts               `json:"fonts,omitempty"`
+	Typography        *GetPortalThemeResponsePublishedTypography          `json:"typography,omitempty"`
+	BrandName         json.RawMessage                                     `json:"brandName,omitempty"`
+	LogoURL           *string                                             `json:"logoUrl,omitempty"`
+	LogoURLLight      *string                                             `json:"logoUrlLight,omitempty"`
+	LogoURLDark       *string                                             `json:"logoUrlDark,omitempty"`
+	LogoMark          *string                                             `json:"logoMark,omitempty"`
+	LogoIncludesName  *bool                                               `json:"logoIncludesName,omitempty"`
+	LogoDarkMode      *string                                             `json:"logoDarkMode,omitempty"`
+	LogoHeight        *float64                                            `json:"logoHeight,omitempty"`
+	FaviconURL        *string                                             `json:"faviconUrl,omitempty"`
+	PageTitle         *string                                             `json:"pageTitle,omitempty"`
+	Components        *GetPortalThemeResponsePublishedComponents          `json:"components,omitempty"`
+	Announcement      *GetPortalThemeResponsePublishedAnnouncement        `json:"announcement,omitempty"`
+	Chrome            *GetPortalThemeResponsePublishedChrome              `json:"chrome,omitempty"`
+	Portal            *GetPortalThemeResponsePublishedPortal              `json:"portal,omitempty"`
+	StringOverrides   map[string]map[string]string                        `json:"stringOverrides,omitempty"`
+	SettingsSchema    []GetPortalThemeResponsePublishedSettingsSchemaItem `json:"settingsSchema,omitempty"`
+	Settings          map[string]json.RawMessage                          `json:"settings,omitempty"`
+	CustomCss         *string                                             `json:"customCss,omitempty"`
+	CssSnippets       []GetPortalThemeResponsePublishedCssSnippetsItem    `json:"cssSnippets,omitempty"`
+	Mobile            *GetPortalThemeResponsePublishedMobile              `json:"mobile,omitempty"`
+	Embed             *GetPortalThemeResponsePublishedEmbed               `json:"embed,omitempty"`
+}
+
+// GetPortalThemeResponseDraftOption1Palette is generated from the OpenAPI component of the same name.
+type GetPortalThemeResponseDraftOption1Palette struct {
+	Background       *string `json:"background,omitempty"`
+	Surface          *string `json:"surface,omitempty"`
+	SurfaceAlt       *string `json:"surfaceAlt,omitempty"`
+	Ink              *string `json:"ink,omitempty"`
+	Muted            *string `json:"muted,omitempty"`
+	Faint            *string `json:"faint,omitempty"`
+	Line             *string `json:"line,omitempty"`
+	LineStrong       *string `json:"lineStrong,omitempty"`
+	Primary          *string `json:"primary,omitempty"`
+	OnPrimary        *string `json:"onPrimary,omitempty"`
+	PrimarySoft      *string `json:"primarySoft,omitempty"`
+	HeaderBackground *string `json:"header_background,omitempty"`
+	HeaderPrimary    *string `json:"header_primary,omitempty"`
+	Sidebar          *string `json:"sidebar,omitempty"`
+	FooterBackground *string `json:"footer_background,omitempty"`
+	FooterPrimary    *string `json:"footer_primary,omitempty"`
+	Success          *string `json:"success,omitempty"`
+	Warning          *string `json:"warning,omitempty"`
+	Danger           *string `json:"danger,omitempty"`
+	Info             *string `json:"info,omitempty"`
+	Chart            *string `json:"chart,omitempty"`
+	Money            *string `json:"money,omitempty"`
+}
+
+// GetPortalThemeResponseDraftOption1PaletteDark is generated from the OpenAPI component of the same name.
+type GetPortalThemeResponseDraftOption1PaletteDark struct {
+	Background       *string `json:"background,omitempty"`
+	Surface          *string `json:"surface,omitempty"`
+	SurfaceAlt       *string `json:"surfaceAlt,omitempty"`
+	Ink              *string `json:"ink,omitempty"`
+	Muted            *string `json:"muted,omitempty"`
+	Faint            *string `json:"faint,omitempty"`
+	Line             *string `json:"line,omitempty"`
+	LineStrong       *string `json:"lineStrong,omitempty"`
+	Primary          *string `json:"primary,omitempty"`
+	OnPrimary        *string `json:"onPrimary,omitempty"`
+	PrimarySoft      *string `json:"primarySoft,omitempty"`
+	HeaderBackground *string `json:"header_background,omitempty"`
+	HeaderPrimary    *string `json:"header_primary,omitempty"`
+	Sidebar          *string `json:"sidebar,omitempty"`
+	FooterBackground *string `json:"footer_background,omitempty"`
+	FooterPrimary    *string `json:"footer_primary,omitempty"`
+	Success          *string `json:"success,omitempty"`
+	Warning          *string `json:"warning,omitempty"`
+	Danger           *string `json:"danger,omitempty"`
+	Info             *string `json:"info,omitempty"`
+	Chart            *string `json:"chart,omitempty"`
+	Money            *string `json:"money,omitempty"`
+}
+
+// GetPortalThemeResponseDraftOption1FontsFacesItem is generated from the OpenAPI component of the same name.
+type GetPortalThemeResponseDraftOption1FontsFacesItem struct {
+	Family  string          `json:"family"`
+	Src     string          `json:"src"`
+	Format  *string         `json:"format,omitempty"`
+	Weight  json.RawMessage `json:"weight,omitempty"`
+	Style   *string         `json:"style,omitempty"`
+	Display *string         `json:"display,omitempty"`
+}
+
+// GetPortalThemeResponseDraftOption1Fonts is generated from the OpenAPI component of the same name.
+type GetPortalThemeResponseDraftOption1Fonts struct {
+	Faces []GetPortalThemeResponseDraftOption1FontsFacesItem `json:"faces,omitempty"`
+}
+
+// GetPortalThemeResponseDraftOption1Typography is generated from the OpenAPI component of the same name.
+type GetPortalThemeResponseDraftOption1Typography struct {
+	BaseSize         *float64 `json:"baseSize,omitempty"`
+	HeadingScale     *float64 `json:"headingScale,omitempty"`
+	HeadingWeight    *int64   `json:"headingWeight,omitempty"`
+	BodyWeight       *int64   `json:"bodyWeight,omitempty"`
+	HeadingTransform *string  `json:"headingTransform,omitempty"`
+	HeadingTracking  *float64 `json:"headingTracking,omitempty"`
+	BodyLeading      *float64 `json:"bodyLeading,omitempty"`
+	Numerals         *string  `json:"numerals,omitempty"`
+}
+
+// GetPortalThemeResponseDraftOption1ComponentsCards is generated from the OpenAPI component of the same name.
+type GetPortalThemeResponseDraftOption1ComponentsCards struct {
+	Border    *bool   `json:"border,omitempty"`
+	Elevation *string `json:"elevation,omitempty"`
+}
+
+// GetPortalThemeResponseDraftOption1ComponentsButtons is generated from the OpenAPI component of the same name.
+type GetPortalThemeResponseDraftOption1ComponentsButtons struct {
+	Radius *float64 `json:"radius,omitempty"`
+	Case   *string  `json:"case,omitempty"`
+	Weight *int64   `json:"weight,omitempty"`
+	Style  *string  `json:"style,omitempty"`
+}
+
+// GetPortalThemeResponseDraftOption1ComponentsInputs is generated from the OpenAPI component of the same name.
+type GetPortalThemeResponseDraftOption1ComponentsInputs struct {
+	Radius *float64 `json:"radius,omitempty"`
+	Style  *string  `json:"style,omitempty"`
+}
+
+// GetPortalThemeResponseDraftOption1ComponentsFocusRing is generated from the OpenAPI component of the same name.
+type GetPortalThemeResponseDraftOption1ComponentsFocusRing struct {
+	Color *string  `json:"color,omitempty"`
+	Width *float64 `json:"width,omitempty"`
+}
+
+// GetPortalThemeResponseDraftOption1ComponentsLinks is generated from the OpenAPI component of the same name.
+type GetPortalThemeResponseDraftOption1ComponentsLinks struct {
+	Underline *string `json:"underline,omitempty"`
+	Color     *string `json:"color,omitempty"`
+	ColorDark *string `json:"colorDark,omitempty"`
+}
+
+// GetPortalThemeResponseDraftOption1Components is generated from the OpenAPI component of the same name.
+type GetPortalThemeResponseDraftOption1Components struct {
+	Radius      *float64                                               `json:"radius,omitempty"`
+	RadiusSmall *float64                                               `json:"radiusSmall,omitempty"`
+	Shadow      *string                                                `json:"shadow,omitempty"`
+	Cards       *GetPortalThemeResponseDraftOption1ComponentsCards     `json:"cards,omitempty"`
+	Buttons     *GetPortalThemeResponseDraftOption1ComponentsButtons   `json:"buttons,omitempty"`
+	Inputs      *GetPortalThemeResponseDraftOption1ComponentsInputs    `json:"inputs,omitempty"`
+	FocusRing   *GetPortalThemeResponseDraftOption1ComponentsFocusRing `json:"focusRing,omitempty"`
+	Links       *GetPortalThemeResponseDraftOption1ComponentsLinks     `json:"links,omitempty"`
+}
+
+// GetPortalThemeResponseDraftOption1AnnouncementLink is generated from the OpenAPI component of the same name.
+type GetPortalThemeResponseDraftOption1AnnouncementLink struct {
+	Label        string            `json:"label"`
+	Href         string            `json:"href"`
+	NewTab       *bool             `json:"newTab,omitempty"`
+	Translations map[string]string `json:"translations,omitempty"`
+}
+
+// GetPortalThemeResponseDraftOption1Announcement is generated from the OpenAPI component of the same name.
+type GetPortalThemeResponseDraftOption1Announcement struct {
+	Text        string                                              `json:"text"`
+	Level       *string                                             `json:"level,omitempty"`
+	Link        *GetPortalThemeResponseDraftOption1AnnouncementLink `json:"link,omitempty"`
+	Dismissible *bool                                               `json:"dismissible,omitempty"`
+	Background  *string                                             `json:"background,omitempty"`
+	Ink         *string                                             `json:"ink,omitempty"`
+	StartsAt    *string                                             `json:"startsAt,omitempty"`
+	EndsAt      *string                                             `json:"endsAt,omitempty"`
+}
+
+// GetPortalThemeResponseDraftOption1ChromeHeaderLinksItem is generated from the OpenAPI component of the same name.
+type GetPortalThemeResponseDraftOption1ChromeHeaderLinksItem struct {
+	Label        string            `json:"label"`
+	Href         string            `json:"href"`
+	NewTab       *bool             `json:"newTab,omitempty"`
+	Translations map[string]string `json:"translations,omitempty"`
+}
+
+// GetPortalThemeResponseDraftOption1ChromeHeaderCta is generated from the OpenAPI component of the same name.
+type GetPortalThemeResponseDraftOption1ChromeHeaderCta struct {
+	Label        string            `json:"label"`
+	Href         string            `json:"href"`
+	NewTab       *bool             `json:"newTab,omitempty"`
+	Translations map[string]string `json:"translations,omitempty"`
+}
+
+// GetPortalThemeResponseDraftOption1ChromeHeader is generated from the OpenAPI component of the same name.
+type GetPortalThemeResponseDraftOption1ChromeHeader struct {
+	Links              []GetPortalThemeResponseDraftOption1ChromeHeaderLinksItem `json:"links,omitempty"`
+	Cta                *GetPortalThemeResponseDraftOption1ChromeHeaderCta        `json:"cta,omitempty"`
+	Sticky             *bool                                                     `json:"sticky,omitempty"`
+	ShowLocaleSwitcher *bool                                                     `json:"showLocaleSwitcher,omitempty"`
+	ShowThemeToggle    *bool                                                     `json:"showThemeToggle,omitempty"`
+	BrandAlign         *string                                                   `json:"brandAlign,omitempty"`
+	Border             *bool                                                     `json:"border,omitempty"`
+}
+
+// GetPortalThemeResponseDraftOption1ChromeFooterColumnsItemLinksItem is generated from the OpenAPI component of the same name.
+type GetPortalThemeResponseDraftOption1ChromeFooterColumnsItemLinksItem struct {
+	Label        string            `json:"label"`
+	Href         string            `json:"href"`
+	NewTab       *bool             `json:"newTab,omitempty"`
+	Translations map[string]string `json:"translations,omitempty"`
+}
+
+// GetPortalThemeResponseDraftOption1ChromeFooterColumnsItem is generated from the OpenAPI component of the same name.
+type GetPortalThemeResponseDraftOption1ChromeFooterColumnsItem struct {
+	Heading string                                                               `json:"heading"`
+	Links   []GetPortalThemeResponseDraftOption1ChromeFooterColumnsItemLinksItem `json:"links"`
+}
+
+// GetPortalThemeResponseDraftOption1ChromeFooterSocialItem is generated from the OpenAPI component of the same name.
+type GetPortalThemeResponseDraftOption1ChromeFooterSocialItem struct {
+	Platform string `json:"platform"`
+	Href     string `json:"href"`
+}
+
+// GetPortalThemeResponseDraftOption1ChromeFooter is generated from the OpenAPI component of the same name.
+type GetPortalThemeResponseDraftOption1ChromeFooter struct {
+	Columns       []GetPortalThemeResponseDraftOption1ChromeFooterColumnsItem `json:"columns,omitempty"`
+	Text          *string                                                     `json:"text,omitempty"`
+	Social        []GetPortalThemeResponseDraftOption1ChromeFooterSocialItem  `json:"social,omitempty"`
+	ShowPoweredBy *bool                                                       `json:"showPoweredBy,omitempty"`
+}
+
+// GetPortalThemeResponseDraftOption1Chrome is generated from the OpenAPI component of the same name.
+type GetPortalThemeResponseDraftOption1Chrome struct {
+	Header *GetPortalThemeResponseDraftOption1ChromeHeader `json:"header,omitempty"`
+	Footer *GetPortalThemeResponseDraftOption1ChromeFooter `json:"footer,omitempty"`
+}
+
+// GetPortalThemeResponseDraftOption1PortalSectionsItem is generated from the OpenAPI component of the same name.
+type GetPortalThemeResponseDraftOption1PortalSectionsItem struct {
+	ID          string  `json:"id"`
+	Enabled     *bool   `json:"enabled,omitempty"`
+	Title       *string `json:"title,omitempty"`
+	Description *string `json:"description,omitempty"`
+}
+
+// GetPortalThemeResponseDraftOption1PortalWelcomeCta is generated from the OpenAPI component of the same name.
+type GetPortalThemeResponseDraftOption1PortalWelcomeCta struct {
+	Label        string            `json:"label"`
+	Href         string            `json:"href"`
+	NewTab       *bool             `json:"newTab,omitempty"`
+	Translations map[string]string `json:"translations,omitempty"`
+}
+
+// GetPortalThemeResponseDraftOption1PortalWelcome is generated from the OpenAPI component of the same name.
+type GetPortalThemeResponseDraftOption1PortalWelcome struct {
+	Title string                                              `json:"title"`
+	Body  *string                                             `json:"body,omitempty"`
+	Image *string                                             `json:"image,omitempty"`
+	Cta   *GetPortalThemeResponseDraftOption1PortalWelcomeCta `json:"cta,omitempty"`
+}
+
+// GetPortalThemeResponseDraftOption1PortalNavigation is generated from the OpenAPI component of the same name.
+type GetPortalThemeResponseDraftOption1PortalNavigation struct {
+	Primary []string          `json:"primary,omitempty"`
+	Hidden  []string          `json:"hidden,omitempty"`
+	Labels  map[string]string `json:"labels,omitempty"`
+	Style   *string           `json:"style,omitempty"`
+}
+
+// GetPortalThemeResponseDraftOption1PortalSignIn is generated from the OpenAPI component of the same name.
+type GetPortalThemeResponseDraftOption1PortalSignIn struct {
+	Title    *string `json:"title,omitempty"`
+	Subtitle *string `json:"subtitle,omitempty"`
+	Image    *string `json:"image,omitempty"`
+	Layout   *string `json:"layout,omitempty"`
+	Footnote *string `json:"footnote,omitempty"`
+}
+
+// GetPortalThemeResponseDraftOption1PortalMoney is generated from the OpenAPI component of the same name.
+type GetPortalThemeResponseDraftOption1PortalMoney struct {
+	ShowCurrencyCode *bool `json:"showCurrencyCode,omitempty"`
+	Compact          *bool `json:"compact,omitempty"`
+}
+
+// GetPortalThemeResponseDraftOption1Portal is generated from the OpenAPI component of the same name.
+type GetPortalThemeResponseDraftOption1Portal struct {
+	Sections   []GetPortalThemeResponseDraftOption1PortalSectionsItem `json:"sections,omitempty"`
+	Welcome    *GetPortalThemeResponseDraftOption1PortalWelcome       `json:"welcome,omitempty"`
+	Navigation *GetPortalThemeResponseDraftOption1PortalNavigation    `json:"navigation,omitempty"`
+	SignIn     *GetPortalThemeResponseDraftOption1PortalSignIn        `json:"signIn,omitempty"`
+	Money      *GetPortalThemeResponseDraftOption1PortalMoney         `json:"money,omitempty"`
+}
+
+// GetPortalThemeResponseDraftOption1SettingsSchemaItem is generated from the OpenAPI component of the same name.
+type GetPortalThemeResponseDraftOption1SettingsSchemaItem struct {
+	Key     string          `json:"key"`
+	Type    string          `json:"type"`
+	Label   *string         `json:"label,omitempty"`
+	Default json.RawMessage `json:"default,omitempty"`
+	Options []string        `json:"options,omitempty"`
+}
+
+// GetPortalThemeResponseDraftOption1CssSnippetsItem is generated from the OpenAPI component of the same name.
+type GetPortalThemeResponseDraftOption1CssSnippetsItem struct {
+	Name    string `json:"name"`
+	Css     string `json:"css"`
+	Enabled *bool  `json:"enabled,omitempty"`
+}
+
+// GetPortalThemeResponseDraftOption1Mobile is generated from the OpenAPI component of the same name.
+type GetPortalThemeResponseDraftOption1Mobile struct {
+	FontScale    *float64 `json:"fontScale,omitempty"`
+	Density      *string  `json:"density,omitempty"`
+	LogoURL      *string  `json:"logoUrl,omitempty"`
+	HideSections []string `json:"hideSections,omitempty"`
+	Css          *string  `json:"css,omitempty"`
+}
+
+// GetPortalThemeResponseDraftOption1Embed is generated from the OpenAPI component of the same name.
+type GetPortalThemeResponseDraftOption1Embed struct {
+	Enabled        *bool    `json:"enabled,omitempty"`
+	AllowedOrigins []string `json:"allowedOrigins,omitempty"`
+	HideChrome     *bool    `json:"hideChrome,omitempty"`
+}
+
+// GetPortalThemeResponseDraftOption1 is generated from the OpenAPI component of the same name.
+type GetPortalThemeResponseDraftOption1 struct {
+	PrimaryColor      *string                                                `json:"primaryColor,omitempty"`
+	PrimaryColorDark  *string                                                `json:"primaryColorDark,omitempty"`
+	AccentColor       *string                                                `json:"accentColor,omitempty"`
+	Palette           *GetPortalThemeResponseDraftOption1Palette             `json:"palette,omitempty"`
+	PaletteDark       *GetPortalThemeResponseDraftOption1PaletteDark         `json:"paletteDark,omitempty"`
+	ColorScheme       *string                                                `json:"colorScheme,omitempty"`
+	ColorSchemeStrict *bool                                                  `json:"colorSchemeStrict,omitempty"`
+	ContentWidth      *string                                                `json:"contentWidth,omitempty"`
+	Density           *string                                                `json:"density,omitempty"`
+	Font              *string                                                `json:"font,omitempty"`
+	CustomFontURL     *string                                                `json:"customFontUrl,omitempty"`
+	CustomFontFamily  *string                                                `json:"customFontFamily,omitempty"`
+	HeadingFontFamily *string                                                `json:"headingFontFamily,omitempty"`
+	BodyFontFamily    *string                                                `json:"bodyFontFamily,omitempty"`
+	MoneyFontFamily   *string                                                `json:"moneyFontFamily,omitempty"`
+	MonoFontFamily    *string                                                `json:"monoFontFamily,omitempty"`
+	Fonts             *GetPortalThemeResponseDraftOption1Fonts               `json:"fonts,omitempty"`
+	Typography        *GetPortalThemeResponseDraftOption1Typography          `json:"typography,omitempty"`
+	BrandName         json.RawMessage                                        `json:"brandName,omitempty"`
+	LogoURL           *string                                                `json:"logoUrl,omitempty"`
+	LogoURLLight      *string                                                `json:"logoUrlLight,omitempty"`
+	LogoURLDark       *string                                                `json:"logoUrlDark,omitempty"`
+	LogoMark          *string                                                `json:"logoMark,omitempty"`
+	LogoIncludesName  *bool                                                  `json:"logoIncludesName,omitempty"`
+	LogoDarkMode      *string                                                `json:"logoDarkMode,omitempty"`
+	LogoHeight        *float64                                               `json:"logoHeight,omitempty"`
+	FaviconURL        *string                                                `json:"faviconUrl,omitempty"`
+	PageTitle         *string                                                `json:"pageTitle,omitempty"`
+	Components        *GetPortalThemeResponseDraftOption1Components          `json:"components,omitempty"`
+	Announcement      *GetPortalThemeResponseDraftOption1Announcement        `json:"announcement,omitempty"`
+	Chrome            *GetPortalThemeResponseDraftOption1Chrome              `json:"chrome,omitempty"`
+	Portal            *GetPortalThemeResponseDraftOption1Portal              `json:"portal,omitempty"`
+	StringOverrides   map[string]map[string]string                           `json:"stringOverrides,omitempty"`
+	SettingsSchema    []GetPortalThemeResponseDraftOption1SettingsSchemaItem `json:"settingsSchema,omitempty"`
+	Settings          map[string]json.RawMessage                             `json:"settings,omitempty"`
+	CustomCss         *string                                                `json:"customCss,omitempty"`
+	CssSnippets       []GetPortalThemeResponseDraftOption1CssSnippetsItem    `json:"cssSnippets,omitempty"`
+	Mobile            *GetPortalThemeResponseDraftOption1Mobile              `json:"mobile,omitempty"`
+	Embed             *GetPortalThemeResponseDraftOption1Embed               `json:"embed,omitempty"`
+}
+
+// GetPortalThemeResponse is generated from the OpenAPI component of the same name.
+type GetPortalThemeResponse struct {
+	Published        GetPortalThemeResponsePublished     `json:"published"` // What partners see now.
+	Draft            *GetPortalThemeResponseDraftOption1 `json:"draft"`     // The theme being edited, or null.
+	HasDraft         bool                                `json:"hasDraft"`
+	PublishedAt      *string                             `json:"publishedAt"`
+	UpdatedAt        *string                             `json:"updatedAt"`
+	PreviewExpiresAt *string                             `json:"previewExpiresAt"`
+}
+
+// GetPortalThemeSchemaResponse: The theme as JSON Schema (draft 2020-12), for editors and validators.
+type GetPortalThemeSchemaResponse = map[string]any
+
+// GetPortalThemeCompiledResponse is generated from the OpenAPI component of the same name.
+type GetPortalThemeCompiledResponse struct {
+	Css  string         `json:"css"`
+	View map[string]any `json:"view"`
+}
+
+// GetPortalThemeVersionsResponseDataItem is generated from the OpenAPI component of the same name.
+type GetPortalThemeVersionsResponseDataItem struct {
+	ID          string  `json:"id"`
+	PublishedBy *string `json:"publishedBy"`
+	Note        *string `json:"note"`
+	CreatedAt   string  `json:"createdAt"`
+}
+
+// GetPortalThemeVersionsResponse is generated from the OpenAPI component of the same name.
+type GetPortalThemeVersionsResponse struct {
+	Data []GetPortalThemeVersionsResponseDataItem `json:"data"`
+}
+
+// PostPortalThemePreviewResponse is generated from the OpenAPI component of the same name.
+type PostPortalThemePreviewResponse struct {
+	Token     string  `json:"token"`
+	ExpiresAt string  `json:"expiresAt"`
+	URL       *string `json:"url"` // The preview on your verified portal domain, or null without one.
+}
+
+// PostPortalThemeImportBrandResponsePublishedPalette is generated from the OpenAPI component of the same name.
+type PostPortalThemeImportBrandResponsePublishedPalette struct {
+	Background       *string `json:"background,omitempty"`
+	Surface          *string `json:"surface,omitempty"`
+	SurfaceAlt       *string `json:"surfaceAlt,omitempty"`
+	Ink              *string `json:"ink,omitempty"`
+	Muted            *string `json:"muted,omitempty"`
+	Faint            *string `json:"faint,omitempty"`
+	Line             *string `json:"line,omitempty"`
+	LineStrong       *string `json:"lineStrong,omitempty"`
+	Primary          *string `json:"primary,omitempty"`
+	OnPrimary        *string `json:"onPrimary,omitempty"`
+	PrimarySoft      *string `json:"primarySoft,omitempty"`
+	HeaderBackground *string `json:"header_background,omitempty"`
+	HeaderPrimary    *string `json:"header_primary,omitempty"`
+	Sidebar          *string `json:"sidebar,omitempty"`
+	FooterBackground *string `json:"footer_background,omitempty"`
+	FooterPrimary    *string `json:"footer_primary,omitempty"`
+	Success          *string `json:"success,omitempty"`
+	Warning          *string `json:"warning,omitempty"`
+	Danger           *string `json:"danger,omitempty"`
+	Info             *string `json:"info,omitempty"`
+	Chart            *string `json:"chart,omitempty"`
+	Money            *string `json:"money,omitempty"`
+}
+
+// PostPortalThemeImportBrandResponsePublishedPaletteDark is generated from the OpenAPI component of the same name.
+type PostPortalThemeImportBrandResponsePublishedPaletteDark struct {
+	Background       *string `json:"background,omitempty"`
+	Surface          *string `json:"surface,omitempty"`
+	SurfaceAlt       *string `json:"surfaceAlt,omitempty"`
+	Ink              *string `json:"ink,omitempty"`
+	Muted            *string `json:"muted,omitempty"`
+	Faint            *string `json:"faint,omitempty"`
+	Line             *string `json:"line,omitempty"`
+	LineStrong       *string `json:"lineStrong,omitempty"`
+	Primary          *string `json:"primary,omitempty"`
+	OnPrimary        *string `json:"onPrimary,omitempty"`
+	PrimarySoft      *string `json:"primarySoft,omitempty"`
+	HeaderBackground *string `json:"header_background,omitempty"`
+	HeaderPrimary    *string `json:"header_primary,omitempty"`
+	Sidebar          *string `json:"sidebar,omitempty"`
+	FooterBackground *string `json:"footer_background,omitempty"`
+	FooterPrimary    *string `json:"footer_primary,omitempty"`
+	Success          *string `json:"success,omitempty"`
+	Warning          *string `json:"warning,omitempty"`
+	Danger           *string `json:"danger,omitempty"`
+	Info             *string `json:"info,omitempty"`
+	Chart            *string `json:"chart,omitempty"`
+	Money            *string `json:"money,omitempty"`
+}
+
+// PostPortalThemeImportBrandResponsePublishedFontsFacesItem is generated from the OpenAPI component of the same name.
+type PostPortalThemeImportBrandResponsePublishedFontsFacesItem struct {
+	Family  string          `json:"family"`
+	Src     string          `json:"src"`
+	Format  *string         `json:"format,omitempty"`
+	Weight  json.RawMessage `json:"weight,omitempty"`
+	Style   *string         `json:"style,omitempty"`
+	Display *string         `json:"display,omitempty"`
+}
+
+// PostPortalThemeImportBrandResponsePublishedFonts is generated from the OpenAPI component of the same name.
+type PostPortalThemeImportBrandResponsePublishedFonts struct {
+	Faces []PostPortalThemeImportBrandResponsePublishedFontsFacesItem `json:"faces,omitempty"`
+}
+
+// PostPortalThemeImportBrandResponsePublishedTypography is generated from the OpenAPI component of the same name.
+type PostPortalThemeImportBrandResponsePublishedTypography struct {
+	BaseSize         *float64 `json:"baseSize,omitempty"`
+	HeadingScale     *float64 `json:"headingScale,omitempty"`
+	HeadingWeight    *int64   `json:"headingWeight,omitempty"`
+	BodyWeight       *int64   `json:"bodyWeight,omitempty"`
+	HeadingTransform *string  `json:"headingTransform,omitempty"`
+	HeadingTracking  *float64 `json:"headingTracking,omitempty"`
+	BodyLeading      *float64 `json:"bodyLeading,omitempty"`
+	Numerals         *string  `json:"numerals,omitempty"`
+}
+
+// PostPortalThemeImportBrandResponsePublishedComponentsCards is generated from the OpenAPI component of the same name.
+type PostPortalThemeImportBrandResponsePublishedComponentsCards struct {
+	Border    *bool   `json:"border,omitempty"`
+	Elevation *string `json:"elevation,omitempty"`
+}
+
+// PostPortalThemeImportBrandResponsePublishedComponentsButtons is generated from the OpenAPI component of the same name.
+type PostPortalThemeImportBrandResponsePublishedComponentsButtons struct {
+	Radius *float64 `json:"radius,omitempty"`
+	Case   *string  `json:"case,omitempty"`
+	Weight *int64   `json:"weight,omitempty"`
+	Style  *string  `json:"style,omitempty"`
+}
+
+// PostPortalThemeImportBrandResponsePublishedComponentsInputs is generated from the OpenAPI component of the same name.
+type PostPortalThemeImportBrandResponsePublishedComponentsInputs struct {
+	Radius *float64 `json:"radius,omitempty"`
+	Style  *string  `json:"style,omitempty"`
+}
+
+// PostPortalThemeImportBrandResponsePublishedComponentsFocusRing is generated from the OpenAPI component of the same name.
+type PostPortalThemeImportBrandResponsePublishedComponentsFocusRing struct {
+	Color *string  `json:"color,omitempty"`
+	Width *float64 `json:"width,omitempty"`
+}
+
+// PostPortalThemeImportBrandResponsePublishedComponentsLinks is generated from the OpenAPI component of the same name.
+type PostPortalThemeImportBrandResponsePublishedComponentsLinks struct {
+	Underline *string `json:"underline,omitempty"`
+	Color     *string `json:"color,omitempty"`
+	ColorDark *string `json:"colorDark,omitempty"`
+}
+
+// PostPortalThemeImportBrandResponsePublishedComponents is generated from the OpenAPI component of the same name.
+type PostPortalThemeImportBrandResponsePublishedComponents struct {
+	Radius      *float64                                                        `json:"radius,omitempty"`
+	RadiusSmall *float64                                                        `json:"radiusSmall,omitempty"`
+	Shadow      *string                                                         `json:"shadow,omitempty"`
+	Cards       *PostPortalThemeImportBrandResponsePublishedComponentsCards     `json:"cards,omitempty"`
+	Buttons     *PostPortalThemeImportBrandResponsePublishedComponentsButtons   `json:"buttons,omitempty"`
+	Inputs      *PostPortalThemeImportBrandResponsePublishedComponentsInputs    `json:"inputs,omitempty"`
+	FocusRing   *PostPortalThemeImportBrandResponsePublishedComponentsFocusRing `json:"focusRing,omitempty"`
+	Links       *PostPortalThemeImportBrandResponsePublishedComponentsLinks     `json:"links,omitempty"`
+}
+
+// PostPortalThemeImportBrandResponsePublishedAnnouncementLink is generated from the OpenAPI component of the same name.
+type PostPortalThemeImportBrandResponsePublishedAnnouncementLink struct {
+	Label        string            `json:"label"`
+	Href         string            `json:"href"`
+	NewTab       *bool             `json:"newTab,omitempty"`
+	Translations map[string]string `json:"translations,omitempty"`
+}
+
+// PostPortalThemeImportBrandResponsePublishedAnnouncement is generated from the OpenAPI component of the same name.
+type PostPortalThemeImportBrandResponsePublishedAnnouncement struct {
+	Text        string                                                       `json:"text"`
+	Level       *string                                                      `json:"level,omitempty"`
+	Link        *PostPortalThemeImportBrandResponsePublishedAnnouncementLink `json:"link,omitempty"`
+	Dismissible *bool                                                        `json:"dismissible,omitempty"`
+	Background  *string                                                      `json:"background,omitempty"`
+	Ink         *string                                                      `json:"ink,omitempty"`
+	StartsAt    *string                                                      `json:"startsAt,omitempty"`
+	EndsAt      *string                                                      `json:"endsAt,omitempty"`
+}
+
+// PostPortalThemeImportBrandResponsePublishedChromeHeaderLinksItem is generated from the OpenAPI component of the same name.
+type PostPortalThemeImportBrandResponsePublishedChromeHeaderLinksItem struct {
+	Label        string            `json:"label"`
+	Href         string            `json:"href"`
+	NewTab       *bool             `json:"newTab,omitempty"`
+	Translations map[string]string `json:"translations,omitempty"`
+}
+
+// PostPortalThemeImportBrandResponsePublishedChromeHeaderCta is generated from the OpenAPI component of the same name.
+type PostPortalThemeImportBrandResponsePublishedChromeHeaderCta struct {
+	Label        string            `json:"label"`
+	Href         string            `json:"href"`
+	NewTab       *bool             `json:"newTab,omitempty"`
+	Translations map[string]string `json:"translations,omitempty"`
+}
+
+// PostPortalThemeImportBrandResponsePublishedChromeHeader is generated from the OpenAPI component of the same name.
+type PostPortalThemeImportBrandResponsePublishedChromeHeader struct {
+	Links              []PostPortalThemeImportBrandResponsePublishedChromeHeaderLinksItem `json:"links,omitempty"`
+	Cta                *PostPortalThemeImportBrandResponsePublishedChromeHeaderCta        `json:"cta,omitempty"`
+	Sticky             *bool                                                              `json:"sticky,omitempty"`
+	ShowLocaleSwitcher *bool                                                              `json:"showLocaleSwitcher,omitempty"`
+	ShowThemeToggle    *bool                                                              `json:"showThemeToggle,omitempty"`
+	BrandAlign         *string                                                            `json:"brandAlign,omitempty"`
+	Border             *bool                                                              `json:"border,omitempty"`
+}
+
+// PostPortalThemeImportBrandResponsePublishedChromeFooterColumnsItemLinksItem is generated from the OpenAPI component of the same name.
+type PostPortalThemeImportBrandResponsePublishedChromeFooterColumnsItemLinksItem struct {
+	Label        string            `json:"label"`
+	Href         string            `json:"href"`
+	NewTab       *bool             `json:"newTab,omitempty"`
+	Translations map[string]string `json:"translations,omitempty"`
+}
+
+// PostPortalThemeImportBrandResponsePublishedChromeFooterColumnsItem is generated from the OpenAPI component of the same name.
+type PostPortalThemeImportBrandResponsePublishedChromeFooterColumnsItem struct {
+	Heading string                                                                        `json:"heading"`
+	Links   []PostPortalThemeImportBrandResponsePublishedChromeFooterColumnsItemLinksItem `json:"links"`
+}
+
+// PostPortalThemeImportBrandResponsePublishedChromeFooterSocialItem is generated from the OpenAPI component of the same name.
+type PostPortalThemeImportBrandResponsePublishedChromeFooterSocialItem struct {
+	Platform string `json:"platform"`
+	Href     string `json:"href"`
+}
+
+// PostPortalThemeImportBrandResponsePublishedChromeFooter is generated from the OpenAPI component of the same name.
+type PostPortalThemeImportBrandResponsePublishedChromeFooter struct {
+	Columns       []PostPortalThemeImportBrandResponsePublishedChromeFooterColumnsItem `json:"columns,omitempty"`
+	Text          *string                                                              `json:"text,omitempty"`
+	Social        []PostPortalThemeImportBrandResponsePublishedChromeFooterSocialItem  `json:"social,omitempty"`
+	ShowPoweredBy *bool                                                                `json:"showPoweredBy,omitempty"`
+}
+
+// PostPortalThemeImportBrandResponsePublishedChrome is generated from the OpenAPI component of the same name.
+type PostPortalThemeImportBrandResponsePublishedChrome struct {
+	Header *PostPortalThemeImportBrandResponsePublishedChromeHeader `json:"header,omitempty"`
+	Footer *PostPortalThemeImportBrandResponsePublishedChromeFooter `json:"footer,omitempty"`
+}
+
+// PostPortalThemeImportBrandResponsePublishedPortalSectionsItem is generated from the OpenAPI component of the same name.
+type PostPortalThemeImportBrandResponsePublishedPortalSectionsItem struct {
+	ID          string  `json:"id"`
+	Enabled     *bool   `json:"enabled,omitempty"`
+	Title       *string `json:"title,omitempty"`
+	Description *string `json:"description,omitempty"`
+}
+
+// PostPortalThemeImportBrandResponsePublishedPortalWelcomeCta is generated from the OpenAPI component of the same name.
+type PostPortalThemeImportBrandResponsePublishedPortalWelcomeCta struct {
+	Label        string            `json:"label"`
+	Href         string            `json:"href"`
+	NewTab       *bool             `json:"newTab,omitempty"`
+	Translations map[string]string `json:"translations,omitempty"`
+}
+
+// PostPortalThemeImportBrandResponsePublishedPortalWelcome is generated from the OpenAPI component of the same name.
+type PostPortalThemeImportBrandResponsePublishedPortalWelcome struct {
+	Title string                                                       `json:"title"`
+	Body  *string                                                      `json:"body,omitempty"`
+	Image *string                                                      `json:"image,omitempty"`
+	Cta   *PostPortalThemeImportBrandResponsePublishedPortalWelcomeCta `json:"cta,omitempty"`
+}
+
+// PostPortalThemeImportBrandResponsePublishedPortalNavigation is generated from the OpenAPI component of the same name.
+type PostPortalThemeImportBrandResponsePublishedPortalNavigation struct {
+	Primary []string          `json:"primary,omitempty"`
+	Hidden  []string          `json:"hidden,omitempty"`
+	Labels  map[string]string `json:"labels,omitempty"`
+	Style   *string           `json:"style,omitempty"`
+}
+
+// PostPortalThemeImportBrandResponsePublishedPortalSignIn is generated from the OpenAPI component of the same name.
+type PostPortalThemeImportBrandResponsePublishedPortalSignIn struct {
+	Title    *string `json:"title,omitempty"`
+	Subtitle *string `json:"subtitle,omitempty"`
+	Image    *string `json:"image,omitempty"`
+	Layout   *string `json:"layout,omitempty"`
+	Footnote *string `json:"footnote,omitempty"`
+}
+
+// PostPortalThemeImportBrandResponsePublishedPortalMoney is generated from the OpenAPI component of the same name.
+type PostPortalThemeImportBrandResponsePublishedPortalMoney struct {
+	ShowCurrencyCode *bool `json:"showCurrencyCode,omitempty"`
+	Compact          *bool `json:"compact,omitempty"`
+}
+
+// PostPortalThemeImportBrandResponsePublishedPortal is generated from the OpenAPI component of the same name.
+type PostPortalThemeImportBrandResponsePublishedPortal struct {
+	Sections   []PostPortalThemeImportBrandResponsePublishedPortalSectionsItem `json:"sections,omitempty"`
+	Welcome    *PostPortalThemeImportBrandResponsePublishedPortalWelcome       `json:"welcome,omitempty"`
+	Navigation *PostPortalThemeImportBrandResponsePublishedPortalNavigation    `json:"navigation,omitempty"`
+	SignIn     *PostPortalThemeImportBrandResponsePublishedPortalSignIn        `json:"signIn,omitempty"`
+	Money      *PostPortalThemeImportBrandResponsePublishedPortalMoney         `json:"money,omitempty"`
+}
+
+// PostPortalThemeImportBrandResponsePublishedSettingsSchemaItem is generated from the OpenAPI component of the same name.
+type PostPortalThemeImportBrandResponsePublishedSettingsSchemaItem struct {
+	Key     string          `json:"key"`
+	Type    string          `json:"type"`
+	Label   *string         `json:"label,omitempty"`
+	Default json.RawMessage `json:"default,omitempty"`
+	Options []string        `json:"options,omitempty"`
+}
+
+// PostPortalThemeImportBrandResponsePublishedCssSnippetsItem is generated from the OpenAPI component of the same name.
+type PostPortalThemeImportBrandResponsePublishedCssSnippetsItem struct {
+	Name    string `json:"name"`
+	Css     string `json:"css"`
+	Enabled *bool  `json:"enabled,omitempty"`
+}
+
+// PostPortalThemeImportBrandResponsePublishedMobile is generated from the OpenAPI component of the same name.
+type PostPortalThemeImportBrandResponsePublishedMobile struct {
+	FontScale    *float64 `json:"fontScale,omitempty"`
+	Density      *string  `json:"density,omitempty"`
+	LogoURL      *string  `json:"logoUrl,omitempty"`
+	HideSections []string `json:"hideSections,omitempty"`
+	Css          *string  `json:"css,omitempty"`
+}
+
+// PostPortalThemeImportBrandResponsePublishedEmbed is generated from the OpenAPI component of the same name.
+type PostPortalThemeImportBrandResponsePublishedEmbed struct {
+	Enabled        *bool    `json:"enabled,omitempty"`
+	AllowedOrigins []string `json:"allowedOrigins,omitempty"`
+	HideChrome     *bool    `json:"hideChrome,omitempty"`
+}
+
+// PostPortalThemeImportBrandResponsePublished: What partners see now.
+type PostPortalThemeImportBrandResponsePublished struct {
+	PrimaryColor      *string                                                         `json:"primaryColor,omitempty"`
+	PrimaryColorDark  *string                                                         `json:"primaryColorDark,omitempty"`
+	AccentColor       *string                                                         `json:"accentColor,omitempty"`
+	Palette           *PostPortalThemeImportBrandResponsePublishedPalette             `json:"palette,omitempty"`
+	PaletteDark       *PostPortalThemeImportBrandResponsePublishedPaletteDark         `json:"paletteDark,omitempty"`
+	ColorScheme       *string                                                         `json:"colorScheme,omitempty"`
+	ColorSchemeStrict *bool                                                           `json:"colorSchemeStrict,omitempty"`
+	ContentWidth      *string                                                         `json:"contentWidth,omitempty"`
+	Density           *string                                                         `json:"density,omitempty"`
+	Font              *string                                                         `json:"font,omitempty"`
+	CustomFontURL     *string                                                         `json:"customFontUrl,omitempty"`
+	CustomFontFamily  *string                                                         `json:"customFontFamily,omitempty"`
+	HeadingFontFamily *string                                                         `json:"headingFontFamily,omitempty"`
+	BodyFontFamily    *string                                                         `json:"bodyFontFamily,omitempty"`
+	MoneyFontFamily   *string                                                         `json:"moneyFontFamily,omitempty"`
+	MonoFontFamily    *string                                                         `json:"monoFontFamily,omitempty"`
+	Fonts             *PostPortalThemeImportBrandResponsePublishedFonts               `json:"fonts,omitempty"`
+	Typography        *PostPortalThemeImportBrandResponsePublishedTypography          `json:"typography,omitempty"`
+	BrandName         json.RawMessage                                                 `json:"brandName,omitempty"`
+	LogoURL           *string                                                         `json:"logoUrl,omitempty"`
+	LogoURLLight      *string                                                         `json:"logoUrlLight,omitempty"`
+	LogoURLDark       *string                                                         `json:"logoUrlDark,omitempty"`
+	LogoMark          *string                                                         `json:"logoMark,omitempty"`
+	LogoIncludesName  *bool                                                           `json:"logoIncludesName,omitempty"`
+	LogoDarkMode      *string                                                         `json:"logoDarkMode,omitempty"`
+	LogoHeight        *float64                                                        `json:"logoHeight,omitempty"`
+	FaviconURL        *string                                                         `json:"faviconUrl,omitempty"`
+	PageTitle         *string                                                         `json:"pageTitle,omitempty"`
+	Components        *PostPortalThemeImportBrandResponsePublishedComponents          `json:"components,omitempty"`
+	Announcement      *PostPortalThemeImportBrandResponsePublishedAnnouncement        `json:"announcement,omitempty"`
+	Chrome            *PostPortalThemeImportBrandResponsePublishedChrome              `json:"chrome,omitempty"`
+	Portal            *PostPortalThemeImportBrandResponsePublishedPortal              `json:"portal,omitempty"`
+	StringOverrides   map[string]map[string]string                                    `json:"stringOverrides,omitempty"`
+	SettingsSchema    []PostPortalThemeImportBrandResponsePublishedSettingsSchemaItem `json:"settingsSchema,omitempty"`
+	Settings          map[string]json.RawMessage                                      `json:"settings,omitempty"`
+	CustomCss         *string                                                         `json:"customCss,omitempty"`
+	CssSnippets       []PostPortalThemeImportBrandResponsePublishedCssSnippetsItem    `json:"cssSnippets,omitempty"`
+	Mobile            *PostPortalThemeImportBrandResponsePublishedMobile              `json:"mobile,omitempty"`
+	Embed             *PostPortalThemeImportBrandResponsePublishedEmbed               `json:"embed,omitempty"`
+}
+
+// PostPortalThemeImportBrandResponseDraftOption1Palette is generated from the OpenAPI component of the same name.
+type PostPortalThemeImportBrandResponseDraftOption1Palette struct {
+	Background       *string `json:"background,omitempty"`
+	Surface          *string `json:"surface,omitempty"`
+	SurfaceAlt       *string `json:"surfaceAlt,omitempty"`
+	Ink              *string `json:"ink,omitempty"`
+	Muted            *string `json:"muted,omitempty"`
+	Faint            *string `json:"faint,omitempty"`
+	Line             *string `json:"line,omitempty"`
+	LineStrong       *string `json:"lineStrong,omitempty"`
+	Primary          *string `json:"primary,omitempty"`
+	OnPrimary        *string `json:"onPrimary,omitempty"`
+	PrimarySoft      *string `json:"primarySoft,omitempty"`
+	HeaderBackground *string `json:"header_background,omitempty"`
+	HeaderPrimary    *string `json:"header_primary,omitempty"`
+	Sidebar          *string `json:"sidebar,omitempty"`
+	FooterBackground *string `json:"footer_background,omitempty"`
+	FooterPrimary    *string `json:"footer_primary,omitempty"`
+	Success          *string `json:"success,omitempty"`
+	Warning          *string `json:"warning,omitempty"`
+	Danger           *string `json:"danger,omitempty"`
+	Info             *string `json:"info,omitempty"`
+	Chart            *string `json:"chart,omitempty"`
+	Money            *string `json:"money,omitempty"`
+}
+
+// PostPortalThemeImportBrandResponseDraftOption1PaletteDark is generated from the OpenAPI component of the same name.
+type PostPortalThemeImportBrandResponseDraftOption1PaletteDark struct {
+	Background       *string `json:"background,omitempty"`
+	Surface          *string `json:"surface,omitempty"`
+	SurfaceAlt       *string `json:"surfaceAlt,omitempty"`
+	Ink              *string `json:"ink,omitempty"`
+	Muted            *string `json:"muted,omitempty"`
+	Faint            *string `json:"faint,omitempty"`
+	Line             *string `json:"line,omitempty"`
+	LineStrong       *string `json:"lineStrong,omitempty"`
+	Primary          *string `json:"primary,omitempty"`
+	OnPrimary        *string `json:"onPrimary,omitempty"`
+	PrimarySoft      *string `json:"primarySoft,omitempty"`
+	HeaderBackground *string `json:"header_background,omitempty"`
+	HeaderPrimary    *string `json:"header_primary,omitempty"`
+	Sidebar          *string `json:"sidebar,omitempty"`
+	FooterBackground *string `json:"footer_background,omitempty"`
+	FooterPrimary    *string `json:"footer_primary,omitempty"`
+	Success          *string `json:"success,omitempty"`
+	Warning          *string `json:"warning,omitempty"`
+	Danger           *string `json:"danger,omitempty"`
+	Info             *string `json:"info,omitempty"`
+	Chart            *string `json:"chart,omitempty"`
+	Money            *string `json:"money,omitempty"`
+}
+
+// PostPortalThemeImportBrandResponseDraftOption1FontsFacesItem is generated from the OpenAPI component of the same name.
+type PostPortalThemeImportBrandResponseDraftOption1FontsFacesItem struct {
+	Family  string          `json:"family"`
+	Src     string          `json:"src"`
+	Format  *string         `json:"format,omitempty"`
+	Weight  json.RawMessage `json:"weight,omitempty"`
+	Style   *string         `json:"style,omitempty"`
+	Display *string         `json:"display,omitempty"`
+}
+
+// PostPortalThemeImportBrandResponseDraftOption1Fonts is generated from the OpenAPI component of the same name.
+type PostPortalThemeImportBrandResponseDraftOption1Fonts struct {
+	Faces []PostPortalThemeImportBrandResponseDraftOption1FontsFacesItem `json:"faces,omitempty"`
+}
+
+// PostPortalThemeImportBrandResponseDraftOption1Typography is generated from the OpenAPI component of the same name.
+type PostPortalThemeImportBrandResponseDraftOption1Typography struct {
+	BaseSize         *float64 `json:"baseSize,omitempty"`
+	HeadingScale     *float64 `json:"headingScale,omitempty"`
+	HeadingWeight    *int64   `json:"headingWeight,omitempty"`
+	BodyWeight       *int64   `json:"bodyWeight,omitempty"`
+	HeadingTransform *string  `json:"headingTransform,omitempty"`
+	HeadingTracking  *float64 `json:"headingTracking,omitempty"`
+	BodyLeading      *float64 `json:"bodyLeading,omitempty"`
+	Numerals         *string  `json:"numerals,omitempty"`
+}
+
+// PostPortalThemeImportBrandResponseDraftOption1ComponentsCards is generated from the OpenAPI component of the same name.
+type PostPortalThemeImportBrandResponseDraftOption1ComponentsCards struct {
+	Border    *bool   `json:"border,omitempty"`
+	Elevation *string `json:"elevation,omitempty"`
+}
+
+// PostPortalThemeImportBrandResponseDraftOption1ComponentsButtons is generated from the OpenAPI component of the same name.
+type PostPortalThemeImportBrandResponseDraftOption1ComponentsButtons struct {
+	Radius *float64 `json:"radius,omitempty"`
+	Case   *string  `json:"case,omitempty"`
+	Weight *int64   `json:"weight,omitempty"`
+	Style  *string  `json:"style,omitempty"`
+}
+
+// PostPortalThemeImportBrandResponseDraftOption1ComponentsInputs is generated from the OpenAPI component of the same name.
+type PostPortalThemeImportBrandResponseDraftOption1ComponentsInputs struct {
+	Radius *float64 `json:"radius,omitempty"`
+	Style  *string  `json:"style,omitempty"`
+}
+
+// PostPortalThemeImportBrandResponseDraftOption1ComponentsFocusRing is generated from the OpenAPI component of the same name.
+type PostPortalThemeImportBrandResponseDraftOption1ComponentsFocusRing struct {
+	Color *string  `json:"color,omitempty"`
+	Width *float64 `json:"width,omitempty"`
+}
+
+// PostPortalThemeImportBrandResponseDraftOption1ComponentsLinks is generated from the OpenAPI component of the same name.
+type PostPortalThemeImportBrandResponseDraftOption1ComponentsLinks struct {
+	Underline *string `json:"underline,omitempty"`
+	Color     *string `json:"color,omitempty"`
+	ColorDark *string `json:"colorDark,omitempty"`
+}
+
+// PostPortalThemeImportBrandResponseDraftOption1Components is generated from the OpenAPI component of the same name.
+type PostPortalThemeImportBrandResponseDraftOption1Components struct {
+	Radius      *float64                                                           `json:"radius,omitempty"`
+	RadiusSmall *float64                                                           `json:"radiusSmall,omitempty"`
+	Shadow      *string                                                            `json:"shadow,omitempty"`
+	Cards       *PostPortalThemeImportBrandResponseDraftOption1ComponentsCards     `json:"cards,omitempty"`
+	Buttons     *PostPortalThemeImportBrandResponseDraftOption1ComponentsButtons   `json:"buttons,omitempty"`
+	Inputs      *PostPortalThemeImportBrandResponseDraftOption1ComponentsInputs    `json:"inputs,omitempty"`
+	FocusRing   *PostPortalThemeImportBrandResponseDraftOption1ComponentsFocusRing `json:"focusRing,omitempty"`
+	Links       *PostPortalThemeImportBrandResponseDraftOption1ComponentsLinks     `json:"links,omitempty"`
+}
+
+// PostPortalThemeImportBrandResponseDraftOption1AnnouncementLink is generated from the OpenAPI component of the same name.
+type PostPortalThemeImportBrandResponseDraftOption1AnnouncementLink struct {
+	Label        string            `json:"label"`
+	Href         string            `json:"href"`
+	NewTab       *bool             `json:"newTab,omitempty"`
+	Translations map[string]string `json:"translations,omitempty"`
+}
+
+// PostPortalThemeImportBrandResponseDraftOption1Announcement is generated from the OpenAPI component of the same name.
+type PostPortalThemeImportBrandResponseDraftOption1Announcement struct {
+	Text        string                                                          `json:"text"`
+	Level       *string                                                         `json:"level,omitempty"`
+	Link        *PostPortalThemeImportBrandResponseDraftOption1AnnouncementLink `json:"link,omitempty"`
+	Dismissible *bool                                                           `json:"dismissible,omitempty"`
+	Background  *string                                                         `json:"background,omitempty"`
+	Ink         *string                                                         `json:"ink,omitempty"`
+	StartsAt    *string                                                         `json:"startsAt,omitempty"`
+	EndsAt      *string                                                         `json:"endsAt,omitempty"`
+}
+
+// PostPortalThemeImportBrandResponseDraftOption1ChromeHeaderLinksItem is generated from the OpenAPI component of the same name.
+type PostPortalThemeImportBrandResponseDraftOption1ChromeHeaderLinksItem struct {
+	Label        string            `json:"label"`
+	Href         string            `json:"href"`
+	NewTab       *bool             `json:"newTab,omitempty"`
+	Translations map[string]string `json:"translations,omitempty"`
+}
+
+// PostPortalThemeImportBrandResponseDraftOption1ChromeHeaderCta is generated from the OpenAPI component of the same name.
+type PostPortalThemeImportBrandResponseDraftOption1ChromeHeaderCta struct {
+	Label        string            `json:"label"`
+	Href         string            `json:"href"`
+	NewTab       *bool             `json:"newTab,omitempty"`
+	Translations map[string]string `json:"translations,omitempty"`
+}
+
+// PostPortalThemeImportBrandResponseDraftOption1ChromeHeader is generated from the OpenAPI component of the same name.
+type PostPortalThemeImportBrandResponseDraftOption1ChromeHeader struct {
+	Links              []PostPortalThemeImportBrandResponseDraftOption1ChromeHeaderLinksItem `json:"links,omitempty"`
+	Cta                *PostPortalThemeImportBrandResponseDraftOption1ChromeHeaderCta        `json:"cta,omitempty"`
+	Sticky             *bool                                                                 `json:"sticky,omitempty"`
+	ShowLocaleSwitcher *bool                                                                 `json:"showLocaleSwitcher,omitempty"`
+	ShowThemeToggle    *bool                                                                 `json:"showThemeToggle,omitempty"`
+	BrandAlign         *string                                                               `json:"brandAlign,omitempty"`
+	Border             *bool                                                                 `json:"border,omitempty"`
+}
+
+// PostPortalThemeImportBrandResponseDraftOption1ChromeFooterColumnsItemLinksItem is generated from the OpenAPI component of the same name.
+type PostPortalThemeImportBrandResponseDraftOption1ChromeFooterColumnsItemLinksItem struct {
+	Label        string            `json:"label"`
+	Href         string            `json:"href"`
+	NewTab       *bool             `json:"newTab,omitempty"`
+	Translations map[string]string `json:"translations,omitempty"`
+}
+
+// PostPortalThemeImportBrandResponseDraftOption1ChromeFooterColumnsItem is generated from the OpenAPI component of the same name.
+type PostPortalThemeImportBrandResponseDraftOption1ChromeFooterColumnsItem struct {
+	Heading string                                                                           `json:"heading"`
+	Links   []PostPortalThemeImportBrandResponseDraftOption1ChromeFooterColumnsItemLinksItem `json:"links"`
+}
+
+// PostPortalThemeImportBrandResponseDraftOption1ChromeFooterSocialItem is generated from the OpenAPI component of the same name.
+type PostPortalThemeImportBrandResponseDraftOption1ChromeFooterSocialItem struct {
+	Platform string `json:"platform"`
+	Href     string `json:"href"`
+}
+
+// PostPortalThemeImportBrandResponseDraftOption1ChromeFooter is generated from the OpenAPI component of the same name.
+type PostPortalThemeImportBrandResponseDraftOption1ChromeFooter struct {
+	Columns       []PostPortalThemeImportBrandResponseDraftOption1ChromeFooterColumnsItem `json:"columns,omitempty"`
+	Text          *string                                                                 `json:"text,omitempty"`
+	Social        []PostPortalThemeImportBrandResponseDraftOption1ChromeFooterSocialItem  `json:"social,omitempty"`
+	ShowPoweredBy *bool                                                                   `json:"showPoweredBy,omitempty"`
+}
+
+// PostPortalThemeImportBrandResponseDraftOption1Chrome is generated from the OpenAPI component of the same name.
+type PostPortalThemeImportBrandResponseDraftOption1Chrome struct {
+	Header *PostPortalThemeImportBrandResponseDraftOption1ChromeHeader `json:"header,omitempty"`
+	Footer *PostPortalThemeImportBrandResponseDraftOption1ChromeFooter `json:"footer,omitempty"`
+}
+
+// PostPortalThemeImportBrandResponseDraftOption1PortalSectionsItem is generated from the OpenAPI component of the same name.
+type PostPortalThemeImportBrandResponseDraftOption1PortalSectionsItem struct {
+	ID          string  `json:"id"`
+	Enabled     *bool   `json:"enabled,omitempty"`
+	Title       *string `json:"title,omitempty"`
+	Description *string `json:"description,omitempty"`
+}
+
+// PostPortalThemeImportBrandResponseDraftOption1PortalWelcomeCta is generated from the OpenAPI component of the same name.
+type PostPortalThemeImportBrandResponseDraftOption1PortalWelcomeCta struct {
+	Label        string            `json:"label"`
+	Href         string            `json:"href"`
+	NewTab       *bool             `json:"newTab,omitempty"`
+	Translations map[string]string `json:"translations,omitempty"`
+}
+
+// PostPortalThemeImportBrandResponseDraftOption1PortalWelcome is generated from the OpenAPI component of the same name.
+type PostPortalThemeImportBrandResponseDraftOption1PortalWelcome struct {
+	Title string                                                          `json:"title"`
+	Body  *string                                                         `json:"body,omitempty"`
+	Image *string                                                         `json:"image,omitempty"`
+	Cta   *PostPortalThemeImportBrandResponseDraftOption1PortalWelcomeCta `json:"cta,omitempty"`
+}
+
+// PostPortalThemeImportBrandResponseDraftOption1PortalNavigation is generated from the OpenAPI component of the same name.
+type PostPortalThemeImportBrandResponseDraftOption1PortalNavigation struct {
+	Primary []string          `json:"primary,omitempty"`
+	Hidden  []string          `json:"hidden,omitempty"`
+	Labels  map[string]string `json:"labels,omitempty"`
+	Style   *string           `json:"style,omitempty"`
+}
+
+// PostPortalThemeImportBrandResponseDraftOption1PortalSignIn is generated from the OpenAPI component of the same name.
+type PostPortalThemeImportBrandResponseDraftOption1PortalSignIn struct {
+	Title    *string `json:"title,omitempty"`
+	Subtitle *string `json:"subtitle,omitempty"`
+	Image    *string `json:"image,omitempty"`
+	Layout   *string `json:"layout,omitempty"`
+	Footnote *string `json:"footnote,omitempty"`
+}
+
+// PostPortalThemeImportBrandResponseDraftOption1PortalMoney is generated from the OpenAPI component of the same name.
+type PostPortalThemeImportBrandResponseDraftOption1PortalMoney struct {
+	ShowCurrencyCode *bool `json:"showCurrencyCode,omitempty"`
+	Compact          *bool `json:"compact,omitempty"`
+}
+
+// PostPortalThemeImportBrandResponseDraftOption1Portal is generated from the OpenAPI component of the same name.
+type PostPortalThemeImportBrandResponseDraftOption1Portal struct {
+	Sections   []PostPortalThemeImportBrandResponseDraftOption1PortalSectionsItem `json:"sections,omitempty"`
+	Welcome    *PostPortalThemeImportBrandResponseDraftOption1PortalWelcome       `json:"welcome,omitempty"`
+	Navigation *PostPortalThemeImportBrandResponseDraftOption1PortalNavigation    `json:"navigation,omitempty"`
+	SignIn     *PostPortalThemeImportBrandResponseDraftOption1PortalSignIn        `json:"signIn,omitempty"`
+	Money      *PostPortalThemeImportBrandResponseDraftOption1PortalMoney         `json:"money,omitempty"`
+}
+
+// PostPortalThemeImportBrandResponseDraftOption1SettingsSchemaItem is generated from the OpenAPI component of the same name.
+type PostPortalThemeImportBrandResponseDraftOption1SettingsSchemaItem struct {
+	Key     string          `json:"key"`
+	Type    string          `json:"type"`
+	Label   *string         `json:"label,omitempty"`
+	Default json.RawMessage `json:"default,omitempty"`
+	Options []string        `json:"options,omitempty"`
+}
+
+// PostPortalThemeImportBrandResponseDraftOption1CssSnippetsItem is generated from the OpenAPI component of the same name.
+type PostPortalThemeImportBrandResponseDraftOption1CssSnippetsItem struct {
+	Name    string `json:"name"`
+	Css     string `json:"css"`
+	Enabled *bool  `json:"enabled,omitempty"`
+}
+
+// PostPortalThemeImportBrandResponseDraftOption1Mobile is generated from the OpenAPI component of the same name.
+type PostPortalThemeImportBrandResponseDraftOption1Mobile struct {
+	FontScale    *float64 `json:"fontScale,omitempty"`
+	Density      *string  `json:"density,omitempty"`
+	LogoURL      *string  `json:"logoUrl,omitempty"`
+	HideSections []string `json:"hideSections,omitempty"`
+	Css          *string  `json:"css,omitempty"`
+}
+
+// PostPortalThemeImportBrandResponseDraftOption1Embed is generated from the OpenAPI component of the same name.
+type PostPortalThemeImportBrandResponseDraftOption1Embed struct {
+	Enabled        *bool    `json:"enabled,omitempty"`
+	AllowedOrigins []string `json:"allowedOrigins,omitempty"`
+	HideChrome     *bool    `json:"hideChrome,omitempty"`
+}
+
+// PostPortalThemeImportBrandResponseDraftOption1 is generated from the OpenAPI component of the same name.
+type PostPortalThemeImportBrandResponseDraftOption1 struct {
+	PrimaryColor      *string                                                            `json:"primaryColor,omitempty"`
+	PrimaryColorDark  *string                                                            `json:"primaryColorDark,omitempty"`
+	AccentColor       *string                                                            `json:"accentColor,omitempty"`
+	Palette           *PostPortalThemeImportBrandResponseDraftOption1Palette             `json:"palette,omitempty"`
+	PaletteDark       *PostPortalThemeImportBrandResponseDraftOption1PaletteDark         `json:"paletteDark,omitempty"`
+	ColorScheme       *string                                                            `json:"colorScheme,omitempty"`
+	ColorSchemeStrict *bool                                                              `json:"colorSchemeStrict,omitempty"`
+	ContentWidth      *string                                                            `json:"contentWidth,omitempty"`
+	Density           *string                                                            `json:"density,omitempty"`
+	Font              *string                                                            `json:"font,omitempty"`
+	CustomFontURL     *string                                                            `json:"customFontUrl,omitempty"`
+	CustomFontFamily  *string                                                            `json:"customFontFamily,omitempty"`
+	HeadingFontFamily *string                                                            `json:"headingFontFamily,omitempty"`
+	BodyFontFamily    *string                                                            `json:"bodyFontFamily,omitempty"`
+	MoneyFontFamily   *string                                                            `json:"moneyFontFamily,omitempty"`
+	MonoFontFamily    *string                                                            `json:"monoFontFamily,omitempty"`
+	Fonts             *PostPortalThemeImportBrandResponseDraftOption1Fonts               `json:"fonts,omitempty"`
+	Typography        *PostPortalThemeImportBrandResponseDraftOption1Typography          `json:"typography,omitempty"`
+	BrandName         json.RawMessage                                                    `json:"brandName,omitempty"`
+	LogoURL           *string                                                            `json:"logoUrl,omitempty"`
+	LogoURLLight      *string                                                            `json:"logoUrlLight,omitempty"`
+	LogoURLDark       *string                                                            `json:"logoUrlDark,omitempty"`
+	LogoMark          *string                                                            `json:"logoMark,omitempty"`
+	LogoIncludesName  *bool                                                              `json:"logoIncludesName,omitempty"`
+	LogoDarkMode      *string                                                            `json:"logoDarkMode,omitempty"`
+	LogoHeight        *float64                                                           `json:"logoHeight,omitempty"`
+	FaviconURL        *string                                                            `json:"faviconUrl,omitempty"`
+	PageTitle         *string                                                            `json:"pageTitle,omitempty"`
+	Components        *PostPortalThemeImportBrandResponseDraftOption1Components          `json:"components,omitempty"`
+	Announcement      *PostPortalThemeImportBrandResponseDraftOption1Announcement        `json:"announcement,omitempty"`
+	Chrome            *PostPortalThemeImportBrandResponseDraftOption1Chrome              `json:"chrome,omitempty"`
+	Portal            *PostPortalThemeImportBrandResponseDraftOption1Portal              `json:"portal,omitempty"`
+	StringOverrides   map[string]map[string]string                                       `json:"stringOverrides,omitempty"`
+	SettingsSchema    []PostPortalThemeImportBrandResponseDraftOption1SettingsSchemaItem `json:"settingsSchema,omitempty"`
+	Settings          map[string]json.RawMessage                                         `json:"settings,omitempty"`
+	CustomCss         *string                                                            `json:"customCss,omitempty"`
+	CssSnippets       []PostPortalThemeImportBrandResponseDraftOption1CssSnippetsItem    `json:"cssSnippets,omitempty"`
+	Mobile            *PostPortalThemeImportBrandResponseDraftOption1Mobile              `json:"mobile,omitempty"`
+	Embed             *PostPortalThemeImportBrandResponseDraftOption1Embed               `json:"embed,omitempty"`
+}
+
+// PostPortalThemeImportBrandResponse is generated from the OpenAPI component of the same name.
+type PostPortalThemeImportBrandResponse struct {
+	Published        PostPortalThemeImportBrandResponsePublished     `json:"published"` // What partners see now.
+	Draft            *PostPortalThemeImportBrandResponseDraftOption1 `json:"draft"`     // The theme being edited, or null.
+	HasDraft         bool                                            `json:"hasDraft"`
+	PublishedAt      *string                                         `json:"publishedAt"`
+	UpdatedAt        *string                                         `json:"updatedAt"`
+	PreviewExpiresAt *string                                         `json:"previewExpiresAt"`
+	Applied          []string                                        `json:"applied"` // The design tokens that mapped onto the theme.
+}
+
+// GetStripeCreditsConnectionResponse is generated from the OpenAPI component of the same name.
+type GetStripeCreditsConnectionResponse struct {
+	Connected   bool    `json:"connected"`
+	Source      *string `json:"source"` // Which stored key the rail uses: its own, or your Stripe payout connection.
+	ConnectedAt *string `json:"connectedAt"`
+}
+
+// GetProgramsIdStripeCreditsResponse is generated from the OpenAPI component of the same name.
+type GetProgramsIdStripeCreditsResponse struct {
+	ProgramID      string  `json:"programId"`
+	Enabled        bool    `json:"enabled"`
+	ReferrerMatch  string  `json:"referrerMatch"`
+	MetadataKey    *string `json:"metadataKey"`
+	RefereeRewards bool    `json:"refereeRewards"`
+	KeyConnected   bool    `json:"keyConnected"`
+}
+
+// GetProgramsIdStripeCreditsLogResponseDataItem is generated from the OpenAPI component of the same name.
+type GetProgramsIdStripeCreditsLogResponseDataItem struct {
+	ID                         string  `json:"id"`
+	ProgramID                  string  `json:"programId"`
+	SourceEventID              string  `json:"sourceEventId"` // The settled commission line, the reversal, or the referee reward this applies.
+	Kind                       string  `json:"kind"`
+	CommissionID               *string `json:"commissionId"`
+	PartnerID                  *string `json:"partnerId"`
+	CustomerRef                *string `json:"customerRef"`
+	AmountMinor                int64   `json:"amountMinor"` // Positive, integer minor units. Credits are sent to Stripe as a negative amount, debits as positive.
+	Currency                   string  `json:"currency"`
+	StripeCustomerID           *string `json:"stripeCustomerId"`
+	Status                     string  `json:"status"`
+	Attempts                   int64   `json:"attempts"`
+	StripeBalanceTransactionID *string `json:"stripeBalanceTransactionId"`
+	LastError                  *string `json:"lastError"`
+	CreatedAt                  string  `json:"createdAt"`
+	UpdatedAt                  string  `json:"updatedAt"`
+}
+
+// GetProgramsIdStripeCreditsLogResponse is generated from the OpenAPI component of the same name.
+type GetProgramsIdStripeCreditsLogResponse struct {
+	Object     string                                          `json:"object"`
+	Data       []GetProgramsIdStripeCreditsLogResponseDataItem `json:"data"`
+	HasMore    bool                                            `json:"has_more"`
+	NextCursor *string                                         `json:"next_cursor"`
+}
+
 // PostWebhooksBillingConnectionIdResponseResultsItem is generated from the OpenAPI component of the same name.
 type PostWebhooksBillingConnectionIdResponseResultsItem struct {
 	Duplicate      bool    `json:"duplicate"`
@@ -6216,28 +7962,61 @@ type PostWebhooksStripeBillingResponse struct {
 	PlanStatus *string `json:"planStatus,omitempty"`
 }
 
+// PostWebhooksCookiemunchConsentResponse is generated from the OpenAPI component of the same name.
+type PostWebhooksCookiemunchConsentResponse struct {
+	Received  bool    `json:"received"`
+	Duplicate *bool   `json:"duplicate,omitempty"` // This event id was already kept.
+	Ignored   *bool   `json:"ignored,omitempty"`
+	Reason    *string `json:"reason,omitempty"`
+}
+
 // PostApiPrivacyLookupResponse is generated from the OpenAPI component of the same name.
 type PostApiPrivacyLookupResponse struct {
 	SubjectID *string `json:"subjectId"`
 	Status    string  `json:"status"`
 }
 
-// PostApiPrivacyRequestsResponse is generated from the OpenAPI component of the same name.
-type PostApiPrivacyRequestsResponse struct {
+// PostApiPrivacyRequestsResponseValueOption1 is generated from the OpenAPI component of the same name.
+type PostApiPrivacyRequestsResponseValueOption1 struct {
 	ID     string  `json:"id"`
 	Status string  `json:"status"`
 	Eta    *string `json:"eta,omitempty"`
 	Detail *string `json:"detail,omitempty"`
 }
 
-// GetApiPrivacyRequestsIdResponse is generated from the OpenAPI component of the same name.
-type GetApiPrivacyRequestsIdResponse struct {
+// PostApiPrivacyRequestsResponse is generated from the OpenAPI component of the same name.
+type PostApiPrivacyRequestsResponse = json.RawMessage
+
+// GetApiPrivacyRequestsIdResponseValueOption1 is generated from the OpenAPI component of the same name.
+type GetApiPrivacyRequestsIdResponseValueOption1 struct {
 	ID     string                  `json:"id"`
-	Type   string                  `json:"type"`
 	Status string                  `json:"status"`
 	Eta    *string                 `json:"eta,omitempty"`
 	Detail *string                 `json:"detail,omitempty"`
+	Type   string                  `json:"type"`
 	Result *GetOpenapiJsonResponse `json:"result,omitempty"`
+}
+
+// GetApiPrivacyRequestsIdResponse is generated from the OpenAPI component of the same name.
+type GetApiPrivacyRequestsIdResponse = json.RawMessage
+
+// PostApiPrivacyRequestsIdCancelResponseRetentionItem is generated from the OpenAPI component of the same name.
+type PostApiPrivacyRequestsIdCancelResponseRetentionItem struct {
+	Category string  `json:"category"`
+	Basis    string  `json:"basis"`
+	Until    *string `json:"until,omitempty"`
+}
+
+// PostApiPrivacyRequestsIdCancelResponse is generated from the OpenAPI component of the same name.
+type PostApiPrivacyRequestsIdCancelResponse struct {
+	ID            string                                                `json:"id"`
+	Type          string                                                `json:"type"` // The word the caller used (erasure, export, …).
+	CanonicalType string                                                `json:"canonicalType"`
+	Status        string                                                `json:"status"`
+	Eta           *string                                               `json:"eta,omitempty"` // While scheduled: the executeAfter nothing is erased before.
+	Detail        *string                                               `json:"detail,omitempty"`
+	Retention     []PostApiPrivacyRequestsIdCancelResponseRetentionItem `json:"retention,omitempty"`
+	Result        *GetOpenapiJsonResponse                               `json:"result,omitempty"`
 }
 
 // PostApiPrivacyOrgsOrgIdLookupResponse is generated from the OpenAPI component of the same name.
@@ -6255,11 +8034,11 @@ type PostApiPrivacyOrgsOrgIdRequestsResponse struct {
 
 // GetApiPrivacyOrgsOrgIdRequestsIdResponse is generated from the OpenAPI component of the same name.
 type GetApiPrivacyOrgsOrgIdRequestsIdResponse struct {
-	ID     string                                `json:"id"`
-	Type   string                                `json:"type"`
-	Status string                                `json:"status"`
-	Detail *string                               `json:"detail,omitempty"`
-	Result *PostSupportCardsOrgIdAdapterResponse `json:"result,omitempty"`
+	ID     string                                   `json:"id"`
+	Type   string                                   `json:"type"`
+	Status string                                   `json:"status"`
+	Detail *string                                  `json:"detail,omitempty"`
+	Result *GetSupportPlatformChatlyAnswersResponse `json:"result,omitempty"`
 }
 
 // GetGraphqlResponse is generated from the OpenAPI component of the same name.
@@ -6312,15 +8091,41 @@ type PutOrgPortalAuthBodyOption2 struct {
 	AutoEnrollProgramID *string `json:"autoEnrollProgramId,omitempty"`
 }
 
+// PutOrgPortalAuthBodyOption3Claims is generated from the OpenAPI component of the same name.
+type PutOrgPortalAuthBodyOption3Claims struct {
+	Sub           *string `json:"sub,omitempty"`
+	Email         *string `json:"email,omitempty"`
+	Name          *string `json:"name,omitempty"`
+	EmailVerified *string `json:"emailVerified,omitempty"`
+}
+
 // PutOrgPortalAuthBodyOption3 is generated from the OpenAPI component of the same name.
 type PutOrgPortalAuthBodyOption3 struct {
+	Adapter             string                             `json:"adapter"`
+	Preset              *string                            `json:"preset,omitempty"`
+	Tenant              *string                            `json:"tenant,omitempty"`
+	Issuer              *string                            `json:"issuer,omitempty"`
+	JwksURL             *string                            `json:"jwksUrl,omitempty"`
+	KeyType             *string                            `json:"keyType,omitempty"`
+	SharedSecret        *string                            `json:"sharedSecret,omitempty"`
+	Audience            *string                            `json:"audience,omitempty"`
+	MaxAgeS             *int64                             `json:"maxAgeS,omitempty"`
+	Claims              *PutOrgPortalAuthBodyOption3Claims `json:"claims,omitempty"`
+	TrustEmailVerified  *bool                              `json:"trustEmailVerified,omitempty"`
+	AutoEnrollProgramID *string                            `json:"autoEnrollProgramId,omitempty"`
+	Name                *string                            `json:"name,omitempty"`
+	LoginURL            *string                            `json:"loginUrl,omitempty"`
+}
+
+// PutOrgPortalAuthBodyOption4 is generated from the OpenAPI component of the same name.
+type PutOrgPortalAuthBodyOption4 struct {
 	Adapter             string  `json:"adapter"`
-	Issuer              string  `json:"issuer"`
-	JwksURL             string  `json:"jwksUrl"`
+	InstanceID          string  `json:"instanceId"`
 	TrustEmailVerified  *bool   `json:"trustEmailVerified,omitempty"`
 	AutoEnrollProgramID *string `json:"autoEnrollProgramId,omitempty"`
 	Name                *string `json:"name,omitempty"`
 	LoginURL            *string `json:"loginUrl,omitempty"`
+	VerifyErrorsSecret  *string `json:"verifyErrorsSecret,omitempty"`
 }
 
 // PostMobilePurchasesBody is generated from the OpenAPI component of the same name.
@@ -6603,6 +8408,63 @@ type PatchProgramsIdBodyMobileAppOption1 struct {
 	Android *PatchProgramsIdBodyMobileAppOption1AndroidOption1 `json:"android,omitempty"`
 }
 
+// PatchProgramsIdBodySettingsPublicPage is generated from the OpenAPI component of the same name.
+type PatchProgramsIdBodySettingsPublicPage struct {
+	Pitch       *string `json:"pitch,omitempty"`
+	AutoApprove *bool   `json:"autoApprove,omitempty"`
+}
+
+// PatchProgramsIdBodySettingsRiskPolicy is generated from the OpenAPI component of the same name.
+type PatchProgramsIdBodySettingsRiskPolicy struct {
+	HoldBotScore        *float64 `json:"holdBotScore,omitempty"`
+	HoldRiskScore       *float64 `json:"holdRiskScore,omitempty"`
+	HoldHighRiskLevel   *bool    `json:"holdHighRiskLevel,omitempty"`
+	HoldDisposableEmail *bool    `json:"holdDisposableEmail,omitempty"`
+	HoldVelocity        *int64   `json:"holdVelocity,omitempty"`
+	HoldUnverifiedEmail *bool    `json:"holdUnverifiedEmail,omitempty"`
+	HoldSelfReferral    *bool    `json:"holdSelfReferral,omitempty"`
+}
+
+// PatchProgramsIdBodySettingsWidget is generated from the OpenAPI component of the same name.
+type PatchProgramsIdBodySettingsWidget struct {
+	AutoEnroll     *bool   `json:"autoEnroll,omitempty"`
+	DestinationURL *string `json:"destinationUrl,omitempty"`
+}
+
+// PatchProgramsIdBodySettingsMobileAppOption1IosOption1 is generated from the OpenAPI component of the same name.
+type PatchProgramsIdBodySettingsMobileAppOption1IosOption1 struct {
+	TeamID   string `json:"teamId"`
+	BundleID string `json:"bundleId"`
+}
+
+// PatchProgramsIdBodySettingsMobileAppOption1AndroidOption1 is generated from the OpenAPI component of the same name.
+type PatchProgramsIdBodySettingsMobileAppOption1AndroidOption1 struct {
+	PackageName            string   `json:"packageName"`
+	Sha256CertFingerprints []string `json:"sha256CertFingerprints"`
+}
+
+// PatchProgramsIdBodySettingsMobileAppOption1 is generated from the OpenAPI component of the same name.
+type PatchProgramsIdBodySettingsMobileAppOption1 struct {
+	Ios     *PatchProgramsIdBodySettingsMobileAppOption1IosOption1     `json:"ios,omitempty"`
+	Android *PatchProgramsIdBodySettingsMobileAppOption1AndroidOption1 `json:"android,omitempty"`
+}
+
+// PatchProgramsIdBodySettings is generated from the OpenAPI component of the same name.
+type PatchProgramsIdBodySettings struct {
+	PublicHandle        *string                                      `json:"publicHandle,omitempty"`
+	PublicPage          *PatchProgramsIdBodySettingsPublicPage       `json:"publicPage,omitempty"`
+	ProbabilisticPolicy *string                                      `json:"probabilisticPolicy,omitempty"`
+	SelfReferralPolicy  *string                                      `json:"selfReferralPolicy,omitempty"`
+	SplitCommissions    *bool                                        `json:"splitCommissions,omitempty"`
+	UTMTemplate         map[string]string                            `json:"utmTemplate,omitempty"`
+	AllowPaidSearch     *bool                                        `json:"allowPaidSearch,omitempty"`
+	ChallengeLinks      *bool                                        `json:"challengeLinks,omitempty"`
+	Settlement          *string                                      `json:"settlement,omitempty"`
+	RiskPolicy          *PatchProgramsIdBodySettingsRiskPolicy       `json:"riskPolicy,omitempty"`
+	Widget              *PatchProgramsIdBodySettingsWidget           `json:"widget,omitempty"`
+	MobileApp           *PatchProgramsIdBodySettingsMobileAppOption1 `json:"mobileApp,omitempty"`
+}
+
 // PatchProgramsIdBody is generated from the OpenAPI component of the same name.
 type PatchProgramsIdBody struct {
 	Name                   *string                              `json:"name,omitempty"`
@@ -6624,11 +8486,22 @@ type PatchProgramsIdBody struct {
 	RiskPolicy             *PatchProgramsIdBodyRiskPolicy       `json:"riskPolicy,omitempty"`
 	Widget                 *PatchProgramsIdBodyWidget           `json:"widget,omitempty"`
 	MobileApp              *PatchProgramsIdBodyMobileAppOption1 `json:"mobileApp,omitempty"`
+	Settings               *PatchProgramsIdBodySettings         `json:"settings,omitempty"`
+	DestinationURL         *string                              `json:"destinationUrl,omitempty"`
+}
+
+// PostProgramsIdReferrersBody is generated from the OpenAPI component of the same name.
+type PostProgramsIdReferrersBody struct {
+	ExternalRef string  `json:"externalRef"`
+	Email       *string `json:"email,omitempty"`
+	Name        *string `json:"name,omitempty"`
+	Code        *string `json:"code,omitempty"`
 }
 
 // PostProgramsIdEnrollmentsBody is generated from the OpenAPI component of the same name.
 type PostProgramsIdEnrollmentsBody struct {
-	PartnerID string `json:"partnerId"`
+	PartnerID   string  `json:"partnerId"`
+	ExternalRef *string `json:"externalRef,omitempty"`
 }
 
 // PostPartnersBody is generated from the OpenAPI component of the same name.
@@ -6660,13 +8533,15 @@ type PostApiKeysBody struct {
 	Mode           *string  `json:"mode,omitempty"`
 	Owner          *string  `json:"owner,omitempty"`
 	ExpiresInDays  *int64   `json:"expiresInDays,omitempty"`
+	ProgramIds     []string `json:"programIds,omitempty"`
 }
 
 // PatchApiKeysIdBody is generated from the OpenAPI component of the same name.
 type PatchApiKeysIdBody struct {
-	APIVersion    *string `json:"apiVersion,omitempty"`
-	Owner         *string `json:"owner,omitempty"`
-	ExpiresInDays *int64  `json:"expiresInDays,omitempty"`
+	APIVersion    *string  `json:"apiVersion,omitempty"`
+	Owner         *string  `json:"owner,omitempty"`
+	ExpiresInDays *int64   `json:"expiresInDays,omitempty"`
+	ProgramIds    []string `json:"programIds,omitempty"`
 }
 
 // PostTestClockAdvanceBody is generated from the OpenAPI component of the same name.
@@ -6951,10 +8826,11 @@ type PostBillingConnectionsBodyFilter struct {
 
 // PostBillingConnectionsBody is generated from the OpenAPI component of the same name.
 type PostBillingConnectionsBody struct {
-	Provider      string                            `json:"provider"`
-	Name          *string                           `json:"name,omitempty"`
-	WebhookSecret *string                           `json:"webhookSecret,omitempty"`
-	Filter        *PostBillingConnectionsBodyFilter `json:"filter,omitempty"`
+	Provider               string                            `json:"provider"`
+	Name                   *string                           `json:"name,omitempty"`
+	WebhookSecret          *string                           `json:"webhookSecret,omitempty"`
+	Filter                 *PostBillingConnectionsBodyFilter `json:"filter,omitempty"`
+	CustomerRefMetadataKey *string                           `json:"customerRefMetadataKey,omitempty"`
 }
 
 // PutBillingConnectionsIdSecretBody is generated from the OpenAPI component of the same name.
@@ -6980,9 +8856,10 @@ type PatchBillingConnectionsIdBodyFilterOption1 struct {
 
 // PatchBillingConnectionsIdBody is generated from the OpenAPI component of the same name.
 type PatchBillingConnectionsIdBody struct {
-	Status *string                                     `json:"status,omitempty"`
-	Name   *string                                     `json:"name,omitempty"`
-	Filter *PatchBillingConnectionsIdBodyFilterOption1 `json:"filter,omitempty"`
+	Status                 *string                                     `json:"status,omitempty"`
+	Name                   *string                                     `json:"name,omitempty"`
+	Filter                 *PatchBillingConnectionsIdBodyFilterOption1 `json:"filter,omitempty"`
+	CustomerRefMetadataKey *string                                     `json:"customerRefMetadataKey,omitempty"`
 }
 
 // PutBillingConnectionsIdValueMappingBody is generated from the OpenAPI component of the same name.
@@ -7218,6 +9095,19 @@ type PutPartnerOrgsOrgIdPayoutProfileBody struct {
 type PostPartnerOrgsOrgIdTaxFormBody struct {
 	Type string `json:"type"`
 	Data any    `json:"data"`
+}
+
+// PostPartnerApiTokensBody is generated from the OpenAPI component of the same name.
+type PostPartnerApiTokensBody struct {
+	Name          string   `json:"name"`
+	Scopes        []string `json:"scopes,omitempty"`
+	ExpiresInDays *int64   `json:"expiresInDays,omitempty"`
+}
+
+// PostPartnersIdPortalLinkBody is generated from the OpenAPI component of the same name.
+type PostPartnersIdPortalLinkBody struct {
+	ProgramID string  `json:"programId"`
+	ReturnURL *string `json:"returnUrl,omitempty"`
 }
 
 // PostWebhookEndpointsBody is generated from the OpenAPI component of the same name.
@@ -7772,6 +9662,7 @@ type PostAuthConnectionsBody struct {
 	Provider        string                       `json:"provider"`
 	ProgramID       string                       `json:"programId"`
 	InstanceID      *string                      `json:"instanceId,omitempty"`
+	AppID           *string                      `json:"appId,omitempty"`
 	AutoEnrollUsers *bool                        `json:"autoEnrollUsers,omitempty"`
 	DestinationURL  *string                      `json:"destinationUrl,omitempty"`
 	Name            *string                      `json:"name,omitempty"`
@@ -7835,7 +9726,8 @@ type PostAuthConnectionsIdSignupsBody struct {
 // PostAuthConnectionsIdPartnersBody is generated from the OpenAPI component of the same name.
 type PostAuthConnectionsIdPartnersBody struct {
 	CustomerRef string  `json:"customerRef"`
-	Email       string  `json:"email"`
+	Email       *string `json:"email,omitempty"`
+	EmailHash   *string `json:"emailHash,omitempty"`
 	Name        *string `json:"name,omitempty"`
 	Code        *string `json:"code,omitempty"`
 }
@@ -7879,13 +9771,40 @@ type PostAuthConnectionsInstallBody struct {
 	Decision      string  `json:"decision"`
 }
 
-// PostOauthTokenBody is generated from the OpenAPI component of the same name.
-type PostOauthTokenBody struct {
+// PostOauthTokenBodyOption1 is generated from the OpenAPI component of the same name.
+type PostOauthTokenBodyOption1 struct {
 	GrantType    string `json:"grant_type"`
 	Code         string `json:"code"`
 	CodeVerifier string `json:"code_verifier"`
 	ClientID     string `json:"client_id"`
 	RedirectURI  string `json:"redirect_uri"`
+}
+
+// PostOauthTokenBodyOption2 is generated from the OpenAPI component of the same name.
+type PostOauthTokenBodyOption2 struct {
+	GrantType    string  `json:"grant_type"`
+	ClientID     *string `json:"client_id,omitempty"`
+	ClientSecret *string `json:"client_secret,omitempty"`
+	Scope        *string `json:"scope,omitempty"`
+}
+
+// PostOauthTokenBodyOption3 is generated from the OpenAPI component of the same name.
+type PostOauthTokenBodyOption3 struct {
+	GrantType          string  `json:"grant_type"`
+	SubjectToken       string  `json:"subject_token"`
+	SubjectTokenType   string  `json:"subject_token_type"`
+	RequestedTokenType *string `json:"requested_token_type,omitempty"`
+	Audience           *string `json:"audience,omitempty"`
+	Resource           string  `json:"resource"` // The Referalli org id the token is for.
+	Scope              *string `json:"scope,omitempty"`
+}
+
+// PostProductLinksBody is generated from the OpenAPI component of the same name.
+type PostProductLinksBody struct {
+	Partner   string          `json:"partner"`
+	Name      *string         `json:"name,omitempty"`
+	Scopes    []string        `json:"scopes"`
+	ExpiresAt json.RawMessage `json:"expires_at,omitempty"` // Unix ms or ISO 8601, at most a year away. Default one year.
 }
 
 // PatchOrgSsoBody is generated from the OpenAPI component of the same name.
@@ -8005,6 +9924,28 @@ type PutOrgTrackingConsentBody struct {
 	NoCmp       *string `json:"noCmp,omitempty"` // `auto` with no CMP on the page: `persist` stores, `memory` never does.
 }
 
+// PutOrgConsentPartnersCookiemunchBody is generated from the OpenAPI component of the same name.
+type PutOrgConsentPartnersCookiemunchBody struct {
+	Sites []string `json:"sites"` // Every Cookie Munch site (cbid) whose consent events this org accepts. Replaces the list.
+}
+
+// PostOrgConsentPartnersCookiemunchStampsCheckBody is generated from the OpenAPI component of the same name.
+type PostOrgConsentPartnersCookiemunchStampsCheckBody struct {
+	Stamp string  `json:"stamp"`          // The visitor's Cookie Munch consent stamp (from the CookieMunch cookie, or `aff.consentEvidence().stamp`).
+	Cbid  *string `json:"cbid,omitempty"` // The site it was recorded on; default: every registered site in turn.
+}
+
+// PostOrgsOrgIdPrivacyExecutorKeyBody is generated from the OpenAPI component of the same name.
+type PostOrgsOrgIdPrivacyExecutorKeyBody struct {
+	Cbid       *string `json:"cbid,omitempty"`       // The Cookie Munch site the partner link is on. Without it, any live link to a site this org registered will do.
+	LinkID     *string `json:"linkId,omitempty"`     // The partner link it is minted under; checked with Cookie Munch.
+	Partner    *string `json:"partner,omitempty"`    // Always `referalli`.
+	ExternalID *string `json:"externalId,omitempty"` // The Referalli org id the link names; must equal the path.
+	OrgID      *string `json:"orgId,omitempty"`      // The Cookie Munch organisation that owns the site.
+	Nonce      *string `json:"nonce,omitempty"`      // Never reused; a seen nonce is refused.
+	Iat        *int64  `json:"iat,omitempty"`
+}
+
 // PutOrgHostedPagesBodyConsent is generated from the OpenAPI component of the same name.
 type PutOrgHostedPagesBodyConsent struct {
 	Adapter string         `json:"adapter"`
@@ -8013,8 +9954,9 @@ type PutOrgHostedPagesBodyConsent struct {
 
 // PutOrgHostedPagesBodyChatOption1 is generated from the OpenAPI component of the same name.
 type PutOrgHostedPagesBodyChatOption1 struct {
-	Adapter string         `json:"adapter"`
-	Config  map[string]any `json:"config,omitempty"`
+	Adapter        string         `json:"adapter"`
+	Config         map[string]any `json:"config,omitempty"`
+	IdentitySecret *string        `json:"identitySecret,omitempty"`
 }
 
 // PutOrgHostedPagesBody is generated from the OpenAPI component of the same name.
@@ -8022,6 +9964,30 @@ type PutOrgHostedPagesBody struct {
 	Consent       PutOrgHostedPagesBodyConsent      `json:"consent"`
 	Chat          *PutOrgHostedPagesBodyChatOption1 `json:"chat,omitempty"`
 	CustomOrigins map[string][]string               `json:"customOrigins,omitempty"`
+}
+
+// PostPortalThemePublishBody is generated from the OpenAPI component of the same name.
+type PostPortalThemePublishBody struct {
+	Note *string `json:"note,omitempty"`
+}
+
+// PostPortalThemeImportBrandBody is generated from the OpenAPI component of the same name.
+type PostPortalThemeImportBrandBody struct {
+	Document map[string]any `json:"document,omitempty"`
+	URL      *string        `json:"url,omitempty"`
+}
+
+// PutStripeCreditsConnectionBody is generated from the OpenAPI component of the same name.
+type PutStripeCreditsConnectionBody struct {
+	SecretKey string `json:"secretKey"`
+}
+
+// PutProgramsIdStripeCreditsBody is generated from the OpenAPI component of the same name.
+type PutProgramsIdStripeCreditsBody struct {
+	Enabled        bool    `json:"enabled"`
+	ReferrerMatch  *string `json:"referrerMatch,omitempty"`
+	MetadataKey    *string `json:"metadataKey,omitempty"`
+	RefereeRewards *bool   `json:"refereeRewards,omitempty"`
 }
 
 // PostGraphqlBody is generated from the OpenAPI component of the same name.

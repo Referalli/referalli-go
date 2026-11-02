@@ -38,6 +38,8 @@ const (
 	TopicReferralVoided           = "referral.voided"
 	TopicRoiPatternDetected       = "roi.pattern_detected"
 	TopicRoiPaybackReached        = "roi.payback_reached"
+	TopicStripeCreditApplied      = "stripe_credit.applied"
+	TopicStripeCreditFailed       = "stripe_credit.failed"
 	TopicTaxFormDelivered         = "tax.form_delivered"
 	TopicWebhookEndpointDisabled  = "webhook_endpoint.disabled"
 	TopicWebhookEndpointFailing   = "webhook_endpoint.failing"
@@ -77,6 +79,8 @@ var Topics = []string{
 	TopicReferralVoided,
 	TopicRoiPatternDetected,
 	TopicRoiPaybackReached,
+	TopicStripeCreditApplied,
+	TopicStripeCreditFailed,
 	TopicTaxFormDelivered,
 	TopicWebhookEndpointDisabled,
 	TopicWebhookEndpointFailing,
@@ -419,6 +423,28 @@ func (e *WebhookEvent) AsRoiPaybackReached() (RoiPaybackReachedEventData, error)
 	var out RoiPaybackReachedEventData
 	if e.Topic != TopicRoiPaybackReached {
 		return out, &WrongTopicError{Want: TopicRoiPaybackReached, Got: e.Topic}
+	}
+	err := json.Unmarshal(e.Data, &out)
+	return out, err
+}
+
+// AsStripeCreditApplied decodes the data of a `stripe_credit.applied` event (A Stripe balance credit or debit was applied).
+// It returns a *WrongTopicError for an event of another topic.
+func (e *WebhookEvent) AsStripeCreditApplied() (StripeCreditAppliedEventData, error) {
+	var out StripeCreditAppliedEventData
+	if e.Topic != TopicStripeCreditApplied {
+		return out, &WrongTopicError{Want: TopicStripeCreditApplied, Got: e.Topic}
+	}
+	err := json.Unmarshal(e.Data, &out)
+	return out, err
+}
+
+// AsStripeCreditFailed decodes the data of a `stripe_credit.failed` event (A Stripe balance credit or debit gave up).
+// It returns a *WrongTopicError for an event of another topic.
+func (e *WebhookEvent) AsStripeCreditFailed() (StripeCreditFailedEventData, error) {
+	var out StripeCreditFailedEventData
+	if e.Topic != TopicStripeCreditFailed {
+		return out, &WrongTopicError{Want: TopicStripeCreditFailed, Got: e.Topic}
 	}
 	err := json.Unmarshal(e.Data, &out)
 	return out, err

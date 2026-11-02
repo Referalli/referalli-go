@@ -29,11 +29,15 @@ var Operations = func() map[string][2]string {
 		{"deleteIntegrationsKind", "DELETE", "/v1/integrations/{kind}"},
 		{"deleteOrgMembersUserId", "DELETE", "/v1/org/members/{userId}"},
 		{"deleteOrgSsoDirect", "DELETE", "/v1/org/sso/direct"},
+		{"deletePartnerApiTokensId", "DELETE", "/v1/partner/api-tokens/{id}"},
 		{"deletePartnersId", "DELETE", "/v1/partners/{id}"},
 		{"deletePayoutConnectionsProvider", "DELETE", "/v1/payout-connections/{provider}"},
+		{"deletePortalThemeDraft", "DELETE", "/v1/portal/theme/draft"},
 		{"deletePrivacyExecutorsAdapter", "DELETE", "/v1/privacy/executors/{adapter}"},
+		{"deleteProductLinksId", "DELETE", "/v1/product-links/{id}"},
 		{"deleteProfitabilityProductsProductRef", "DELETE", "/v1/profitability/products/{productRef}"},
 		{"deleteRewardsRulesKey", "DELETE", "/v1/rewards/rules/{key}"},
+		{"deleteStripeCreditsConnection", "DELETE", "/v1/stripe-credits/connection"},
 		{"deleteSupportAppsAdapter", "DELETE", "/v1/support/apps/{adapter}"},
 		{"deleteWebhookEndpointsId", "DELETE", "/v1/webhook-endpoints/{id}"},
 		{"deleteZapierHooksId", "DELETE", "/v1/zapier/hooks/{id}"},
@@ -83,7 +87,6 @@ var Operations = func() map[string][2]string {
 		{"getDisputes", "GET", "/v1/disputes"},
 		{"getEmailSettings", "GET", "/v1/email/settings"},
 		{"getEmailTemplates", "GET", "/v1/email/templates"},
-		{"getEmbed", "GET", "/v1/embed"},
 		{"getEmbedSummary", "GET", "/v1/embed/summary"},
 		{"getEvents", "GET", "/v1/events"},
 		{"getExportAccounting", "GET", "/v1/export/accounting"},
@@ -93,6 +96,7 @@ var Operations = func() map[string][2]string {
 		{"getGraphql", "GET", "/v1/graphql"},
 		{"getHealth", "GET", "/v1/health"},
 		{"getHostsCurrent", "GET", "/v1/hosts/current"},
+		{"getHostsCurrentChatIdentity", "GET", "/v1/hosts/current/chat-identity"},
 		{"getHostsCurrentThemeCss", "GET", "/v1/hosts/current/theme.css"},
 		{"getIncrementality", "GET", "/v1/incrementality"},
 		{"getIntegrationHealth", "GET", "/v1/integration-health"},
@@ -111,6 +115,8 @@ var Operations = func() map[string][2]string {
 		{"getOpenapiJson", "GET", "/v1/openapi.json"},
 		{"getOpenapiYaml", "GET", "/v1/openapi.yaml"},
 		{"getOrg", "GET", "/v1/org"},
+		{"getOrgConsentPartnersCookiemunch", "GET", "/v1/org/consent-partners/cookiemunch"},
+		{"getOrgConsentPartnersCookiemunchEvents", "GET", "/v1/org/consent-partners/cookiemunch/events"},
 		{"getOrgFxFeed", "GET", "/v1/org/fx-feed"},
 		{"getOrgHostedPages", "GET", "/v1/org/hosted-pages"},
 		{"getOrgMembers", "GET", "/v1/org/members"},
@@ -126,6 +132,7 @@ var Operations = func() map[string][2]string {
 		{"getPartnerAchievements", "GET", "/v1/partner/achievements"},
 		{"getPartnerAdvance", "GET", "/v1/partner/advance"},
 		{"getPartnerAdvanceOffer", "GET", "/v1/partner/advance/offer"},
+		{"getPartnerApiTokens", "GET", "/v1/partner/api-tokens"},
 		{"getPartnerAssets", "GET", "/v1/partner/assets"},
 		{"getPartnerContracts", "GET", "/v1/partner/contracts"},
 		{"getPartnerDeals", "GET", "/v1/partner/deals"},
@@ -156,6 +163,8 @@ var Operations = func() map[string][2]string {
 		{"getPartnersIdEnrollments", "GET", "/v1/partners/{id}/enrollments"},
 		{"getPartnersIdPayoutProfile", "GET", "/v1/partners/{id}/payout-profile"},
 		{"getPartnersIdQuality", "GET", "/v1/partners/{id}/quality"},
+		{"getPartnersIdStats", "GET", "/v1/partners/{id}/stats"},
+		{"getPartnersIdSummary", "GET", "/v1/partners/{id}/summary"},
 		{"getPartnerStats", "GET", "/v1/partner/stats"},
 		{"getPartnerTaxDocuments", "GET", "/v1/partner/tax-documents"},
 		{"getPartnerTaxDocumentsId", "GET", "/v1/partner/tax-documents/{id}"},
@@ -167,12 +176,17 @@ var Operations = func() map[string][2]string {
 		{"getPayoutsIdInvoice", "GET", "/v1/payouts/{id}/invoice"},
 		{"getPlans", "GET", "/v1/plans"},
 		{"getPortalAuthCurrent", "GET", "/v1/portal-auth/current"},
+		{"getPortalTheme", "GET", "/v1/portal/theme"},
+		{"getPortalThemeCompiled", "GET", "/v1/portal/theme/compiled"},
+		{"getPortalThemeSchema", "GET", "/v1/portal/theme/schema"},
+		{"getPortalThemeVersions", "GET", "/v1/portal/theme/versions"},
 		{"getPrivacyExecutorRequests", "GET", "/v1/privacy/executor-requests"},
 		{"getPrivacyExecutors", "GET", "/v1/privacy/executors"},
 		{"getPrivacyExport", "GET", "/v1/privacy/export"},
 		{"getPrivacyRequests", "GET", "/v1/privacy/requests"},
 		{"getPrivacyRequestsId", "GET", "/v1/privacy/requests/{id}"},
 		{"getPrivacyRequestsIdResult", "GET", "/v1/privacy/requests/{id}/result"},
+		{"getProductLinks", "GET", "/v1/product-links"},
 		{"getProfitabilityProducts", "GET", "/v1/profitability/products"},
 		{"getProfitabilityProductsProductRef", "GET", "/v1/profitability/products/{productRef}"},
 		{"getProfitabilityRebuildJobId", "GET", "/v1/profitability/rebuild/{jobId}"},
@@ -186,6 +200,8 @@ var Operations = func() map[string][2]string {
 		{"getProgramsIdNegotiationPolicy", "GET", "/v1/programs/{id}/negotiation-policy"},
 		{"getProgramsIdPromotions", "GET", "/v1/programs/{id}/promotions"},
 		{"getProgramsIdRefereeReward", "GET", "/v1/programs/{id}/referee-reward"},
+		{"getProgramsIdStripeCredits", "GET", "/v1/programs/{id}/stripe-credits"},
+		{"getProgramsIdStripeCreditsLog", "GET", "/v1/programs/{id}/stripe-credits/log"},
 		{"getProgramsIdTermsAcceptances", "GET", "/v1/programs/{id}/terms-acceptances"},
 		{"getProspects", "GET", "/v1/prospects"},
 		{"getPublicProgramsHandle", "GET", "/v1/public/programs/{handle}"},
@@ -211,9 +227,11 @@ var Operations = func() map[string][2]string {
 		{"getStatusIncidents", "GET", "/v1/status/incidents"},
 		{"getStatusIncidentsAtom", "GET", "/v1/status/incidents.atom"},
 		{"getStatusIncidentsId", "GET", "/v1/status/incidents/{id}"},
+		{"getStripeCreditsConnection", "GET", "/v1/stripe-credits/connection"},
 		{"getSupportApps", "GET", "/v1/support/apps"},
 		{"getSupportCardsOrgIdAdapter", "GET", "/v1/support/cards/{orgId}/{adapter}"},
 		{"getSupportContext", "GET", "/v1/support/context"},
+		{"getSupportPlatformChatlyAnswers", "GET", "/v1/support/platform/chatly-answers"},
 		{"getTax1099", "GET", "/v1/tax/1099"},
 		{"getTax1099Filings", "GET", "/v1/tax/1099/filings"},
 		{"getTax1099Preview", "GET", "/v1/tax/1099/preview"},
@@ -239,6 +257,7 @@ var Operations = func() map[string][2]string {
 		{"patchPartnerGroupsId", "PATCH", "/v1/partner-groups/{id}"},
 		{"patchPartnersId", "PATCH", "/v1/partners/{id}"},
 		{"patchPartnersIdPayoutProfile", "PATCH", "/v1/partners/{id}/payout-profile"},
+		{"patchPortalThemeDraft", "PATCH", "/v1/portal/theme/draft"},
 		{"patchProgramsId", "PATCH", "/v1/programs/{id}"},
 		{"patchReferralsId", "PATCH", "/v1/referrals/{id}"},
 		{"patchWebhookEndpointsId", "PATCH", "/v1/webhook-endpoints/{id}"},
@@ -320,10 +339,12 @@ var Operations = func() map[string][2]string {
 		{"postNotificationsIdRead", "POST", "/v1/notifications/{id}/read"},
 		{"postOauthToken", "POST", "/v1/oauth/token"},
 		{"postOnchainConnections", "POST", "/v1/onchain/connections"},
+		{"postOrgConsentPartnersCookiemunchStampsCheck", "POST", "/v1/org/consent-partners/cookiemunch/stamps/check"},
 		{"postOrgHostedPagesCheck", "POST", "/v1/org/hosted-pages/check"},
 		{"postOrgMembers", "POST", "/v1/org/members"},
 		{"postOrgPortalAuthTest", "POST", "/v1/org/portal-auth/test"},
 		{"postOrgs", "POST", "/v1/orgs"},
+		{"postOrgsOrgIdPrivacyExecutorKey", "POST", "/v1/orgs/{orgId}/privacy/executor-key"},
 		{"postOrgSsoDirectTest", "POST", "/v1/org/sso/direct/test"},
 		{"postOrgSsoLink", "POST", "/v1/org/sso/link"},
 		{"postOrgSsoTickets", "POST", "/v1/org/sso/tickets"},
@@ -332,6 +353,7 @@ var Operations = func() map[string][2]string {
 		{"postOutreachIdApprove", "POST", "/v1/outreach/{id}/approve"},
 		{"postOutreachSendDue", "POST", "/v1/outreach/send-due"},
 		{"postPartnerAdvanceAccept", "POST", "/v1/partner/advance/accept"},
+		{"postPartnerApiTokens", "POST", "/v1/partner/api-tokens"},
 		{"postPartnerAuthWalletNonce", "POST", "/v1/partner/auth/wallet/nonce"},
 		{"postPartnerAuthWalletVerify", "POST", "/v1/partner/auth/wallet/verify"},
 		{"postPartnerContractsIdAccept", "POST", "/v1/partner/contracts/{id}/accept"},
@@ -350,6 +372,7 @@ var Operations = func() map[string][2]string {
 		{"postPartnerSecurityTotpDisable", "POST", "/v1/partner/security/totp/disable"},
 		{"postPartnerSecurityTotpEnable", "POST", "/v1/partner/security/totp/enable"},
 		{"postPartnerSecurityTotpSetup", "POST", "/v1/partner/security/totp/setup"},
+		{"postPartnersIdPortalLink", "POST", "/v1/partners/{id}/portal-link"},
 		{"postPartnersIdTaxForm", "POST", "/v1/partners/{id}/tax-form"},
 		{"postPartnerTermsVersionIdAccept", "POST", "/v1/partner/terms/{versionId}/accept"},
 		{"postPassportVerify", "POST", "/v1/passport/verify"},
@@ -357,11 +380,16 @@ var Operations = func() map[string][2]string {
 		{"postPayoutRunsIdCancel", "POST", "/v1/payout-runs/{id}/cancel"},
 		{"postPayoutRunsIdExecute", "POST", "/v1/payout-runs/{id}/execute"},
 		{"postPayoutRunsRunScheduled", "POST", "/v1/payout-runs/run-scheduled"},
+		{"postPortalThemeImportBrand", "POST", "/v1/portal/theme/import-brand"},
+		{"postPortalThemePreview", "POST", "/v1/portal/theme/preview"},
+		{"postPortalThemePublish", "POST", "/v1/portal/theme/publish"},
+		{"postPortalThemeVersionsIdRestore", "POST", "/v1/portal/theme/versions/{id}/restore"},
 		{"postPrivacyExecutorKeys", "POST", "/v1/privacy/executor-keys"},
 		{"postPrivacyExecutorsAdapterCheck", "POST", "/v1/privacy/executors/{adapter}/check"},
 		{"postPrivacyForget", "POST", "/v1/privacy/forget"},
 		{"postPrivacyLookup", "POST", "/v1/privacy/lookup"},
 		{"postPrivacyRequests", "POST", "/v1/privacy/requests"},
+		{"postProductLinks", "POST", "/v1/product-links"},
 		{"postProfitabilityRebuild", "POST", "/v1/profitability/rebuild"},
 		{"postPrograms", "POST", "/v1/programs"},
 		{"postProgramsIdApplyLeveling", "POST", "/v1/programs/{id}/apply-leveling"},
@@ -371,6 +399,7 @@ var Operations = func() map[string][2]string {
 		{"postProgramsIdEnrollmentsEnrollmentIdReject", "POST", "/v1/programs/{id}/enrollments/{enrollmentId}/reject"},
 		{"postProgramsIdGroups", "POST", "/v1/programs/{id}/groups"},
 		{"postProgramsIdPromotions", "POST", "/v1/programs/{id}/promotions"},
+		{"postProgramsIdReferrers", "POST", "/v1/programs/{id}/referrers"},
 		{"postPromotionsIdEnd", "POST", "/v1/promotions/{id}/end"},
 		{"postPublicProgramsHandleJoin", "POST", "/v1/public/programs/{handle}/join"},
 		{"postQualityRecompute", "POST", "/v1/quality/recompute"},
@@ -385,6 +414,7 @@ var Operations = func() map[string][2]string {
 		{"postSandboxSimulate", "POST", "/v1/sandbox/simulate"},
 		{"postSupportAppsAdapterTest", "POST", "/v1/support/apps/{adapter}/test"},
 		{"postSupportCardsOrgIdAdapter", "POST", "/v1/support/cards/{orgId}/{adapter}"},
+		{"postSupportPlatformChatlyCard", "POST", "/v1/support/platform/chatly-card"},
 		{"postTax1099DocumentsIdCorrect", "POST", "/v1/tax/1099/documents/{id}/correct"},
 		{"postTax1099Filings", "POST", "/v1/tax/1099/filings"},
 		{"postTax1099FilingsIdRefresh", "POST", "/v1/tax/1099/filings/{id}/refresh"},
@@ -413,6 +443,7 @@ var Operations = func() map[string][2]string {
 		{"putMeLocale", "PUT", "/v1/me/locale"},
 		{"putMeRoiDigest", "PUT", "/v1/me/roi-digest"},
 		{"putNetworkSettings", "PUT", "/v1/network/settings"},
+		{"putOrgConsentPartnersCookiemunch", "PUT", "/v1/org/consent-partners/cookiemunch"},
 		{"putOrgFxFeed", "PUT", "/v1/org/fx-feed"},
 		{"putOrgHostedPages", "PUT", "/v1/org/hosted-pages"},
 		{"putOrgPayoutSchedule", "PUT", "/v1/org/payout-schedule"},
@@ -431,6 +462,7 @@ var Operations = func() map[string][2]string {
 		{"putPartnersIdPayoutProfile", "PUT", "/v1/partners/{id}/payout-profile"},
 		{"putPartnersIdVat", "PUT", "/v1/partners/{id}/vat"},
 		{"putPayoutConnectionsProvider", "PUT", "/v1/payout-connections/{provider}"},
+		{"putPortalThemeDraft", "PUT", "/v1/portal/theme/draft"},
 		{"putProfitabilityProductsProductRef", "PUT", "/v1/profitability/products/{productRef}"},
 		{"putProfitabilitySettings", "PUT", "/v1/profitability/settings"},
 		{"putProgramsIdAutopricing", "PUT", "/v1/programs/{id}/autopricing"},
@@ -439,7 +471,9 @@ var Operations = func() map[string][2]string {
 		{"putProgramsIdPartnersPartnerIdGroup", "PUT", "/v1/programs/{id}/partners/{partnerId}/group"},
 		{"putProgramsIdPayoutSchedule", "PUT", "/v1/programs/{id}/payout-schedule"},
 		{"putProgramsIdRefereeReward", "PUT", "/v1/programs/{id}/referee-reward"},
+		{"putProgramsIdStripeCredits", "PUT", "/v1/programs/{id}/stripe-credits"},
 		{"putRewardsRulesKey", "PUT", "/v1/rewards/rules/{key}"},
+		{"putStripeCreditsConnection", "PUT", "/v1/stripe-credits/connection"},
 		{"putSupportAppsAdapter", "PUT", "/v1/support/apps/{adapter}"},
 	} {
 		m[o[0]] = [2]string{o[1], o[2]}
@@ -622,6 +656,19 @@ func (c *Client) DeleteOrgSSODirect(ctx context.Context, opts ...RequestOption) 
 	return &out, nil
 }
 
+// DeletePartnerAPITokensID calls Revoke a partner API token. DELETE /v1/partner/api-tokens/{id}.
+//
+// Stops the token at once. Portal session only.
+//
+// **Auth:** a partner session.
+func (c *Client) DeletePartnerAPITokensID(ctx context.Context, id string, opts ...RequestOption) (*DeletePartnerApiTokensIdResponse, error) {
+	var out DeletePartnerApiTokensIdResponse
+	if err := c.do(ctx, "DELETE", "/v1/partner/api-tokens/"+url.PathEscape(id), nil, nil, &out, "json", opts); err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
 // DeletePartnersID calls Delete a partner. DELETE /v1/partners/{id}.
 //
 // Deletes a partner that never did anything, with its enrollments, links, coupons and payout profile. A partner with any clicks, referrals, commissions, payouts or other history is `409`: archive it instead (`status: "archived"`). Audited.
@@ -648,6 +695,19 @@ func (c *Client) DeletePayoutConnectionsProvider(ctx context.Context, provider s
 	return &out, nil
 }
 
+// DeletePortalThemeDraft calls Discard the portal design draft. DELETE /v1/portal/theme/draft.
+//
+// Drops the draft and its preview link. What partners see is unchanged. Owner or admin.
+//
+// **Auth:** an API key with `org:write` (or `full`), or a session with role `owner`, `admin`.
+func (c *Client) DeletePortalThemeDraft(ctx context.Context, opts ...RequestOption) (*GetPortalThemeResponse, error) {
+	var out GetPortalThemeResponse
+	if err := c.do(ctx, "DELETE", "/v1/portal/theme/draft", nil, nil, &out, "json", opts); err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
 // DeletePrivacyExecutorsAdapter calls Disconnect a DSAR tool. DELETE /v1/privacy/executors/{adapter}.
 //
 // Removes the tool, its key and settings; its URL answers 404 from now on. The request log stays.
@@ -656,6 +716,19 @@ func (c *Client) DeletePayoutConnectionsProvider(ctx context.Context, provider s
 func (c *Client) DeletePrivacyExecutorsAdapter(ctx context.Context, adapter string, opts ...RequestOption) (*DeletePrivacyExecutorsAdapterResponse, error) {
 	var out DeletePrivacyExecutorsAdapterResponse
 	if err := c.do(ctx, "DELETE", "/v1/privacy/executors/"+url.PathEscape(adapter), nil, nil, &out, "json", opts); err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// DeleteProductLinksID calls Revoke a partner link. DELETE /v1/product-links/{id}.
+//
+// The link and every token issued from it stop at once. A root action (see create).
+//
+// **Auth:** an API key with `team:write` (or `full`), or a session with role `owner`, `admin`.
+func (c *Client) DeleteProductLinksID(ctx context.Context, id string, opts ...RequestOption) (*DeleteProductLinksIdResponse, error) {
+	var out DeleteProductLinksIdResponse
+	if err := c.do(ctx, "DELETE", "/v1/product-links/"+url.PathEscape(id), nil, nil, &out, "json", opts); err != nil {
 		return nil, err
 	}
 	return &out, nil
@@ -682,6 +755,19 @@ func (c *Client) DeleteProfitabilityProductsProductRef(ctx context.Context, prod
 func (c *Client) DeleteRewardsRulesKey(ctx context.Context, key string, opts ...RequestOption) (*DeleteRewardsRulesKeyResponse, error) {
 	var out DeleteRewardsRulesKeyResponse
 	if err := c.do(ctx, "DELETE", "/v1/rewards/rules/"+url.PathEscape(key), nil, nil, &out, "json", opts); err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// DeleteStripeCreditsConnection calls Remove the Stripe balance credit key. DELETE /v1/stripe-credits/connection.
+//
+// Deletes the rail's own key. A Stripe payout connection, if any, is then used instead; with neither, queued credits fail until a key is connected. Owner or admin. Audited.
+//
+// **Auth:** an API key with `payouts:write` (or `full`), or a session with role `owner`, `admin`.
+func (c *Client) DeleteStripeCreditsConnection(ctx context.Context, opts ...RequestOption) (*GetStripeCreditsConnectionResponse, error) {
+	var out GetStripeCreditsConnectionResponse
+	if err := c.do(ctx, "DELETE", "/v1/stripe-credits/connection", nil, nil, &out, "json", opts); err != nil {
 		return nil, err
 	}
 	return &out, nil
@@ -1771,7 +1857,7 @@ func (c *Client) GetBranding(ctx context.Context, opts ...RequestOption) (*GetBr
 
 // GetChatlyIdentity calls Get the support-chat identity. GET /v1/chatly/identity.
 //
-// The signed-in merchant user or partner as a Chatly widget identity: `externalId` (`merchant:<id>` or `partner:<id>`), email, name and `userHash`, the HMAC-SHA256 of `externalId` with Referalli's identity secret. `identity` is null when signed out or when identity verification isn't configured. Never cached.
+// The signed-in merchant user or partner as a Chatly widget identity: `userToken`, an Atlas token minted for the Atlas session behind this one (audience `chatly:<channel>`, at most 120 s), which the page passes to the widget, and `externalId` (`merchant:<id>` or `partner:<id>`), which stays on the page to notice an account switch. `identity` is null when signed out, when the session has no Atlas session behind it, or when Atlas isn't configured. Never cached.
 //
 // **Auth:** none.
 func (c *Client) GetChatlyIdentity(ctx context.Context, opts ...RequestOption) (*GetChatlyIdentityResponse, error) {
@@ -2455,35 +2541,6 @@ func (c *Client) GetEmailTemplatesEach(ctx context.Context, params *GetEmailTemp
 	})
 }
 
-// GetEmbedParams are the query parameters of GetEmbed.
-type GetEmbedParams struct {
-	Token *string `json:"token,omitempty"`
-}
-
-func (p *GetEmbedParams) values() url.Values {
-	v := url.Values{}
-	if p == nil {
-		return v
-	}
-	setQuery(v, "token", p.Token)
-	return v
-}
-
-// GetEmbed calls Get one org's embed manifest. GET /v1/embed.
-//
-// The embed manifest for the org that owns `token` (its public tracking token): its link domain in the CSP origins, its longest program cookie window as the storage lifetime, and its consent default. Public, CORS `*`.
-//
-// **Auth:** none.
-//
-// token: The org's public tracking token.
-func (c *Client) GetEmbed(ctx context.Context, params *GetEmbedParams, opts ...RequestOption) (*GetWellKnownForgedeckEmbedJsonResponse, error) {
-	var out GetWellKnownForgedeckEmbedJsonResponse
-	if err := c.do(ctx, "GET", "/v1/embed", params.values(), nil, &out, "json", opts); err != nil {
-		return nil, err
-	}
-	return &out, nil
-}
-
 // GetEmbedSummary calls Read embedded partner stats. GET /v1/embed/summary.
 //
 // Called by the embed component with `Authorization: Bearer <embed token>`: the partner's name, eligible clicks, active referrals, balances and link codes. 401 for a missing, invalid or expired token.
@@ -2710,17 +2767,58 @@ func (c *Client) GetHealth(ctx context.Context, opts ...RequestOption) (*Ok, err
 	return &out, nil
 }
 
+// GetHostsCurrentParams are the query parameters of GetHostsCurrent.
+type GetHostsCurrentParams struct {
+	ThemePreview *string `json:"themePreview,omitempty"`
+}
+
+func (p *GetHostsCurrentParams) values() url.Values {
+	v := url.Values{}
+	if p == nil {
+		return v
+	}
+	setQuery(v, "themePreview", p.ThemePreview)
+	return v
+}
+
 // GetHostsCurrent calls Describe the current host. GET /v1/hosts/current.
 //
 // What the request's host is: a merchant's verified portal domain (with the org's name, branding and public programs), a merchant link domain, or Referalli's own app. Used by the web app before anyone signs in.
 //
 // **Auth:** none.
-func (c *Client) GetHostsCurrent(ctx context.Context, opts ...RequestOption) (*GetHostsCurrentResponse, error) {
+func (c *Client) GetHostsCurrent(ctx context.Context, params *GetHostsCurrentParams, opts ...RequestOption) (*GetHostsCurrentResponse, error) {
 	var out GetHostsCurrentResponse
-	if err := c.do(ctx, "GET", "/v1/hosts/current", nil, nil, &out, "json", opts); err != nil {
+	if err := c.do(ctx, "GET", "/v1/hosts/current", params.values(), nil, &out, "json", opts); err != nil {
 		return nil, err
 	}
 	return &out, nil
+}
+
+// GetHostsCurrentChatIdentity calls Identify the signed-in partner to the chat. GET /v1/hosts/current/chat-identity.
+//
+// On a merchant's portal domain, for the signed-in partner of that merchant: the head tags that tell the merchant's chat who they are (partner id, email, name) and, when the merchant saved its chat vendor's identity-verification secret, the vendor's proof (Intercom `user_hash`, a Zendesk messaging JWT, a HubSpot visitor token…). The secret itself never leaves the API. Elsewhere, or for someone who isn't this merchant's partner, `tags` is empty. Partner session; `private, no-store`.
+//
+// **Auth:** an API key with `partners:read` (or `full`), or a session of any role.
+func (c *Client) GetHostsCurrentChatIdentity(ctx context.Context, opts ...RequestOption) (*GetHostsCurrentChatIdentityResponse, error) {
+	var out GetHostsCurrentChatIdentityResponse
+	if err := c.do(ctx, "GET", "/v1/hosts/current/chat-identity", nil, nil, &out, "json", opts); err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// GetHostsCurrentThemeCssParams are the query parameters of GetHostsCurrentThemeCss.
+type GetHostsCurrentThemeCssParams struct {
+	ThemePreview *string `json:"themePreview,omitempty"`
+}
+
+func (p *GetHostsCurrentThemeCssParams) values() url.Values {
+	v := url.Values{}
+	if p == nil {
+		return v
+	}
+	setQuery(v, "themePreview", p.ThemePreview)
+	return v
 }
 
 // GetHostsCurrentThemeCss calls Get the current host's theme stylesheet. GET /v1/hosts/current/theme.css.
@@ -2728,9 +2826,9 @@ func (c *Client) GetHostsCurrent(ctx context.Context, opts ...RequestOption) (*G
 // On a merchant's portal domain, the org's theme tokens as a `:root` stylesheet; empty elsewhere.
 //
 // **Auth:** none.
-func (c *Client) GetHostsCurrentThemeCss(ctx context.Context, opts ...RequestOption) (string, error) {
+func (c *Client) GetHostsCurrentThemeCss(ctx context.Context, params *GetHostsCurrentThemeCssParams, opts ...RequestOption) (string, error) {
 	var out string
-	err := c.do(ctx, "GET", "/v1/hosts/current/theme.css", nil, nil, &out, "text", opts)
+	err := c.do(ctx, "GET", "/v1/hosts/current/theme.css", params.values(), nil, &out, "text", opts)
 	return out, err
 }
 
@@ -3274,6 +3372,50 @@ func (c *Client) GetOrg(ctx context.Context, opts ...RequestOption) (*Org, error
 	return &out, nil
 }
 
+// GetOrgConsentPartnersCookiemunch calls Get the Cookie Munch consent-event link. GET /v1/org/consent-partners/cookiemunch.
+//
+// What to enter in Cookie Munch to send your site's consent events to Referalli: link partner `referalli` with `externalId` (your org id); deliveries go to `receiverUrl`. `sites` are the Cookie Munch sites (cbids) whose events this org accepts, and `grants` says, per site, whether its owner granted Referalli that site in Cookie Munch (`granted`, `waiting_on_partner`, `revoked`, `expired`, `none`, or `unknown` when Cookie Munch couldn't be asked; `grantCheck` says why). `stampCheck.status` is `live` when Referalli checks visitors' consent stamps with Cookie Munch, else `not_configured`.
+//
+// **Auth:** an API key with `org:read` (or `full`), or a session of any role.
+func (c *Client) GetOrgConsentPartnersCookiemunch(ctx context.Context, opts ...RequestOption) (*GetOrgConsentPartnersCookiemunchResponse, error) {
+	var out GetOrgConsentPartnersCookiemunchResponse
+	if err := c.do(ctx, "GET", "/v1/org/consent-partners/cookiemunch", nil, nil, &out, "json", opts); err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// GetOrgConsentPartnersCookiemunchEventsParams are the query parameters of GetOrgConsentPartnersCookiemunchEvents.
+type GetOrgConsentPartnersCookiemunchEventsParams struct {
+	Stamp *string `json:"stamp,omitempty"`
+	Limit *int64  `json:"limit,omitempty"`
+}
+
+func (p *GetOrgConsentPartnersCookiemunchEventsParams) values() url.Values {
+	v := url.Values{}
+	if p == nil {
+		return v
+	}
+	setQuery(v, "stamp", p.Stamp)
+	setQuery(v, "limit", p.Limit)
+	return v
+}
+
+// GetOrgConsentPartnersCookiemunchEvents calls List received Cookie Munch consent events. GET /v1/org/consent-partners/cookiemunch/events.
+//
+// Consent evidence from Cookie Munch, newest first: each `consent.recorded` and `consent.withdrawn` event for your registered sites, with the visitor's consent `stamp`, the `choices` (and for a withdrawal, the `withdrawn` categories), and the id of the key that signed it. Filter by `stamp` to see one visitor's history; with `stamp`, `checks` lists what Cookie Munch said about it (newest first, `credited` only for `consented`). Append-only.
+//
+// **Auth:** an API key with `org:read` (or `full`), or a session of any role.
+//
+// stamp: Only this visitor's consent stamp.
+func (c *Client) GetOrgConsentPartnersCookiemunchEvents(ctx context.Context, params *GetOrgConsentPartnersCookiemunchEventsParams, opts ...RequestOption) (*GetOrgConsentPartnersCookiemunchEventsResponse, error) {
+	var out GetOrgConsentPartnersCookiemunchEventsResponse
+	if err := c.do(ctx, "GET", "/v1/org/consent-partners/cookiemunch/events", params.values(), nil, &out, "json", opts); err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
 // GetOrgFXFeed calls Get the FX feed setting. GET /v1/org/fx-feed.
 //
 // Whether the daily ECB reference-rate feed is on for this org, and the date of its latest rate.
@@ -3289,7 +3431,7 @@ func (c *Client) GetOrgFXFeed(ctx context.Context, opts ...RequestOption) (*GetO
 
 // GetOrgHostedPages calls Get the hosted-page consent and chat. GET /v1/org/hosted-pages.
 //
-// What runs on the pages Referalli hosts for you on your own portal domain (the partner portal and `/join`): your consent banner (Cookie Munch, OneTrust, Cookiebot, Usercentrics, Didomi, Osano, Termly, iubenda, a custom CMP, a built-in necessary-only notice, or none) and your support chat (Chatly, Intercom, Crisp or custom). `served` is exactly what visitors get: the head tags, the "Cookie settings" link and the Content-Security-Policy built from these adapters. Referalli's own banner and chat never run on your domain.
+// What runs on the pages Referalli hosts for you on your own portal domain (the partner portal and `/join`): your consent banner (Cookie Munch, OneTrust, Cookiebot, Usercentrics, Didomi, Osano, Termly, iubenda, CookieYes, TrustArc, Ketch, Transcend, CookieFirst, consentmanager, Cookie Information, CookieScript, CookieHub, Google Privacy & messaging, Axeptio, Sourcepoint, InMobi Choice, Securiti, Enzuzo, CookiePro, TrustCommander, Klaro, Civic Cookie Control, a custom CMP, a built-in necessary-only notice, or none) and your support chat (Chatly, Intercom, Crisp, Zendesk Messaging, HubSpot, Drift, LiveChat, Tawk.to, Freshchat, Tidio, Help Scout Beacon, Front, Chatwoot, Olark, Smartsupp, JivoChat, Gorgias, Pylon, Plain, Userlike, Zoho SalesIQ, Re:amaze, Chatra, Kustomer, Gladly, Brevo, Trengo, Dixa, Gist, Freshdesk, LiveAgent, Chatbase, Voiceflow, Botpress, Salesforce, Dynamics 365 or custom). `adapters.consent[].fields` are the `config.params` a CMP's inline snippet needs. `adapters.chat[].fields` lists each chat's config keys; `chat.hasIdentitySecret` says whether an identity-verification secret is saved (never the secret). `served` is exactly what visitors get: the head tags, the "Cookie settings" link and the Content-Security-Policy built from these adapters. Referalli's own banner and chat never run on your domain.
 //
 // **Auth:** an API key with `org:read` (or `full`), or a session of any role.
 func (c *Client) GetOrgHostedPages(ctx context.Context, opts ...RequestOption) (*GetOrgHostedPagesResponse, error) {
@@ -3624,6 +3766,19 @@ func (c *Client) GetPartnerAdvanceEach(ctx context.Context, params *GetPartnerAd
 func (c *Client) GetPartnerAdvanceOffer(ctx context.Context, opts ...RequestOption) (*GetPartnerAdvanceOfferResponse, error) {
 	var out GetPartnerAdvanceOfferResponse
 	if err := c.do(ctx, "GET", "/v1/partner/advance/offer", nil, nil, &out, "json", opts); err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// GetPartnerAPITokens calls List your partner API tokens. GET /v1/partner/api-tokens.
+//
+// Your active `rpt_` tokens (never the token itself). Portal session only: a token cannot list tokens.
+//
+// **Auth:** a partner session.
+func (c *Client) GetPartnerAPITokens(ctx context.Context, opts ...RequestOption) (*GetPartnerApiTokensResponse, error) {
+	var out GetPartnerApiTokensResponse
+	if err := c.do(ctx, "GET", "/v1/partner/api-tokens", nil, nil, &out, "json", opts); err != nil {
 		return nil, err
 	}
 	return &out, nil
@@ -4496,14 +4651,28 @@ func (c *Client) GetPartnerSecurity(ctx context.Context, opts ...RequestOption) 
 	return &out, nil
 }
 
+// GetPartnersIDParams are the query parameters of GetPartnersID.
+type GetPartnersIDParams struct {
+	ProgramID *string `json:"programId,omitempty"`
+}
+
+func (p *GetPartnersIDParams) values() url.Values {
+	v := url.Values{}
+	if p == nil {
+		return v
+	}
+	setQuery(v, "programId", p.ProgramID)
+	return v
+}
+
 // GetPartnersID calls Get a partner. GET /v1/partners/{id}.
 //
-// One partner, with a cross-network warning when the same account is flagged or banned by other merchants (it never says which).
+// One partner, with a cross-network warning when the same account is flagged or banned by other merchants (it never says which). With `programId`, `externalRef` is the one that program knows them by: its own externalRef for them when it has one, else the partner's.
 //
 // **Auth:** an API key with `partners:read` (or `full`), or a session of any role.
-func (c *Client) GetPartnersID(ctx context.Context, id string, opts ...RequestOption) (*GetPartnersIdResponse, error) {
+func (c *Client) GetPartnersID(ctx context.Context, id string, params *GetPartnersIDParams, opts ...RequestOption) (*GetPartnersIdResponse, error) {
 	var out GetPartnersIdResponse
-	if err := c.do(ctx, "GET", "/v1/partners/"+url.PathEscape(id), nil, nil, &out, "json", opts); err != nil {
+	if err := c.do(ctx, "GET", "/v1/partners/"+url.PathEscape(id), params.values(), nil, &out, "json", opts); err != nil {
 		return nil, err
 	}
 	return &out, nil
@@ -4586,7 +4755,7 @@ func (p *GetPartnersIDEnrollmentsParams) values() url.Values {
 
 // GetPartnersIDEnrollments calls List a partner's enrollments. GET /v1/partners/{id}/enrollments.
 //
-// The programs a partner is enrolled in or applied to, with status and group.
+// The programs a partner is enrolled in or applied to, with status, group and `externalRef` (that program's own id for the partner, or null when the partner's own applies).
 //
 // **Auth:** an API key with `partners:read` (or `full`), or a session of any role.
 //
@@ -4636,6 +4805,60 @@ func (c *Client) GetPartnersIDPayoutProfile(ctx context.Context, id string, opts
 func (c *Client) GetPartnersIDQuality(ctx context.Context, id string, opts ...RequestOption) (*GetPartnersIdQualityResponse, error) {
 	var out GetPartnersIdQualityResponse
 	if err := c.do(ctx, "GET", "/v1/partners/"+url.PathEscape(id)+"/quality", nil, nil, &out, "json", opts); err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// GetPartnersIDStatsParams are the query parameters of GetPartnersIDStats.
+type GetPartnersIDStatsParams struct {
+	ProgramID *string `json:"programId,omitempty"`
+}
+
+func (p *GetPartnersIDStatsParams) values() url.Values {
+	v := url.Values{}
+	if p == nil {
+		return v
+	}
+	setQuery(v, "programId", p.ProgramID)
+	return v
+}
+
+// GetPartnersIDStats calls Get a partner's stats. GET /v1/partners/{id}/stats.
+//
+// What the partner brought in, in one call: eligible clicks, referrals by status, converted customers (referred, not void, with at least one payment) and balances per currency. Pass `programId` to count one program only (an org shared by several products).
+//
+// **Auth:** an API key with `commissions:read` (or `full`), or a session of any role.
+func (c *Client) GetPartnersIDStats(ctx context.Context, id string, params *GetPartnersIDStatsParams, opts ...RequestOption) (*GetPartnersIdStatsResponse, error) {
+	var out GetPartnersIdStatsResponse
+	if err := c.do(ctx, "GET", "/v1/partners/"+url.PathEscape(id)+"/stats", params.values(), nil, &out, "json", opts); err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// GetPartnersIDSummaryParams are the query parameters of GetPartnersIDSummary.
+type GetPartnersIDSummaryParams struct {
+	ProgramID *string `json:"programId,omitempty"`
+}
+
+func (p *GetPartnersIDSummaryParams) values() url.Values {
+	v := url.Values{}
+	if p == nil {
+		return v
+	}
+	setQuery(v, "programId", p.ProgramID)
+	return v
+}
+
+// GetPartnersIDSummary calls Get a partner's referrer summary. GET /v1/partners/{id}/summary.
+//
+// Everything a referrer panel shows, in one call: the stats for one program (`programId` is required) plus the partner's current `code` there (the newest coupon, else the newest link's code) and `linkUrl` (null when they have only a coupon).
+//
+// **Auth:** an API key with `commissions:read` (or `full`), or a session of any role.
+func (c *Client) GetPartnersIDSummary(ctx context.Context, id string, params *GetPartnersIDSummaryParams, opts ...RequestOption) (*GetPartnersIdSummaryResponse, error) {
+	var out GetPartnersIdSummaryResponse
+	if err := c.do(ctx, "GET", "/v1/partners/"+url.PathEscape(id)+"/summary", params.values(), nil, &out, "json", opts); err != nil {
 		return nil, err
 	}
 	return &out, nil
@@ -5052,6 +5275,72 @@ func (c *Client) GetPortalAuthCurrent(ctx context.Context, params *GetPortalAuth
 	return &out, nil
 }
 
+// GetPortalTheme calls Get the portal design. GET /v1/portal/theme.
+//
+// The partner portal's look and layout on your portal domain: `published` (what partners see) and `draft` (what you are editing, or null). Colours with a separate dark palette, the colour scheme, widths and density, fonts (a stylesheet URL, `@font-face` files, a family per role, the type scale), the logo set and favicon, component shape (radius, shadow, buttons, inputs, focus ring, links), an announcement, the header and footer, the home sections and navigation, the sign-in page, interface string overrides, typed theme settings, CSS snippets, custom CSS, phone tuning and embedding. Every key is optional; an unset key keeps the built-in look.
+//
+// **Auth:** an API key with `org:read` (or `full`), or a session of any role.
+func (c *Client) GetPortalTheme(ctx context.Context, opts ...RequestOption) (*GetPortalThemeResponse, error) {
+	var out GetPortalThemeResponse
+	if err := c.do(ctx, "GET", "/v1/portal/theme", nil, nil, &out, "json", opts); err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// GetPortalThemeCompiledParams are the query parameters of GetPortalThemeCompiled.
+type GetPortalThemeCompiledParams struct {
+	Which *string `json:"which,omitempty"`
+}
+
+func (p *GetPortalThemeCompiledParams) values() url.Values {
+	v := url.Values{}
+	if p == nil {
+		return v
+	}
+	setQuery(v, "which", p.Which)
+	return v
+}
+
+// GetPortalThemeCompiled calls Preview the compiled portal design. GET /v1/portal/theme/compiled.
+//
+// The draft (or `?which=published`) compiled: `css`, the stylesheet partners load, and `view`, the layout, brand and text the portal draws. For a live preview in your own editor.
+//
+// **Auth:** an API key with `org:read` (or `full`), or a session of any role.
+func (c *Client) GetPortalThemeCompiled(ctx context.Context, params *GetPortalThemeCompiledParams, opts ...RequestOption) (*GetPortalThemeCompiledResponse, error) {
+	var out GetPortalThemeCompiledResponse
+	if err := c.do(ctx, "GET", "/v1/portal/theme/compiled", params.values(), nil, &out, "json", opts); err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// GetPortalThemeSchema calls Get the portal design schema. GET /v1/portal/theme/schema.
+//
+// Every key the portal design takes, as JSON Schema (draft 2020-12): build an editor or validate a theme file before you send it.
+//
+// **Auth:** an API key with `org:read` (or `full`), or a session of any role.
+func (c *Client) GetPortalThemeSchema(ctx context.Context, opts ...RequestOption) (*GetPortalThemeSchemaResponse, error) {
+	var out GetPortalThemeSchemaResponse
+	if err := c.do(ctx, "GET", "/v1/portal/theme/schema", nil, nil, &out, "json", opts); err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// GetPortalThemeVersions calls List published portal designs. GET /v1/portal/theme/versions.
+//
+// The last 50 published versions, newest first.
+//
+// **Auth:** an API key with `org:read` (or `full`), or a session of any role.
+func (c *Client) GetPortalThemeVersions(ctx context.Context, opts ...RequestOption) (*GetPortalThemeVersionsResponse, error) {
+	var out GetPortalThemeVersionsResponse
+	if err := c.do(ctx, "GET", "/v1/portal/theme/versions", nil, nil, &out, "json", opts); err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
 // GetPrivacyExecutorRequests calls List DSAR tool requests. GET /v1/privacy/executor-requests.
 //
 // The last 200 requests connected DSAR tools sent: operation, outcome and the vendor request id. Subjects are kept only as hashes.
@@ -5184,6 +5473,19 @@ func (c *Client) GetPrivacyRequestsIDResult(ctx context.Context, id string, opts
 	return &out, nil
 }
 
+// GetProductLinks calls List partner links. GET /v1/product-links.
+//
+// Other products allowed to call this organization's API (REF-S28), newest first, with status, scopes and last use. Secrets are never shown again. Owners and admins, or a key with team:read.
+//
+// **Auth:** an API key with `team:read` (or `full`), or a session with role `owner`, `admin`.
+func (c *Client) GetProductLinks(ctx context.Context, opts ...RequestOption) (*GetProductLinksResponse, error) {
+	var out GetProductLinksResponse
+	if err := c.do(ctx, "GET", "/v1/product-links", nil, nil, &out, "json", opts); err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
 // GetProfitabilityProducts calls List product margins. GET /v1/profitability/products.
 //
 // The margin catalog: per product, a margin (bps) or a unit cost, used to turn revenue into profit.
@@ -5252,6 +5554,7 @@ func (c *Client) GetProfitabilitySettings(ctx context.Context, params *GetProfit
 
 // GetProgramsParams are the query parameters of GetPrograms.
 type GetProgramsParams struct {
+	Slug          *string `json:"slug,omitempty"`
 	Limit         *int64  `json:"limit,omitempty"`
 	StartingAfter *string `json:"starting_after,omitempty"`
 	EndingBefore  *string `json:"ending_before,omitempty"`
@@ -5264,6 +5567,7 @@ func (p *GetProgramsParams) values() url.Values {
 	if p == nil {
 		return v
 	}
+	setQuery(v, "slug", p.Slug)
 	setQuery(v, "limit", p.Limit)
 	setQuery(v, "starting_after", p.StartingAfter)
 	setQuery(v, "ending_before", p.EndingBefore)
@@ -5274,7 +5578,7 @@ func (p *GetProgramsParams) values() url.Values {
 
 // GetPrograms calls List programs. GET /v1/programs.
 //
-// The org's programs, oldest first, with their settings.
+// The org's programs, oldest first, with their settings. `slug` returns just that program.
 //
 // **Auth:** an API key with `programs:read` (or `full`), or a session of any role.
 //
@@ -5332,6 +5636,7 @@ func (c *Client) GetProgramsIDAutopricing(ctx context.Context, id string, opts .
 // GetProgramsIDEnrollmentsParams are the query parameters of GetProgramsIDEnrollments.
 type GetProgramsIDEnrollmentsParams struct {
 	Status        *string `json:"status,omitempty"`
+	PartnerID     *string `json:"partnerId,omitempty"`
 	Limit         *int64  `json:"limit,omitempty"`
 	StartingAfter *string `json:"starting_after,omitempty"`
 	EndingBefore  *string `json:"ending_before,omitempty"`
@@ -5345,6 +5650,7 @@ func (p *GetProgramsIDEnrollmentsParams) values() url.Values {
 		return v
 	}
 	setQuery(v, "status", p.Status)
+	setQuery(v, "partnerId", p.PartnerID)
 	setQuery(v, "limit", p.Limit)
 	setQuery(v, "starting_after", p.StartingAfter)
 	setQuery(v, "ending_before", p.EndingBefore)
@@ -5355,7 +5661,7 @@ func (p *GetProgramsIDEnrollmentsParams) values() url.Values {
 
 // GetProgramsIDEnrollments calls List program enrollments. GET /v1/programs/{id}/enrollments.
 //
-// The program's enrollments and applications, newest first, each with the partner and a cross-network warning when other merchants banned the same account. Filter with `status`.
+// The program's enrollments and applications, newest first, each with the partner and a cross-network warning when other merchants banned the same account and `externalRef` (this program's own id for the partner, or null). Filter with `status` or `partnerId`.
 //
 // **Auth:** an API key with `programs:read` (or `full`), or a session of any role.
 //
@@ -5546,6 +5852,72 @@ func (c *Client) GetProgramsIDRefereeReward(ctx context.Context, id string, opts
 		return nil, err
 	}
 	return &out, nil
+}
+
+// GetProgramsIDStripeCredits calls Get a program's Stripe balance credit settings. GET /v1/programs/{id}/stripe-credits.
+//
+// Whether settled lines of this program are credited to the partner's Stripe customer balance, how that customer is found (`referrerMatch`), and whether store-credit referee rewards are credited too. `keyConnected` says whether a Stripe key is available.
+//
+// **Auth:** an API key with `payouts:read` (or `full`), or a session of any role.
+func (c *Client) GetProgramsIDStripeCredits(ctx context.Context, id string, opts ...RequestOption) (*GetProgramsIdStripeCreditsResponse, error) {
+	var out GetProgramsIdStripeCreditsResponse
+	if err := c.do(ctx, "GET", "/v1/programs/"+url.PathEscape(id)+"/stripe-credits", nil, nil, &out, "json", opts); err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// GetProgramsIDStripeCreditsLogParams are the query parameters of GetProgramsIDStripeCreditsLog.
+type GetProgramsIDStripeCreditsLogParams struct {
+	Limit         *int64  `json:"limit,omitempty"`
+	StartingAfter *string `json:"starting_after,omitempty"`
+	EndingBefore  *string `json:"ending_before,omitempty"`
+	CreatedGte    *string `json:"created[gte],omitempty"`
+	CreatedLte    *string `json:"created[lte],omitempty"`
+}
+
+func (p *GetProgramsIDStripeCreditsLogParams) values() url.Values {
+	v := url.Values{}
+	if p == nil {
+		return v
+	}
+	setQuery(v, "limit", p.Limit)
+	setQuery(v, "starting_after", p.StartingAfter)
+	setQuery(v, "ending_before", p.EndingBefore)
+	setQuery(v, "created[gte]", p.CreatedGte)
+	setQuery(v, "created[lte]", p.CreatedLte)
+	return v
+}
+
+// GetProgramsIDStripeCreditsLog calls List a program's Stripe balance credits. GET /v1/programs/{id}/stripe-credits/log.
+//
+// Every credit and debit the rail queued for this program, newest first: amount, Stripe customer, `status` (`pending`, `applied`, `no_customer`, `failed`, `canceled`), attempts, the Stripe balance transaction id once applied, and the last error. Unapplied rows are retried hourly, up to 24 tries.
+//
+// **Auth:** an API key with `payouts:read` (or `full`), or a session of any role.
+//
+// limit: Items per page, 1 to 100 (default 50). From API version 2026-11-01; ignored under 2026-10-21, where lists are a capped plain array.
+// starting_after: A cursor: the id of an item (the previous page's `next_cursor`); returns the items after it. From API version 2026-11-01; ignored under 2026-10-21, where lists are a capped plain array.
+// ending_before: A cursor: returns the items before this item id (the previous page). Not with `starting_after`. From API version 2026-11-01; ignored under 2026-10-21, where lists are a capped plain array.
+// created[gte]: Only items created at or after this time (ISO 8601), on lists of timestamped records. From API version 2026-11-01; ignored under 2026-10-21, where lists are a capped plain array.
+// created[lte]: Only items created at or before this time (ISO 8601), on lists of timestamped records. From API version 2026-11-01; ignored under 2026-10-21, where lists are a capped plain array.
+func (c *Client) GetProgramsIDStripeCreditsLog(ctx context.Context, id string, params *GetProgramsIDStripeCreditsLogParams, opts ...RequestOption) (*Page[GetProgramsIdStripeCreditsLogResponseDataItem], error) {
+	var out Page[GetProgramsIdStripeCreditsLogResponseDataItem]
+	if err := c.do(ctx, "GET", "/v1/programs/"+url.PathEscape(id)+"/stripe-credits/log", params.values(), nil, &out, "json", opts); err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// GetProgramsIDStripeCreditsLogEach yields every item of GetProgramsIDStripeCreditsLog, following the pages.
+func (c *Client) GetProgramsIDStripeCreditsLogEach(ctx context.Context, id string, params *GetProgramsIDStripeCreditsLogParams, opts ...RequestOption) iter.Seq2[GetProgramsIdStripeCreditsLogResponseDataItem, error] {
+	return paginate(func(cursor *string) (*Page[GetProgramsIdStripeCreditsLogResponseDataItem], error) {
+		p := GetProgramsIDStripeCreditsLogParams{}
+		if params != nil {
+			p = *params
+		}
+		p.StartingAfter = cursor
+		return c.GetProgramsIDStripeCreditsLog(ctx, id, &p, opts...)
+	})
 }
 
 // GetProgramsIDTermsAcceptancesParams are the query parameters of GetProgramsIDTermsAcceptances.
@@ -6400,6 +6772,19 @@ func (c *Client) GetStatusIncidentsID(ctx context.Context, id string, opts ...Re
 	return &out, nil
 }
 
+// GetStripeCreditsConnection calls Get the Stripe balance credit key status. GET /v1/stripe-credits/connection.
+//
+// Whether the Stripe balance credit rail has a key: its own (`source: "stripe_credits"`) or your Stripe payout connection (`source: "payout_connection"`). The key is never returned.
+//
+// **Auth:** an API key with `payouts:read` (or `full`), or a session of any role.
+func (c *Client) GetStripeCreditsConnection(ctx context.Context, opts ...RequestOption) (*GetStripeCreditsConnectionResponse, error) {
+	var out GetStripeCreditsConnectionResponse
+	if err := c.do(ctx, "GET", "/v1/stripe-credits/connection", nil, nil, &out, "json", opts); err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
 // GetSupportApps calls List support tool connections. GET /v1/support/apps.
 //
 // Every support tool Referalli can show referral context in (Chatly cards and AI tools, Intercom, Zendesk, HubSpot, Front, Help Scout, custom), with its card URL, install steps and whether it is set up. Secrets are never returned.
@@ -6434,8 +6819,8 @@ func (p *GetSupportCardsOrgIDAdapterParams) values() url.Values {
 // The same card for tools that fetch with GET (HubSpot legacy CRM cards pass the contact as query parameters). Signed as for the POST form; 404 otherwise.
 //
 // **Auth:** none.
-func (c *Client) GetSupportCardsOrgIDAdapter(ctx context.Context, orgId string, adapter string, params *GetSupportCardsOrgIDAdapterParams, opts ...RequestOption) (*PostSupportCardsOrgIdAdapterResponse, error) {
-	var out PostSupportCardsOrgIdAdapterResponse
+func (c *Client) GetSupportCardsOrgIDAdapter(ctx context.Context, orgId string, adapter string, params *GetSupportCardsOrgIDAdapterParams, opts ...RequestOption) (*GetSupportPlatformChatlyAnswersResponse, error) {
+	var out GetSupportPlatformChatlyAnswersResponse
 	if err := c.do(ctx, "GET", "/v1/support/cards/"+url.PathEscape(orgId)+"/"+url.PathEscape(adapter), params.values(), nil, &out, "json", opts); err != nil {
 		return nil, err
 	}
@@ -6473,6 +6858,37 @@ func (p *GetSupportContextParams) values() url.Values {
 func (c *Client) GetSupportContext(ctx context.Context, params *GetSupportContextParams, opts ...RequestOption) (*GetSupportContextResponse, error) {
 	var out GetSupportContextResponse
 	if err := c.do(ctx, "GET", "/v1/support/context", params.values(), nil, &out, "json", opts); err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// GetSupportPlatformChatlyAnswersParams are the query parameters of GetSupportPlatformChatlyAnswers.
+type GetSupportPlatformChatlyAnswersParams struct {
+	Subject   *string `json:"subject,omitempty"`
+	Principal *string `json:"principal,omitempty"`
+	Question  *string `json:"question,omitempty"`
+}
+
+func (p *GetSupportPlatformChatlyAnswersParams) values() url.Values {
+	v := url.Values{}
+	if p == nil {
+		return v
+	}
+	setQuery(v, "subject", p.Subject)
+	setQuery(v, "principal", p.Principal)
+	setQuery(v, "question", p.Question)
+	return v
+}
+
+// GetSupportPlatformChatlyAnswers calls Answer a partner's question for Referalli's own support desk. GET /v1/support/platform/chatly-answers.
+//
+// Called by Chatly's `referral_answers` preset, never by you: a signed GET (`x-chatly-signature: t=…,v1=…`, HMAC-SHA256 with `CHATLY_TOOL_SECRET` over `<t>.GET.<path and query>.`, 300 s window) with `question` (`referral_link`, `commission_status`, `next_payout`; others get the full answer), `subject` (the verified Atlas `sub`) and `principal` (`partner`, or absent when the tool was created over the API). Read-only: the partner's link, pending, approved and paid commission and next payout in every programme they're in. `{found: false}` when no partner account is linked; 403 without a verified partner identity; 404 for a bad or stale signature.
+//
+// **Auth:** none.
+func (c *Client) GetSupportPlatformChatlyAnswers(ctx context.Context, params *GetSupportPlatformChatlyAnswersParams, opts ...RequestOption) (*GetSupportPlatformChatlyAnswersResponse, error) {
+	var out GetSupportPlatformChatlyAnswersResponse
+	if err := c.do(ctx, "GET", "/v1/support/platform/chatly-answers", params.values(), nil, &out, "json", opts); err != nil {
 		return nil, err
 	}
 	return &out, nil
@@ -7002,7 +7418,7 @@ func (c *Client) PatchAdminStatusIncidentsID(ctx context.Context, id string, bod
 
 // PatchAPIKeysID calls Update an API key. PATCH /v1/api-keys/{id}.
 //
-// Changes a key's pinned `apiVersion`, `owner` or expiry (`expiresInDays` from now; `null` removes it). Revoked keys are 404. Needs an owner or admin session, or an API key with the `admin` scope. Audited.
+// Changes a key's pinned `apiVersion`, `owner`, expiry (`expiresInDays` from now; `null` removes it) or `programIds` (`null` makes it org-wide). Revoked keys are 404. Needs an owner or admin session, or an API key with the `admin` scope. Audited.
 //
 // **Auth:** an API key with `team:write` (or `full`), or a session of any role.
 func (c *Client) PatchAPIKeysID(ctx context.Context, id string, body PatchApiKeysIdBody, opts ...RequestOption) (*PatchApiKeysIdResponse, error) {
@@ -7117,9 +7533,22 @@ func (c *Client) PatchPartnersIDPayoutProfile(ctx context.Context, id string, bo
 	return &out, nil
 }
 
+// PatchPortalThemeDraft calls Change part of the portal design draft. PATCH /v1/portal/theme/draft.
+//
+// Deep-merges into the draft (or, with no draft, into a copy of what is published): objects merge key by key, arrays and values replace, `null` deletes a key. The result is validated as a whole. Owner or admin.
+//
+// **Auth:** an API key with `org:write` (or `full`), or a session with role `owner`, `admin`.
+func (c *Client) PatchPortalThemeDraft(ctx context.Context, body map[string]any, opts ...RequestOption) (*GetPortalThemeResponse, error) {
+	var out GetPortalThemeResponse
+	if err := c.do(ctx, "PATCH", "/v1/portal/theme/draft", nil, body, &out, "json", opts); err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
 // PatchProgramsID calls Update a program. PATCH /v1/programs/{id}.
 //
-// Changes any program field or setting; omitted fields keep their value, and `publicPage` is merged. Changing `termsMd` records a new terms version. Setting `status` to `paused` or `archived` stops new attribution. `mobileApp` (iOS Team ID and bundle id, Android package and signing-certificate fingerprints) publishes the program's apps in the universal-links and App Links files on the org's link hosts. Audited.
+// Changes any program field or setting; omitted fields keep their value, and `publicPage` is merged. Changing `termsMd` records a new terms version. Setting `status` to `paused` or `archived` stops new attribution. `mobileApp` (iOS Team ID and bundle id, Android package and signing-certificate fingerprints) publishes the program's apps in the universal-links and App Links files on the org's link hosts. `destinationUrl` moves the program's default link destination: every link still on the old default (the widget's or a sign-in connection's) is repointed in the same call, custom destinations stay, and links already shared follow at click time; `{code}` in it becomes the link's code. Audited.
 //
 // **Auth:** an API key with `programs:write` (or `full`), or a session with role `owner`, `admin`.
 func (c *Client) PatchProgramsID(ctx context.Context, id string, body PatchProgramsIdBody, opts ...RequestOption) (*Program, error) {
@@ -7288,7 +7717,7 @@ func (c *Client) PostAnomaliesScan(ctx context.Context, opts ...RequestOption) (
 
 // PostAPIKeys calls Create an API key. POST /v1/api-keys.
 //
-// Mints a secret key (`rk_live_…` / `rk_test_…`), shown only in this response. `scopes` defaults to `full`; a key can't grant scopes it doesn't hold. `mode` picks live, test or a matching pair of both (`both` returns `{ pairId, live, test }`); a test-mode caller can mint test keys only. `publishable: true` mints a browser-safe `rk_pub_` key limited to `programs:read` and `events:write` from `allowedOrigins`. `apiVersion` pins the key (default: latest). Needs an owner or admin session, or an API key with the `admin` scope. Audited.
+// Mints a secret key (`rk_live_…` / `rk_test_…`), shown only in this response. `scopes` defaults to `full`; a key can't grant scopes it doesn't hold. `mode` picks live, test or a matching pair of both (`both` returns `{ pairId, live, test }`); a test-mode caller can mint test keys only. `publishable: true` mints a browser-safe `rk_pub_` key limited to `programs:read` and `events:write` from `allowedOrigins`. `apiVersion` pins the key (default: latest). `programIds` limits the key to those programs (their partners, links, referrals, commissions, enrollments, and webhook endpoints whose `programIds` are all within the key's, with their deliveries); a program-scoped key gets 403 `program_scoped_key` on org-wide endpoints (keys, team, org settings, billing, payouts, the event feed, analytics, creating programs). Needs an owner or admin session, or an API key with the `admin` scope. Audited.
 //
 // **Auth:** an API key with `team:write` (or `full`), or a session of any role.
 func (c *Client) PostAPIKeys(ctx context.Context, body PostApiKeysBody, opts ...RequestOption) (*PostApiKeysResponse, error) {
@@ -7392,7 +7821,7 @@ func (c *Client) PostAuthConnectionsIDPartners(ctx context.Context, id string, b
 
 // PostAuthConnectionsIDPing calls Test an auth connection (signed protocol). POST /v1/auth/connections/{id}/ping.
 //
-// Proves the secret works: returns the connection, its program and org and the server time, to check clock skew. Signed with the connection secret in `x-referalli-signature: t=<unix>,v1=…,v2=…` (v2 also signs the request line; once a connection has seen v2 it requires it), with a unique `x-referalli-id` per call. The legacy header names from before the rename are also accepted, for existing integrations. Calls older than 5 minutes, reused ids (`409 replay`), paused connections (`423 connection_paused`) and unknown fields (`422`) are refused.
+// Proves the secret works: returns the connection, its program and org, the server time (to check clock skew) and `capabilities` (`{ partners: true }`: user-chosen referral codes through `/partners`). Signed with the connection secret in `x-referalli-signature: t=<unix>,v1=…,v2=…` (v2 also signs the request line; once a connection has seen v2 it requires it), with a unique `x-referalli-id` per call. The legacy header names from before the rename are also accepted, for existing integrations. Calls older than 5 minutes, reused ids (`409 replay`), paused connections (`423 connection_paused`) and unknown fields (`422`) are refused.
 //
 // **Auth:** a signature (see above); no API key.
 func (c *Client) PostAuthConnectionsIDPing(ctx context.Context, id string, body map[string]any, opts ...RequestOption) (*PostAuthConnectionsIdPingResponse, error) {
@@ -8162,12 +8591,12 @@ func (c *Client) PostNotificationsIDRead(ctx context.Context, id string, opts ..
 	return &out, nil
 }
 
-// PostOauthToken calls Exchange an install code. POST /v1/oauth/token.
+// PostOauthToken calls Token endpoint: install codes, partner links, Atlas operator token exchange. POST /v1/oauth/token.
 //
-// Server to server: the platform trades the single-use code and its PKCE `code_verifier` for a new signed-protocol connection and its signing secret (returned only here). Installing again for the same instance keeps the connection and issues a new secret, the old one verifying for 24 hours. 401 for an unknown, used, expired or mismatched code. No authentication.
+// Form-encoded or JSON, three grants. `authorization_code`: the platform trades the single-use one-click-install code and its PKCE `code_verifier` for a new signed-protocol connection and its signing secret (returned only here), plus a one-hour `access_token` scoped `connections:write webhooks:write` so the platform can require v2 signatures and register its sync webhook; installing again keeps the connection and issues a new secret, the old one verifying for 24 hours; 401 for an unknown, used, expired or mismatched code. `client_credentials`: a partner link's `client_id` and `client_secret` (HTTP Basic or the body), optional `scope` within the link's, for a one-hour `rat_…` bearer token. `urn:ietf:params:oauth:grant-type:token-exchange` (RFC 8693): `subject_token` = an Atlas operator access token from `atlas login` (issuer https://atlasauth.net, verified with its discovery document and JWKS, scope `atlas:operator`), `subject_token_type` access_token, `resource` = the org id; the Atlas account must sign in to a Referalli member of that org, and the token gets that role (owner: admin, admin: full, others: read), narrowed by `scope`. Errors follow RFC 6749 §5.2 (`{error, error_description}`). No authentication.
 //
 // **Auth:** none.
-func (c *Client) PostOauthToken(ctx context.Context, body PostOauthTokenBody, opts ...RequestOption) (*PostOauthTokenResponse, error) {
+func (c *Client) PostOauthToken(ctx context.Context, body json.RawMessage, opts ...RequestOption) (*PostOauthTokenResponse, error) {
 	var out PostOauthTokenResponse
 	if err := c.do(ctx, "POST", "/v1/oauth/token", nil, body, &out, "json", opts); err != nil {
 		return nil, err
@@ -8183,6 +8612,19 @@ func (c *Client) PostOauthToken(ctx context.Context, body PostOauthTokenBody, op
 func (c *Client) PostOnchainConnections(ctx context.Context, body PostOnchainConnectionsBody, opts ...RequestOption) (*PostOnchainConnectionsResponse, error) {
 	var out PostOnchainConnectionsResponse
 	if err := c.do(ctx, "POST", "/v1/onchain/connections", nil, body, &out, "json", opts); err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// PostOrgConsentPartnersCookiemunchStampsCheck calls Check a visitor's consent stamp with Cookie Munch. POST /v1/org/consent-partners/cookiemunch/stamps/check.
+//
+// Asks Cookie Munch (`GET /v1/partner/sites/{cbid}/stamps/{stamp}`) what the visitor's consent stamp says on your registered site (`cbid`, or each registered site in turn) and keeps the answer. `verdict`: `consented` (found, with the `referrals` category on: the only verdict that credits a referral's consent), `not_consented`, `withdrawn` (a later decision turned `referrals` off: `withdrawnAt`), `not_found` (the site never recorded the stamp), `no_grant` (Cookie Munch's 403: the site has no live link to Referalli) or `error`. Clicks and consent events that carry a Cookie Munch stamp are checked the same way in the background. 409 when the partner token isn't configured or no site is registered. Owner or admin.
+//
+// **Auth:** an API key with `org:write` (or `full`), or a session with role `owner`, `admin`.
+func (c *Client) PostOrgConsentPartnersCookiemunchStampsCheck(ctx context.Context, body PostOrgConsentPartnersCookiemunchStampsCheckBody, opts ...RequestOption) (*PostOrgConsentPartnersCookiemunchStampsCheckResponse, error) {
+	var out PostOrgConsentPartnersCookiemunchStampsCheckResponse
+	if err := c.do(ctx, "POST", "/v1/org/consent-partners/cookiemunch/stamps/check", nil, body, &out, "json", opts); err != nil {
 		return nil, err
 	}
 	return &out, nil
@@ -8235,6 +8677,19 @@ func (c *Client) PostOrgPortalAuthTest(ctx context.Context, opts ...RequestOptio
 func (c *Client) PostOrgs(ctx context.Context, body PostOrgsBody, opts ...RequestOption) (*PostOrgsResponse, error) {
 	var out PostOrgsResponse
 	if err := c.do(ctx, "POST", "/v1/orgs", nil, body, &out, "json", opts); err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// PostOrgsOrgIDPrivacyExecutorKey calls Mint an executor key under a Cookie Munch partner link. POST /v1/orgs/{orgId}/privacy/executor-key.
+//
+// Called by Cookie Munch, not by you (CMU-X25): mints (or rotates) this org's cm-standard-v2 executor key so Cookie Munch's `referalli` executor preset can connect without a pasted key. The request must be signed by Cookie Munch's partner key exactly like its consent deliveries: `CookieMunch-Partner-Signature: t=<unix seconds>,kid=<key id>,ed25519=<base64url>` over `<t>.<raw body>`, with the key named in `https://api.cookiemunch.net/v1/partner/jwks.json` (300 s window; each signed request and each body `nonce` works once, a replay is 409; `partner` must be `referalli` and `externalId` the org in the path). Referalli then confirms the partner link with Cookie Munch over its own partner token (`GET /v1/partner/links`): it must be `active` or `waiting_on_partner`, name this org as `externalId`, sit on a site this org registered (`PUT /v1/org/consent-partners/cookiemunch`), and match `cbid`/`linkId` when sent; otherwise 403 `no_grant`. 201 `{secret, executorUrl, contract, orgId, linkId, cbid, rotated}`: `secret` is shown once and is the bearer key for `executorUrl` (`https://referalli.com/api`, the cm-standard-v2 baseUrl: calls go to `<executorUrl>/privacy/*`), where it reaches only this org's referred customers and partners. The old key stops working at once. Audited (`privacy.executor_key_minted`).
+//
+// **Auth:** none.
+func (c *Client) PostOrgsOrgIDPrivacyExecutorKey(ctx context.Context, orgId string, body PostOrgsOrgIdPrivacyExecutorKeyBody, opts ...RequestOption) (*PostOrgsOrgIdPrivacyExecutorKeyResponse, error) {
+	var out PostOrgsOrgIdPrivacyExecutorKeyResponse
+	if err := c.do(ctx, "POST", "/v1/orgs/"+url.PathEscape(orgId)+"/privacy/executor-key", nil, body, &out, "json", opts); err != nil {
 		return nil, err
 	}
 	return &out, nil
@@ -8339,6 +8794,19 @@ func (c *Client) PostOutreachSendDue(ctx context.Context, opts ...RequestOption)
 func (c *Client) PostPartnerAdvanceAccept(ctx context.Context, body PostPartnerAdvanceAcceptBody, opts ...RequestOption) (*PostPartnerAdvanceAcceptResponse, error) {
 	var out PostPartnerAdvanceAcceptResponse
 	if err := c.do(ctx, "POST", "/v1/partner/advance/accept", nil, body, &out, "json", opts); err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// PostPartnerAPITokens calls Create a partner API token. POST /v1/partner/api-tokens.
+//
+// A token for calling the partner API from your own code, across every programme you're in: `Authorization: Bearer rpt_…`. `read` reaches your profile, stats, links, referrals, payouts, achievements, assets, groups, contracts, deals, disputes, notifications, invitations, recruiting, terms and KYC status; `write` also creates links, deals and disputes and marks notifications read. Security, profile and payout details, KYC, contracts, advances and tax documents stay portal-only. Shown once. Portal session only, with `x-totp-code` when two-factor is on; at most 10 active.
+//
+// **Auth:** a partner session.
+func (c *Client) PostPartnerAPITokens(ctx context.Context, body PostPartnerApiTokensBody, opts ...RequestOption) (*PostPartnerApiTokensResponse, error) {
+	var out PostPartnerApiTokensResponse
+	if err := c.do(ctx, "POST", "/v1/partner/api-tokens", nil, body, &out, "json", opts); err != nil {
 		return nil, err
 	}
 	return &out, nil
@@ -8578,6 +9046,19 @@ func (c *Client) PostPartnerSecurityTotpSetup(ctx context.Context, opts ...Reque
 	return &out, nil
 }
 
+// PostPartnersIDPortalLink calls Create a portal sign-in link. POST /v1/partners/{id}/portal-link.
+//
+// A single-use `url` (valid 5 minutes) for a "View earnings" button in your app: opening it signs the partner in to the partner portal for `programId`, with no second account. The session is read-only and limited to this partner in your organization (never the partner's other merchants or account settings) and lasts 12 hours. `returnUrl` must be a path inside the portal, such as `/portal/earnings`. 404 for a partner outside your organization or not enrolled in the program. Owner or admin.
+//
+// **Auth:** an API key with `partners:write` (or `full`), or a session with role `owner`, `admin`.
+func (c *Client) PostPartnersIDPortalLink(ctx context.Context, id string, body PostPartnersIdPortalLinkBody, opts ...RequestOption) (*PostPartnersIdPortalLinkResponse, error) {
+	var out PostPartnersIdPortalLinkResponse
+	if err := c.do(ctx, "POST", "/v1/partners/"+url.PathEscape(id)+"/portal-link", nil, body, &out, "json", opts); err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
 // PostPartnersIDTaxForm calls Record a partner's tax form. POST /v1/partners/{id}/tax-form.
 //
 // Records a W-9, W-8BEN or W-8BEN-E for the partner (`data` is the form's fields). A tax form on file is required before a partner is included in a payout run.
@@ -8669,6 +9150,58 @@ func (c *Client) PostPayoutRunsRunScheduled(ctx context.Context, opts ...Request
 	return &out, nil
 }
 
+// PostPortalThemeImportBrand calls Import a brand file into the portal design. POST /v1/portal/theme/import-brand.
+//
+// A W3C design-tokens (DTCG) brand file, sent as `document` or fetched from an https `url`, merged into the draft: colours (`color.primary`, `color.background`, `color.surface`, `color.text`, `color.muted`, `color.border`, status colours), fonts (`font.body`, `font.heading`, `font.mono`, `font.url`), `radius.base`, `logo.url` and `brand.name`. `applied` lists the tokens used. Owner or admin.
+//
+// **Auth:** an API key with `org:write` (or `full`), or a session with role `owner`, `admin`.
+func (c *Client) PostPortalThemeImportBrand(ctx context.Context, body PostPortalThemeImportBrandBody, opts ...RequestOption) (*PostPortalThemeImportBrandResponse, error) {
+	var out PostPortalThemeImportBrandResponse
+	if err := c.do(ctx, "POST", "/v1/portal/theme/import-brand", nil, body, &out, "json", opts); err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// PostPortalThemePreview calls Get a preview link for the portal design draft. POST /v1/portal/theme/preview.
+//
+// A link that shows the draft on your verified portal domain (`?themePreview=rpv_…`) for 7 days, to anyone who has it; minting another retires the last. Partners without the link keep seeing the published design. Owner or admin.
+//
+// **Auth:** an API key with `org:write` (or `full`), or a session with role `owner`, `admin`.
+func (c *Client) PostPortalThemePreview(ctx context.Context, opts ...RequestOption) (*PostPortalThemePreviewResponse, error) {
+	var out PostPortalThemePreviewResponse
+	if err := c.do(ctx, "POST", "/v1/portal/theme/preview", nil, nil, &out, "json", opts); err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// PostPortalThemePublish calls Publish the portal design. POST /v1/portal/theme/publish.
+//
+// Makes the draft what partners see (within a minute), keeps it as a version you can restore, and retires the preview link. Optional `note`. Owner or admin. Audited.
+//
+// **Auth:** an API key with `org:write` (or `full`), or a session with role `owner`, `admin`.
+func (c *Client) PostPortalThemePublish(ctx context.Context, body PostPortalThemePublishBody, opts ...RequestOption) (*GetPortalThemeResponse, error) {
+	var out GetPortalThemeResponse
+	if err := c.do(ctx, "POST", "/v1/portal/theme/publish", nil, body, &out, "json", opts); err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// PostPortalThemeVersionsIDRestore calls Restore a portal design version. POST /v1/portal/theme/versions/{id}/restore.
+//
+// Copies a published version into the draft; publish it to make it live again. Owner or admin.
+//
+// **Auth:** an API key with `org:write` (or `full`), or a session with role `owner`, `admin`.
+func (c *Client) PostPortalThemeVersionsIDRestore(ctx context.Context, id string, opts ...RequestOption) (*GetPortalThemeResponse, error) {
+	var out GetPortalThemeResponse
+	if err := c.do(ctx, "POST", "/v1/portal/theme/versions/"+url.PathEscape(id)+"/restore", nil, nil, &out, "json", opts); err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
 // PostPrivacyExecutorKeys calls Mint a DSAR executor key. POST /v1/privacy/executor-keys.
 //
 // Enables a DSAR tool for your org and mints its executor key (a bearer key, or a `whsec_` secret for Standard Webhooks), returned once. Rotating stops the old key at once. Also stores vendor settings: a Transcend public key and API key for completion callbacks, an Osano webhook secret.
@@ -8734,6 +9267,19 @@ func (c *Client) PostPrivacyRequests(ctx context.Context, body PostPrivacyReques
 	return &out, nil
 }
 
+// PostProductLinks calls Create a partner link. POST /v1/product-links.
+//
+// `{partner, name?, scopes[], expires_at?}` (Unix ms or ISO 8601, at most a year; default a year; never "never"). Scopes are resource scopes (`integrations:write`, `partners:read`, …) or `connections:read|write` (the auth-platform connection routes only, what Atlas asks for); never admin, full or team. Returns `client_id` and `client_secret` once; the partner swaps them at POST /v1/oauth/token (client_credentials) or sends the secret as a bearer. A root action: an API key cannot hand out more than it holds, and an Atlas operator token needs an MFA sign-in at most 5 minutes old (403 `step_up_required` otherwise).
+//
+// **Auth:** an API key with `team:write` (or `full`), or a session with role `owner`, `admin`.
+func (c *Client) PostProductLinks(ctx context.Context, body PostProductLinksBody, opts ...RequestOption) (*PostProductLinksResponse, error) {
+	var out PostProductLinksResponse
+	if err := c.do(ctx, "POST", "/v1/product-links", nil, body, &out, "json", opts); err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
 // PostProfitabilityRebuild calls Rebuild ROI figures. POST /v1/profitability/rebuild.
 //
 // Recomputes every stored ROI figure from the value events with the current settings and mappings, in the background. Returns a `jobId` to poll; while one rebuild is running, the same job is returned. Audited.
@@ -8788,7 +9334,7 @@ func (c *Client) PostProgramsIDAutopriceRun(ctx context.Context, id string, body
 
 // PostProgramsIDEnrollments calls Enroll a partner. POST /v1/programs/{id}/enrollments.
 //
-// Enrolls an existing partner in the program, approved at once. Publishes `partner.enrolled`. 409 when already enrolled.
+// Enrolls an existing partner in the program, approved at once. Publishes `partner.enrolled`. 409 when already enrolled. `externalRef` is this program's own id for the partner, when their partner `externalRef` belongs to another product sharing the org; this program's webhooks and `GET /v1/partners?externalRef=` then use it.
 //
 // **Auth:** an API key with `programs:write` (or `full`), or a session with role `owner`, `admin`.
 func (c *Client) PostProgramsIDEnrollments(ctx context.Context, id string, body PostProgramsIdEnrollmentsBody, opts ...RequestOption) (*Enrollment, error) {
@@ -8846,6 +9392,19 @@ func (c *Client) PostProgramsIDGroups(ctx context.Context, id string, body PostP
 func (c *Client) PostProgramsIDPromotions(ctx context.Context, id string, body PostProgramsIdPromotionsBody, opts ...RequestOption) (*Promotion, error) {
 	var out Promotion
 	if err := c.do(ctx, "POST", "/v1/programs/"+url.PathEscape(id)+"/promotions", nil, body, &out, "json", opts); err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// PostProgramsIDReferrers calls Make a user a referrer. POST /v1/programs/{id}/referrers.
+//
+// One idempotent call for one of your users: finds the partner by `externalRef` (or by `email`, enrolling them under this program's own `externalRef` when they refer for another product in the org), else creates it, then enrolls them and creates a coupon code and a link to the program's default destination when missing. `email` is needed only to create the partner (400 without it). 409 `email_taken` when that email is already enrolled in this program under another id.
+//
+// **Auth:** an API key with `programs:write` (or `full`), or a session with role `owner`, `admin`.
+func (c *Client) PostProgramsIDReferrers(ctx context.Context, id string, body PostProgramsIdReferrersBody, opts ...RequestOption) (*PostProgramsIdReferrersResponse, error) {
+	var out PostProgramsIdReferrersResponse
+	if err := c.do(ctx, "POST", "/v1/programs/"+url.PathEscape(id)+"/referrers", nil, body, &out, "json", opts); err != nil {
 		return nil, err
 	}
 	return &out, nil
@@ -9025,9 +9584,22 @@ func (c *Client) PostSupportAppsAdapterTest(ctx context.Context, adapter string,
 // Called by the support tool, signed in its own scheme (Chatly `x-chatly-signature`, Intercom `X-Body-Signature`, HubSpot v3, Front, Help Scout, a Zendesk app JWT, or the custom `X-Referalli-Signature`). Answers the tool's card format. An unknown org, a tool that is not connected, or a bad or stale signature all answer 404.
 //
 // **Auth:** none.
-func (c *Client) PostSupportCardsOrgIDAdapter(ctx context.Context, orgId string, adapter string, body map[string]any, opts ...RequestOption) (*PostSupportCardsOrgIdAdapterResponse, error) {
-	var out PostSupportCardsOrgIdAdapterResponse
+func (c *Client) PostSupportCardsOrgIDAdapter(ctx context.Context, orgId string, adapter string, body map[string]any, opts ...RequestOption) (*GetSupportPlatformChatlyAnswersResponse, error) {
+	var out GetSupportPlatformChatlyAnswersResponse
 	if err := c.do(ctx, "POST", "/v1/support/cards/"+url.PathEscape(orgId)+"/"+url.PathEscape(adapter), nil, body, &out, "json", opts); err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// PostSupportPlatformChatlyCard calls Render the card for Referalli's own support desk. POST /v1/support/platform/chatly-card.
+//
+// Called by Chatly for Referalli's own support workspace, signed `x-chatly-signature` with `CHATLY_PLATFORM_CARD_SECRET`. Names the person by the verified Atlas identity (`iss`, `sub`, `principal`), or by `contact.externalId` (`merchant:<user id>` / `partner:<account id>`), and answers one card across every programme they're in: a partner's status, balances and next payout per programme, or a merchant's organizations and roles. Unknown people get `blocks: null`; a bad or stale signature answers 404.
+//
+// **Auth:** none.
+func (c *Client) PostSupportPlatformChatlyCard(ctx context.Context, body map[string]any, opts ...RequestOption) (*GetSupportPlatformChatlyAnswersResponse, error) {
+	var out GetSupportPlatformChatlyAnswersResponse
+	if err := c.do(ctx, "POST", "/v1/support/platform/chatly-card", nil, body, &out, "json", opts); err != nil {
 		return nil, err
 	}
 	return &out, nil
@@ -9413,6 +9985,19 @@ func (c *Client) PutNetworkSettings(ctx context.Context, body PutNetworkSettings
 	return &out, nil
 }
 
+// PutOrgConsentPartnersCookiemunch calls Set the Cookie Munch sites to accept consent events for. PUT /v1/org/consent-partners/cookiemunch.
+//
+// Replaces the list of Cookie Munch sites (cbids) whose signed consent events this org keeps. An event for any other site is acknowledged and dropped, since the org a delivery names is chosen by whoever made the link. Owner or admin. Audited.
+//
+// **Auth:** an API key with `org:write` (or `full`), or a session with role `owner`, `admin`.
+func (c *Client) PutOrgConsentPartnersCookiemunch(ctx context.Context, body PutOrgConsentPartnersCookiemunchBody, opts ...RequestOption) (*GetOrgConsentPartnersCookiemunchResponse, error) {
+	var out GetOrgConsentPartnersCookiemunchResponse
+	if err := c.do(ctx, "PUT", "/v1/org/consent-partners/cookiemunch", nil, body, &out, "json", opts); err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
 // PutOrgFXFeed calls Turn the FX feed on or off. PUT /v1/org/fx-feed.
 //
 // Turns the daily ECB reference-rate feed on or off. Turning it on syncs once at once and returns how many rates were inserted. Audited.
@@ -9428,7 +10013,7 @@ func (c *Client) PutOrgFXFeed(ctx context.Context, body PutOrgFxFeedBody, opts .
 
 // PutOrgHostedPages calls Set the hosted-page consent and chat. PUT /v1/org/hosted-pages.
 //
-// Validates and saves the adapters. A CMP's `scriptUrl` must be https on that vendor's own hosts; `custom` needs every origin listed. `customOrigins` adds origins per CSP directive (https or wss, no wildcards, no keywords). Owner or admin. Audited.
+// Validates and saves the adapters. A CMP's `scriptUrl` must be https on that vendor's own hosts; `custom` needs every origin listed; every chat vendor also takes `origins` for hosts its account needs beyond the documented list. `chat.identitySecret` (write-only, sealed) is your chat vendor's identity-verification secret, used to sign partners in to your chat: a string sets it, `null` removes it, absent keeps it, and switching vendors drops it. `customOrigins` adds origins per CSP directive (https or wss, no wildcards, no keywords). Owner or admin. Audited.
 //
 // **Auth:** an API key with `org:write` (or `full`), or a session with role `owner`, `admin`.
 func (c *Client) PutOrgHostedPages(ctx context.Context, body PutOrgHostedPagesBody, opts ...RequestOption) (*GetOrgHostedPagesResponse, error) {
@@ -9454,7 +10039,7 @@ func (c *Client) PutOrgPayoutSchedule(ctx context.Context, body PutOrgPayoutSche
 
 // PutOrgPortalAuth calls Set partner sign-in. PUT /v1/org/portal-auth.
 //
-// Chooses the portal sign-in adapter and its settings. `custom`: `issuer`, `jwksUrl` (https), optional `loginUrl` (your page that mints the token) and `autoEnrollProgramId`. `oidc`: `issuer`, `clientId`, `clientSecret`. `referalli` removes any configuration. Owner only.
+// Chooses the portal sign-in adapter and its settings. `custom`: `issuer` and `jwksUrl` (https), or `preset` + `tenant` for a known platform (`jwtPresets` in the GET lists them: Clerk, Supabase, Firebase, Auth0, Cognito, Stytch, Kinde, Okta, Entra ID, Google, Keycloak, Descope, FusionAuth), or `keyType: hs256` with a write-only `sharedSecret` (≥ 32 characters, sealed); optional `audience` (default `referalli:<org>`), `maxAgeS` (30 to 3600, default 300), `claims` (where `sub`, `email`, `name`, `emailVerified` live, by name or dot path), `loginUrl` (your page that mints the token) and `autoEnrollProgramId`. `oidc`: `issuer`, `clientId`, `clientSecret`. `referalli` removes any configuration. Owner only.
 //
 // **Auth:** an API key with `org:write` (or `full`), or a session with role `owner`.
 func (c *Client) PutOrgPortalAuth(ctx context.Context, body json.RawMessage, opts ...RequestOption) (*PutOrgPortalAuthResponse, error) {
@@ -9647,6 +10232,19 @@ func (c *Client) PutPayoutConnectionsProvider(ctx context.Context, provider stri
 	return &out, nil
 }
 
+// PutPortalThemeDraft calls Replace the portal design draft. PUT /v1/portal/theme/draft.
+//
+// Replaces the whole draft: keys you leave out are gone. Unknown keys are refused with 422 naming each one by its full path. Owner or admin.
+//
+// **Auth:** an API key with `org:write` (or `full`), or a session with role `owner`, `admin`.
+func (c *Client) PutPortalThemeDraft(ctx context.Context, body map[string]any, opts ...RequestOption) (*GetPortalThemeResponse, error) {
+	var out GetPortalThemeResponse
+	if err := c.do(ctx, "PUT", "/v1/portal/theme/draft", nil, body, &out, "json", opts); err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
 // PutProfitabilityProductsProductRef calls Set a product margin. PUT /v1/profitability/products/{productRef}.
 //
 // Sets a product's margin (`marginBps`) or unit cost (`unitCostMinor`, in `currency`, default the reporting currency); exactly one of the two. Audited.
@@ -9751,6 +10349,19 @@ func (c *Client) PutProgramsIDRefereeReward(ctx context.Context, id string, body
 	return &out, nil
 }
 
+// PutProgramsIDStripeCredits calls Set a program's Stripe balance credit settings. PUT /v1/programs/{id}/stripe-credits.
+//
+// Turns the rail on or off for a program. Each `commission.settled` line with method `merchant_credit` is credited to the referrer's Stripe customer balance; a later `commission.reversed` debits it back. `referrerMatch`: `billing_link` (the partner's externalRef is a `cus_…` id or is billing-linked to one), `metadata` (Stripe customer search on `metadata[metadataKey]` = the partner's externalRef) or `email` (the one Stripe customer with the partner's email). `refereeRewards: true` also credits `store_credit` referee rewards to the referred customer. Custom units (`x_…`) are never credited. Enabling needs a key (`409 stripe_key_required`). Owner or admin. Audited.
+//
+// **Auth:** an API key with `payouts:write` (or `full`), or a session with role `owner`, `admin`.
+func (c *Client) PutProgramsIDStripeCredits(ctx context.Context, id string, body PutProgramsIdStripeCreditsBody, opts ...RequestOption) (*GetProgramsIdStripeCreditsResponse, error) {
+	var out GetProgramsIdStripeCreditsResponse
+	if err := c.do(ctx, "PUT", "/v1/programs/"+url.PathEscape(id)+"/stripe-credits", nil, body, &out, "json", opts); err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
 // PutRewardsRulesKey calls Save a reward rule. PUT /v1/rewards/rules/{key}.
 //
 // Creates or replaces a rule: the amount, the reason, an optional program and an optional `event` it rewards (one rule per event).
@@ -9759,6 +10370,19 @@ func (c *Client) PutProgramsIDRefereeReward(ctx context.Context, id string, body
 func (c *Client) PutRewardsRulesKey(ctx context.Context, key string, body PutRewardsRulesKeyBody, opts ...RequestOption) (*PutRewardsRulesKeyResponse, error) {
 	var out PutRewardsRulesKeyResponse
 	if err := c.do(ctx, "PUT", "/v1/rewards/rules/"+url.PathEscape(key), nil, body, &out, "json", opts); err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// PutStripeCreditsConnection calls Connect a Stripe key for balance credits. PUT /v1/stripe-credits/connection.
+//
+// Stores your own Stripe restricted key (`rk_…`, with Customers write) for the balance credit rail, encrypted and never echoed. Without one the rail uses the secret key of your Stripe payout connection, if any. Owner or admin, recent sign-in. Audited.
+//
+// **Auth:** an API key with `payouts:write` (or `full`), or a session with role `owner`, `admin`.
+func (c *Client) PutStripeCreditsConnection(ctx context.Context, body PutStripeCreditsConnectionBody, opts ...RequestOption) (*GetStripeCreditsConnectionResponse, error) {
+	var out GetStripeCreditsConnectionResponse
+	if err := c.do(ctx, "PUT", "/v1/stripe-credits/connection", nil, body, &out, "json", opts); err != nil {
 		return nil, err
 	}
 	return &out, nil
@@ -9809,16 +10433,24 @@ func (c *Client) Call(ctx context.Context, operationID string, path map[string]s
 		return c.DeleteOrgMembersUserID(ctx, path["userId"], opts...)
 	case "deleteOrgSsoDirect":
 		return c.DeleteOrgSSODirect(ctx, opts...)
+	case "deletePartnerApiTokensId":
+		return c.DeletePartnerAPITokensID(ctx, path["id"], opts...)
 	case "deletePartnersId":
 		return c.DeletePartnersID(ctx, path["id"], opts...)
 	case "deletePayoutConnectionsProvider":
 		return c.DeletePayoutConnectionsProvider(ctx, path["provider"], opts...)
+	case "deletePortalThemeDraft":
+		return c.DeletePortalThemeDraft(ctx, opts...)
 	case "deletePrivacyExecutorsAdapter":
 		return c.DeletePrivacyExecutorsAdapter(ctx, path["adapter"], opts...)
+	case "deleteProductLinksId":
+		return c.DeleteProductLinksID(ctx, path["id"], opts...)
 	case "deleteProfitabilityProductsProductRef":
 		return c.DeleteProfitabilityProductsProductRef(ctx, path["productRef"], opts...)
 	case "deleteRewardsRulesKey":
 		return c.DeleteRewardsRulesKey(ctx, path["key"], opts...)
+	case "deleteStripeCreditsConnection":
+		return c.DeleteStripeCreditsConnection(ctx, opts...)
 	case "deleteSupportAppsAdapter":
 		return c.DeleteSupportAppsAdapter(ctx, path["adapter"], opts...)
 	case "deleteWebhookEndpointsId":
@@ -10041,12 +10673,6 @@ func (c *Client) Call(ctx context.Context, operationID string, path map[string]s
 			return nil, err
 		}
 		return c.GetEmailTemplates(ctx, &p, opts...)
-	case "getEmbed":
-		var p GetEmbedParams
-		if err := decodeQuery(query, &p); err != nil {
-			return nil, err
-		}
-		return c.GetEmbed(ctx, &p, opts...)
 	case "getEmbedSummary":
 		return c.GetEmbedSummary(ctx, opts...)
 	case "getEvents":
@@ -10080,9 +10706,19 @@ func (c *Client) Call(ctx context.Context, operationID string, path map[string]s
 	case "getHealth":
 		return c.GetHealth(ctx, opts...)
 	case "getHostsCurrent":
-		return c.GetHostsCurrent(ctx, opts...)
+		var p GetHostsCurrentParams
+		if err := decodeQuery(query, &p); err != nil {
+			return nil, err
+		}
+		return c.GetHostsCurrent(ctx, &p, opts...)
+	case "getHostsCurrentChatIdentity":
+		return c.GetHostsCurrentChatIdentity(ctx, opts...)
 	case "getHostsCurrentThemeCss":
-		return c.GetHostsCurrentThemeCss(ctx, opts...)
+		var p GetHostsCurrentThemeCssParams
+		if err := decodeQuery(query, &p); err != nil {
+			return nil, err
+		}
+		return c.GetHostsCurrentThemeCss(ctx, &p, opts...)
 	case "getIncrementality":
 		var p GetIncrementalityParams
 		if err := decodeQuery(query, &p); err != nil {
@@ -10153,6 +10789,14 @@ func (c *Client) Call(ctx context.Context, operationID string, path map[string]s
 		return c.GetOpenapiYaml(ctx, opts...)
 	case "getOrg":
 		return c.GetOrg(ctx, opts...)
+	case "getOrgConsentPartnersCookiemunch":
+		return c.GetOrgConsentPartnersCookiemunch(ctx, opts...)
+	case "getOrgConsentPartnersCookiemunchEvents":
+		var p GetOrgConsentPartnersCookiemunchEventsParams
+		if err := decodeQuery(query, &p); err != nil {
+			return nil, err
+		}
+		return c.GetOrgConsentPartnersCookiemunchEvents(ctx, &p, opts...)
 	case "getOrgFxFeed":
 		return c.GetOrgFXFeed(ctx, opts...)
 	case "getOrgHostedPages":
@@ -10199,6 +10843,8 @@ func (c *Client) Call(ctx context.Context, operationID string, path map[string]s
 		return c.GetPartnerAdvance(ctx, &p, opts...)
 	case "getPartnerAdvanceOffer":
 		return c.GetPartnerAdvanceOffer(ctx, opts...)
+	case "getPartnerApiTokens":
+		return c.GetPartnerAPITokens(ctx, opts...)
 	case "getPartnerAssets":
 		var p GetPartnerAssetsParams
 		if err := decodeQuery(query, &p); err != nil {
@@ -10306,7 +10952,11 @@ func (c *Client) Call(ctx context.Context, operationID string, path map[string]s
 	case "getPartnerSecurity":
 		return c.GetPartnerSecurity(ctx, opts...)
 	case "getPartnersId":
-		return c.GetPartnersID(ctx, path["id"], opts...)
+		var p GetPartnersIDParams
+		if err := decodeQuery(query, &p); err != nil {
+			return nil, err
+		}
+		return c.GetPartnersID(ctx, path["id"], &p, opts...)
 	case "getPartnersIdBalances":
 		var p GetPartnersIDBalancesParams
 		if err := decodeQuery(query, &p); err != nil {
@@ -10323,6 +10973,18 @@ func (c *Client) Call(ctx context.Context, operationID string, path map[string]s
 		return c.GetPartnersIDPayoutProfile(ctx, path["id"], opts...)
 	case "getPartnersIdQuality":
 		return c.GetPartnersIDQuality(ctx, path["id"], opts...)
+	case "getPartnersIdStats":
+		var p GetPartnersIDStatsParams
+		if err := decodeQuery(query, &p); err != nil {
+			return nil, err
+		}
+		return c.GetPartnersIDStats(ctx, path["id"], &p, opts...)
+	case "getPartnersIdSummary":
+		var p GetPartnersIDSummaryParams
+		if err := decodeQuery(query, &p); err != nil {
+			return nil, err
+		}
+		return c.GetPartnersIDSummary(ctx, path["id"], &p, opts...)
 	case "getPartnerStats":
 		var p GetPartnerStatsParams
 		if err := decodeQuery(query, &p); err != nil {
@@ -10377,6 +11039,18 @@ func (c *Client) Call(ctx context.Context, operationID string, path map[string]s
 			return nil, err
 		}
 		return c.GetPortalAuthCurrent(ctx, &p, opts...)
+	case "getPortalTheme":
+		return c.GetPortalTheme(ctx, opts...)
+	case "getPortalThemeCompiled":
+		var p GetPortalThemeCompiledParams
+		if err := decodeQuery(query, &p); err != nil {
+			return nil, err
+		}
+		return c.GetPortalThemeCompiled(ctx, &p, opts...)
+	case "getPortalThemeSchema":
+		return c.GetPortalThemeSchema(ctx, opts...)
+	case "getPortalThemeVersions":
+		return c.GetPortalThemeVersions(ctx, opts...)
 	case "getPrivacyExecutorRequests":
 		return c.GetPrivacyExecutorRequests(ctx, opts...)
 	case "getPrivacyExecutors":
@@ -10397,6 +11071,8 @@ func (c *Client) Call(ctx context.Context, operationID string, path map[string]s
 		return c.GetPrivacyRequestsID(ctx, path["id"], opts...)
 	case "getPrivacyRequestsIdResult":
 		return c.GetPrivacyRequestsIDResult(ctx, path["id"], opts...)
+	case "getProductLinks":
+		return c.GetProductLinks(ctx, opts...)
 	case "getProfitabilityProducts":
 		return c.GetProfitabilityProducts(ctx, opts...)
 	case "getProfitabilityProductsProductRef":
@@ -10447,6 +11123,14 @@ func (c *Client) Call(ctx context.Context, operationID string, path map[string]s
 		return c.GetProgramsIDPromotions(ctx, path["id"], &p, opts...)
 	case "getProgramsIdRefereeReward":
 		return c.GetProgramsIDRefereeReward(ctx, path["id"], opts...)
+	case "getProgramsIdStripeCredits":
+		return c.GetProgramsIDStripeCredits(ctx, path["id"], opts...)
+	case "getProgramsIdStripeCreditsLog":
+		var p GetProgramsIDStripeCreditsLogParams
+		if err := decodeQuery(query, &p); err != nil {
+			return nil, err
+		}
+		return c.GetProgramsIDStripeCreditsLog(ctx, path["id"], &p, opts...)
 	case "getProgramsIdTermsAcceptances":
 		var p GetProgramsIDTermsAcceptancesParams
 		if err := decodeQuery(query, &p); err != nil {
@@ -10553,6 +11237,8 @@ func (c *Client) Call(ctx context.Context, operationID string, path map[string]s
 		return c.GetStatusIncidentsAtom(ctx, opts...)
 	case "getStatusIncidentsId":
 		return c.GetStatusIncidentsID(ctx, path["id"], opts...)
+	case "getStripeCreditsConnection":
+		return c.GetStripeCreditsConnection(ctx, opts...)
 	case "getSupportApps":
 		return c.GetSupportApps(ctx, opts...)
 	case "getSupportCardsOrgIdAdapter":
@@ -10567,6 +11253,12 @@ func (c *Client) Call(ctx context.Context, operationID string, path map[string]s
 			return nil, err
 		}
 		return c.GetSupportContext(ctx, &p, opts...)
+	case "getSupportPlatformChatlyAnswers":
+		var p GetSupportPlatformChatlyAnswersParams
+		if err := decodeQuery(query, &p); err != nil {
+			return nil, err
+		}
+		return c.GetSupportPlatformChatlyAnswers(ctx, &p, opts...)
 	case "getTax1099":
 		var p GetTax1099Params
 		if err := decodeQuery(query, &p); err != nil {
@@ -10693,6 +11385,12 @@ func (c *Client) Call(ctx context.Context, operationID string, path map[string]s
 			return nil, err
 		}
 		return c.PatchPartnersIDPayoutProfile(ctx, path["id"], b, opts...)
+	case "patchPortalThemeDraft":
+		var b map[string]any
+		if err := decodeInto(body, &b); err != nil {
+			return nil, err
+		}
+		return c.PatchPortalThemeDraft(ctx, b, opts...)
 	case "patchProgramsId":
 		var b PatchProgramsIdBody
 		if err := decodeInto(body, &b); err != nil {
@@ -11084,7 +11782,7 @@ func (c *Client) Call(ctx context.Context, operationID string, path map[string]s
 	case "postNotificationsIdRead":
 		return c.PostNotificationsIDRead(ctx, path["id"], opts...)
 	case "postOauthToken":
-		var b PostOauthTokenBody
+		var b json.RawMessage
 		if err := decodeInto(body, &b); err != nil {
 			return nil, err
 		}
@@ -11095,6 +11793,12 @@ func (c *Client) Call(ctx context.Context, operationID string, path map[string]s
 			return nil, err
 		}
 		return c.PostOnchainConnections(ctx, b, opts...)
+	case "postOrgConsentPartnersCookiemunchStampsCheck":
+		var b PostOrgConsentPartnersCookiemunchStampsCheckBody
+		if err := decodeInto(body, &b); err != nil {
+			return nil, err
+		}
+		return c.PostOrgConsentPartnersCookiemunchStampsCheck(ctx, b, opts...)
 	case "postOrgHostedPagesCheck":
 		return c.PostOrgHostedPagesCheck(ctx, opts...)
 	case "postOrgMembers":
@@ -11111,6 +11815,12 @@ func (c *Client) Call(ctx context.Context, operationID string, path map[string]s
 			return nil, err
 		}
 		return c.PostOrgs(ctx, b, opts...)
+	case "postOrgsOrgIdPrivacyExecutorKey":
+		var b PostOrgsOrgIdPrivacyExecutorKeyBody
+		if err := decodeInto(body, &b); err != nil {
+			return nil, err
+		}
+		return c.PostOrgsOrgIDPrivacyExecutorKey(ctx, path["orgId"], b, opts...)
 	case "postOrgSsoDirectTest":
 		return c.PostOrgSSODirectTest(ctx, opts...)
 	case "postOrgSsoLink":
@@ -11139,6 +11849,12 @@ func (c *Client) Call(ctx context.Context, operationID string, path map[string]s
 			return nil, err
 		}
 		return c.PostPartnerAdvanceAccept(ctx, b, opts...)
+	case "postPartnerApiTokens":
+		var b PostPartnerApiTokensBody
+		if err := decodeInto(body, &b); err != nil {
+			return nil, err
+		}
+		return c.PostPartnerAPITokens(ctx, b, opts...)
 	case "postPartnerAuthWalletNonce":
 		var b PostPartnerAuthWalletNonceBody
 		if err := decodeInto(body, &b); err != nil {
@@ -11219,6 +11935,12 @@ func (c *Client) Call(ctx context.Context, operationID string, path map[string]s
 		return c.PostPartnerSecurityTotpEnable(ctx, b, opts...)
 	case "postPartnerSecurityTotpSetup":
 		return c.PostPartnerSecurityTotpSetup(ctx, opts...)
+	case "postPartnersIdPortalLink":
+		var b PostPartnersIdPortalLinkBody
+		if err := decodeInto(body, &b); err != nil {
+			return nil, err
+		}
+		return c.PostPartnersIDPortalLink(ctx, path["id"], b, opts...)
 	case "postPartnersIdTaxForm":
 		var b PostPartnersIdTaxFormBody
 		if err := decodeInto(body, &b); err != nil {
@@ -11241,6 +11963,22 @@ func (c *Client) Call(ctx context.Context, operationID string, path map[string]s
 		return c.PostPayoutRunsIDExecute(ctx, path["id"], opts...)
 	case "postPayoutRunsRunScheduled":
 		return c.PostPayoutRunsRunScheduled(ctx, opts...)
+	case "postPortalThemeImportBrand":
+		var b PostPortalThemeImportBrandBody
+		if err := decodeInto(body, &b); err != nil {
+			return nil, err
+		}
+		return c.PostPortalThemeImportBrand(ctx, b, opts...)
+	case "postPortalThemePreview":
+		return c.PostPortalThemePreview(ctx, opts...)
+	case "postPortalThemePublish":
+		var b PostPortalThemePublishBody
+		if err := decodeInto(body, &b); err != nil {
+			return nil, err
+		}
+		return c.PostPortalThemePublish(ctx, b, opts...)
+	case "postPortalThemeVersionsIdRestore":
+		return c.PostPortalThemeVersionsIDRestore(ctx, path["id"], opts...)
 	case "postPrivacyExecutorKeys":
 		var b PostPrivacyExecutorKeysBody
 		if err := decodeInto(body, &b); err != nil {
@@ -11267,6 +12005,12 @@ func (c *Client) Call(ctx context.Context, operationID string, path map[string]s
 			return nil, err
 		}
 		return c.PostPrivacyRequests(ctx, b, opts...)
+	case "postProductLinks":
+		var b PostProductLinksBody
+		if err := decodeInto(body, &b); err != nil {
+			return nil, err
+		}
+		return c.PostProductLinks(ctx, b, opts...)
 	case "postProfitabilityRebuild":
 		return c.PostProfitabilityRebuild(ctx, opts...)
 	case "postPrograms":
@@ -11305,6 +12049,12 @@ func (c *Client) Call(ctx context.Context, operationID string, path map[string]s
 			return nil, err
 		}
 		return c.PostProgramsIDPromotions(ctx, path["id"], b, opts...)
+	case "postProgramsIdReferrers":
+		var b PostProgramsIdReferrersBody
+		if err := decodeInto(body, &b); err != nil {
+			return nil, err
+		}
+		return c.PostProgramsIDReferrers(ctx, path["id"], b, opts...)
 	case "postPromotionsIdEnd":
 		return c.PostPromotionsIDEnd(ctx, path["id"], opts...)
 	case "postPublicProgramsHandleJoin":
@@ -11373,6 +12123,12 @@ func (c *Client) Call(ctx context.Context, operationID string, path map[string]s
 			return nil, err
 		}
 		return c.PostSupportCardsOrgIDAdapter(ctx, path["orgId"], path["adapter"], b, opts...)
+	case "postSupportPlatformChatlyCard":
+		var b map[string]any
+		if err := decodeInto(body, &b); err != nil {
+			return nil, err
+		}
+		return c.PostSupportPlatformChatlyCard(ctx, b, opts...)
 	case "postTax1099DocumentsIdCorrect":
 		return c.PostTax1099DocumentsIDCorrect(ctx, path["id"], opts...)
 	case "postTax1099Filings":
@@ -11521,6 +12277,12 @@ func (c *Client) Call(ctx context.Context, operationID string, path map[string]s
 			return nil, err
 		}
 		return c.PutNetworkSettings(ctx, b, opts...)
+	case "putOrgConsentPartnersCookiemunch":
+		var b PutOrgConsentPartnersCookiemunchBody
+		if err := decodeInto(body, &b); err != nil {
+			return nil, err
+		}
+		return c.PutOrgConsentPartnersCookiemunch(ctx, b, opts...)
 	case "putOrgFxFeed":
 		var b PutOrgFxFeedBody
 		if err := decodeInto(body, &b); err != nil {
@@ -11629,6 +12391,12 @@ func (c *Client) Call(ctx context.Context, operationID string, path map[string]s
 			return nil, err
 		}
 		return c.PutPayoutConnectionsProvider(ctx, path["provider"], b, opts...)
+	case "putPortalThemeDraft":
+		var b map[string]any
+		if err := decodeInto(body, &b); err != nil {
+			return nil, err
+		}
+		return c.PutPortalThemeDraft(ctx, b, opts...)
 	case "putProfitabilityProductsProductRef":
 		var b PutProfitabilityProductsProductRefBody
 		if err := decodeInto(body, &b); err != nil {
@@ -11677,12 +12445,24 @@ func (c *Client) Call(ctx context.Context, operationID string, path map[string]s
 			return nil, err
 		}
 		return c.PutProgramsIDRefereeReward(ctx, path["id"], b, opts...)
+	case "putProgramsIdStripeCredits":
+		var b PutProgramsIdStripeCreditsBody
+		if err := decodeInto(body, &b); err != nil {
+			return nil, err
+		}
+		return c.PutProgramsIDStripeCredits(ctx, path["id"], b, opts...)
 	case "putRewardsRulesKey":
 		var b PutRewardsRulesKeyBody
 		if err := decodeInto(body, &b); err != nil {
 			return nil, err
 		}
 		return c.PutRewardsRulesKey(ctx, path["key"], b, opts...)
+	case "putStripeCreditsConnection":
+		var b PutStripeCreditsConnectionBody
+		if err := decodeInto(body, &b); err != nil {
+			return nil, err
+		}
+		return c.PutStripeCreditsConnection(ctx, b, opts...)
 	case "putSupportAppsAdapter":
 		var b PutSupportAppsAdapterBody
 		if err := decodeInto(body, &b); err != nil {
