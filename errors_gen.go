@@ -73,6 +73,11 @@ type NotFoundError struct{ *APIError }
 
 func (e *NotFoundError) Unwrap() error { return e.APIError }
 
+// NotEnrolledError is the `not_enrolled` error (HTTP 404). Match it with errors.As.
+type NotEnrolledError struct{ *APIError }
+
+func (e *NotEnrolledError) Unwrap() error { return e.APIError }
+
 // ConflictError is the `conflict` error (HTTP 409). Match it with errors.As.
 type ConflictError struct{ *APIError }
 
@@ -87,6 +92,11 @@ func (e *IdempotencyInProgressError) Unwrap() error { return e.APIError }
 type StripeKeyRequiredError struct{ *APIError }
 
 func (e *StripeKeyRequiredError) Unwrap() error { return e.APIError }
+
+// CreditCredentialsRequiredError is the `credit_credentials_required` error (HTTP 409). Match it with errors.As.
+type CreditCredentialsRequiredError struct{ *APIError }
+
+func (e *CreditCredentialsRequiredError) Unwrap() error { return e.APIError }
 
 // ApiKeyExpiredError is the `api_key_expired` error (HTTP 409). Match it with errors.As.
 type ApiKeyExpiredError struct{ *APIError }
@@ -138,6 +148,21 @@ type StripeKeyPermissionError struct{ *APIError }
 
 func (e *StripeKeyPermissionError) Unwrap() error { return e.APIError }
 
+// ProviderCredentialsInvalidError is the `provider_credentials_invalid` error (HTTP 422). Match it with errors.As.
+type ProviderCredentialsInvalidError struct{ *APIError }
+
+func (e *ProviderCredentialsInvalidError) Unwrap() error { return e.APIError }
+
+// ProviderCredentialsWrongModeError is the `provider_credentials_wrong_mode` error (HTTP 422). Match it with errors.As.
+type ProviderCredentialsWrongModeError struct{ *APIError }
+
+func (e *ProviderCredentialsWrongModeError) Unwrap() error { return e.APIError }
+
+// ProviderPermissionError is the `provider_permission` error (HTTP 422). Match it with errors.As.
+type ProviderPermissionError struct{ *APIError }
+
+func (e *ProviderPermissionError) Unwrap() error { return e.APIError }
+
 // PayloadTooLargeError is the `payload_too_large` error (HTTP 413). Match it with errors.As.
 type PayloadTooLargeError struct{ *APIError }
 
@@ -167,6 +192,11 @@ func (e *AtlasError) Unwrap() error { return e.APIError }
 type StripeUnavailableError struct{ *APIError }
 
 func (e *StripeUnavailableError) Unwrap() error { return e.APIError }
+
+// ProviderUnavailableError is the `provider_unavailable` error (HTTP 502). Match it with errors.As.
+type ProviderUnavailableError struct{ *APIError }
+
+func (e *ProviderUnavailableError) Unwrap() error { return e.APIError }
 
 // SsoProviderError is the `sso_provider_error` error (HTTP 502). Match it with errors.As.
 type SsoProviderError struct{ *APIError }
@@ -208,12 +238,16 @@ func typedError(base *APIError) error {
 		return &RestrictedSessionError{base}
 	case "not_found":
 		return &NotFoundError{base}
+	case "not_enrolled":
+		return &NotEnrolledError{base}
 	case "conflict":
 		return &ConflictError{base}
 	case "idempotency_in_progress":
 		return &IdempotencyInProgressError{base}
 	case "stripe_key_required":
 		return &StripeKeyRequiredError{base}
+	case "credit_credentials_required":
+		return &CreditCredentialsRequiredError{base}
 	case "api_key_expired":
 		return &ApiKeyExpiredError{base}
 	case "replay":
@@ -234,6 +268,12 @@ func typedError(base *APIError) error {
 		return &StripeKeyWrongModeError{base}
 	case "stripe_key_permission":
 		return &StripeKeyPermissionError{base}
+	case "provider_credentials_invalid":
+		return &ProviderCredentialsInvalidError{base}
+	case "provider_credentials_wrong_mode":
+		return &ProviderCredentialsWrongModeError{base}
+	case "provider_permission":
+		return &ProviderPermissionError{base}
 	case "payload_too_large":
 		return &PayloadTooLargeError{base}
 	case "connection_paused":
@@ -246,6 +286,8 @@ func typedError(base *APIError) error {
 		return &AtlasError{base}
 	case "stripe_unavailable":
 		return &StripeUnavailableError{base}
+	case "provider_unavailable":
+		return &ProviderUnavailableError{base}
 	case "sso_provider_error":
 		return &SsoProviderError{base}
 	case "sso_not_configured":

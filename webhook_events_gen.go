@@ -7,6 +7,9 @@ import "encoding/json"
 
 // Every webhook topic the API publishes.
 const (
+	TopicAccountCreditApplied     = "account_credit.applied"
+	TopicAccountCreditFailed      = "account_credit.failed"
+	TopicAccountCreditReversed    = "account_credit.reversed"
 	TopicAPIKeyExpiring           = "api_key.expiring"
 	TopicBillingEventRecorded     = "billing_event.recorded"
 	TopicClickRecorded            = "click.recorded"
@@ -50,6 +53,9 @@ const (
 
 // Topics lists every webhook topic.
 var Topics = []string{
+	TopicAccountCreditApplied,
+	TopicAccountCreditFailed,
+	TopicAccountCreditReversed,
 	TopicAPIKeyExpiring,
 	TopicBillingEventRecorded,
 	TopicClickRecorded,
@@ -89,6 +95,39 @@ var Topics = []string{
 	TopicWebhookEndpointDisabled,
 	TopicWebhookEndpointFailing,
 	TopicWebhookEndpointRecovered,
+}
+
+// AsAccountCreditApplied decodes the data of a `account_credit.applied` event (An account credit was applied in your billing system).
+// It returns a *WrongTopicError for an event of another topic.
+func (e *WebhookEvent) AsAccountCreditApplied() (AccountCreditAppliedEventData, error) {
+	var out AccountCreditAppliedEventData
+	if e.Topic != TopicAccountCreditApplied {
+		return out, &WrongTopicError{Want: TopicAccountCreditApplied, Got: e.Topic}
+	}
+	err := json.Unmarshal(e.Data, &out)
+	return out, err
+}
+
+// AsAccountCreditFailed decodes the data of a `account_credit.failed` event (An account credit or debit gave up).
+// It returns a *WrongTopicError for an event of another topic.
+func (e *WebhookEvent) AsAccountCreditFailed() (AccountCreditFailedEventData, error) {
+	var out AccountCreditFailedEventData
+	if e.Topic != TopicAccountCreditFailed {
+		return out, &WrongTopicError{Want: TopicAccountCreditFailed, Got: e.Topic}
+	}
+	err := json.Unmarshal(e.Data, &out)
+	return out, err
+}
+
+// AsAccountCreditReversed decodes the data of a `account_credit.reversed` event (An account credit was debited back after a reversal).
+// It returns a *WrongTopicError for an event of another topic.
+func (e *WebhookEvent) AsAccountCreditReversed() (AccountCreditReversedEventData, error) {
+	var out AccountCreditReversedEventData
+	if e.Topic != TopicAccountCreditReversed {
+		return out, &WrongTopicError{Want: TopicAccountCreditReversed, Got: e.Topic}
+	}
+	err := json.Unmarshal(e.Data, &out)
+	return out, err
 }
 
 // AsAPIKeyExpiring decodes the data of a `api_key.expiring` event (An API key expires soon).

@@ -492,6 +492,7 @@ type BillingConnection struct {
 	Filter                  *BillingFilter            `json:"filter"`                            // Only matching events earn; the rest are recorded as ignored_by_filter. null takes every event.
 	CustomerRefMetadataKey  *string                   `json:"customerRefMetadataKey,omitempty"`  // The provider metadata key that holds your customerRef, when it is not referalli_customer_ref.
 	StripeWebhookEndpointID *string                   `json:"stripeWebhookEndpointId,omitempty"` // The Stripe webhook endpoint (`we_…`) Referalli registered for this connection with `stripeKey`.
+	ProviderWebhookIds      []string                  `json:"providerWebhookIds,omitempty"`      // The provider webhooks Referalli registered with `autoRegister` (one per topic for Shopify, BigCommerce, WooCommerce; Stripe's endpoint too). null when set up by hand.
 	Rotation                BillingConnectionRotation `json:"rotation"`
 }
 
@@ -506,7 +507,9 @@ type CreatedBillingConnection struct {
 	CustomerRefMetadataKey  *string        `json:"customerRefMetadataKey,omitempty"`  // The provider metadata key that holds your customerRef, when it is not referalli_customer_ref.
 	ProgramIds              []string       `json:"programIds"`                        // Only referrals in these programs earn from this connection's events; null = every program.
 	StripeWebhookEndpointID *string        `json:"stripeWebhookEndpointId,omitempty"` // With `stripeKey`: the Stripe webhook endpoint (`we_…`) registered or reused.
-	Reused                  *bool          `json:"reused,omitempty"`                  // With `stripeKey`: true when an endpoint on the account already pointed at one of your Stripe connections, which is returned instead of a new one.
+	ProviderWebhookIds      []string       `json:"providerWebhookIds,omitempty"`      // With `autoRegister` (not Stripe): the provider webhooks registered or reused.
+	SkippedEvents           []string       `json:"skippedEvents,omitempty"`           // With `autoRegister`: optional events the credentials could not subscribe (Shopify `DISPUTES_CREATE` without the `read_shopify_payments_disputes` scope); everything else was registered.
+	Reused                  *bool          `json:"reused,omitempty"`                  // With `stripeKey` or `autoRegister`: true when webhooks on the account already pointed at one of your connections for this provider, which is returned instead of a new one.
 }
 
 // BillingEvent is generated from the OpenAPI component of the same name.
@@ -524,7 +527,7 @@ type BillingEvent struct {
 	ConnectionID  *string             `json:"connectionId"`
 	ProductRef    string              `json:"productRef"`
 	Status        string              `json:"status"`        // ignored_by_filter: recorded, never processed (product filter or internal customer).
-	IgnoredReason *string             `json:"ignoredReason"` // Why it earned nothing. no_referral_in_scope (status processed): the customer is referred only in programs outside the connection's programIds.
+	IgnoredReason *string             `json:"ignoredReason"` // Why it earned nothing. no_referral_in_scope (status processed): the customer is referred only in programs outside the connection's programIds. identity_unresolved / identity_ambiguous (status processed): the customer had no customerRef and an auth connection with resolveBillingCustomers matched no user, or several.
 	Catalog       map[string][]string `json:"catalog"`       // The productIds, priceIds and skus the event named.
 }
 
@@ -864,6 +867,43 @@ type ApiKey struct {
 	RevokedAt      *string                 `json:"revokedAt"`
 }
 
+// TokenVerificationValueOption1Claims is generated from the OpenAPI component of the same name.
+type TokenVerificationValueOption1Claims struct {
+	CustomerRef   *string `json:"customerRef,omitempty"`
+	Email         *string `json:"email,omitempty"`
+	EmailVerified *string `json:"emailVerified,omitempty"`
+	Name          *string `json:"name,omitempty"`
+}
+
+// TokenVerificationValueOption1 is generated from the OpenAPI component of the same name.
+type TokenVerificationValueOption1 struct {
+	Preset   *string                              `json:"preset,omitempty"`
+	Tenant   *string                              `json:"tenant,omitempty"`
+	Issuer   string                               `json:"issuer"`
+	KeyType  string                               `json:"keyType"` // hs256: verified with the sealed shared secret, which is never returned.
+	JwksURL  *string                              `json:"jwksUrl,omitempty"`
+	Audience *string                              `json:"audience,omitempty"` // Checked when set; with none, the token audience is not checked.
+	MaxAgeS  *int64                               `json:"maxAgeS,omitempty"`
+	Claims   *TokenVerificationValueOption1Claims `json:"claims,omitempty"`
+}
+
+// TokenVerification: How POST /v1/widget/session verifies the end user's session JWT; null when not set.
+type TokenVerification = *TokenVerificationValueOption1
+
+// WidgetSessionPartner is generated from the OpenAPI component of the same name.
+type WidgetSessionPartner struct {
+	ID      string  `json:"id"`
+	Code    *string `json:"code"`
+	LinkURL *string `json:"linkUrl"` // Their tracked link; null when they have only a coupon.
+}
+
+// WidgetSession is generated from the OpenAPI component of the same name.
+type WidgetSession struct {
+	Token     string               `json:"token"`
+	ExpiresAt string               `json:"expiresAt"`
+	Partner   WidgetSessionPartner `json:"partner"`
+}
+
 // AuthConnectionRotation is generated from the OpenAPI component of the same name.
 type AuthConnectionRotation struct {
 	InProgress              bool    `json:"inProgress"`
@@ -872,37 +912,42 @@ type AuthConnectionRotation struct {
 
 // AuthConnection is generated from the OpenAPI component of the same name.
 type AuthConnection struct {
-	ID               string                 `json:"id"`
-	Provider         string                 `json:"provider"`
-	ProgramID        string                 `json:"programId"`
-	Name             string                 `json:"name"`
-	Status           string                 `json:"status"`
-	CreatedAt        string                 `json:"createdAt"`
-	Rotation         AuthConnectionRotation `json:"rotation"`
-	InstanceID       *string                `json:"instanceId,omitempty"` // Signed-protocol connections: the Atlas instance, or a custom label.
-	AppID            *string                `json:"appId,omitempty"`      // Atlas connections serving an Atlas ID app instead of an instance.
-	AutoEnrollUsers  *bool                  `json:"autoEnrollUsers,omitempty"`
-	DestinationURL   *string                `json:"destinationUrl,omitempty"`
-	SignatureVersion *string                `json:"signatureVersion,omitempty"`
-	RequiresV2       *bool                  `json:"requiresV2,omitempty"` // True once signatureVersion is v2 or the connection has seen a v2 call.
+	ID                      string                 `json:"id"`
+	Provider                string                 `json:"provider"`
+	ProgramID               string                 `json:"programId"`
+	Name                    string                 `json:"name"`
+	Status                  string                 `json:"status"`
+	CreatedAt               string                 `json:"createdAt"`
+	Rotation                AuthConnectionRotation `json:"rotation"`
+	InstanceID              *string                `json:"instanceId,omitempty"` // Signed-protocol connections: the Atlas instance, or a custom label.
+	AppID                   *string                `json:"appId,omitempty"`      // Atlas connections serving an Atlas ID app instead of an instance.
+	AutoEnrollUsers         *bool                  `json:"autoEnrollUsers,omitempty"`
+	DestinationURL          *string                `json:"destinationUrl,omitempty"`
+	ResolveBillingCustomers *bool                  `json:"resolveBillingCustomers,omitempty"` // Billing customers that arrive with no customerRef are resolved through this connection's users (a user-id metadata key, else exactly one verified email).
+	SignatureVersion        *string                `json:"signatureVersion,omitempty"`
+	RequiresV2              *bool                  `json:"requiresV2,omitempty"` // True once signatureVersion is v2 or the connection has seen a v2 call.
+	TokenVerification       *TokenVerification     `json:"tokenVerification,omitempty"`
+	AllowedOrigins          []string               `json:"allowedOrigins,omitempty"` // Browser origins allowed to call POST /v1/widget/session.
 }
 
 // CreatedAuthConnection is generated from the OpenAPI component of the same name.
 type CreatedAuthConnection struct {
-	ID              string            `json:"id"`
-	Provider        string            `json:"provider"`
-	Secret          string            `json:"secret"`               // Returned only here.
-	WebhookURL      *string           `json:"webhookUrl,omitempty"` // Webhook connectors: Clerk, Auth0, Supabase, Firebase, Cognito, Stytch, Kinde, WorkOS, generic.
-	DocsURL         *string           `json:"docsUrl,omitempty"`    // Webhook connectors: the setup guide for this provider.
-	MetadataKeys    map[string]string `json:"metadataKeys,omitempty"`
-	ProgramID       *string           `json:"programId,omitempty"` // Signed-protocol connections (atlas, custom).
-	InstanceID      *string           `json:"instanceId,omitempty"`
-	AppID           *string           `json:"appId,omitempty"`
-	AutoEnrollUsers *bool             `json:"autoEnrollUsers,omitempty"`
-	DestinationURL  *string           `json:"destinationUrl,omitempty"`
-	SignupsURL      *string           `json:"signupsUrl,omitempty"`
-	EraseURL        *string           `json:"eraseUrl,omitempty"`
-	ExportURL       *string           `json:"exportUrl,omitempty"`
+	ID                string             `json:"id"`
+	Provider          string             `json:"provider"`
+	Secret            string             `json:"secret"`               // Returned only here.
+	WebhookURL        *string            `json:"webhookUrl,omitempty"` // Webhook connectors: Clerk, Auth0, Supabase, Firebase, Cognito, Stytch, Kinde, WorkOS, generic.
+	DocsURL           *string            `json:"docsUrl,omitempty"`    // Webhook connectors: the setup guide for this provider.
+	MetadataKeys      map[string]string  `json:"metadataKeys,omitempty"`
+	ProgramID         *string            `json:"programId,omitempty"` // Signed-protocol connections (atlas, custom).
+	InstanceID        *string            `json:"instanceId,omitempty"`
+	AppID             *string            `json:"appId,omitempty"`
+	AutoEnrollUsers   *bool              `json:"autoEnrollUsers,omitempty"`
+	DestinationURL    *string            `json:"destinationUrl,omitempty"`
+	SignupsURL        *string            `json:"signupsUrl,omitempty"`
+	EraseURL          *string            `json:"eraseUrl,omitempty"`
+	ExportURL         *string            `json:"exportUrl,omitempty"`
+	TokenVerification *TokenVerification `json:"tokenVerification,omitempty"`
+	AllowedOrigins    []string           `json:"allowedOrigins,omitempty"` // Browser origins allowed to call POST /v1/widget/session.
 }
 
 // FraudCase is generated from the OpenAPI component of the same name.
@@ -2261,6 +2306,108 @@ type StripeCreditFailedEvent struct {
 	Data      StripeCreditFailedEventData `json:"data"`
 }
 
+// AccountCreditAppliedEventData: `data` of a `account_credit.applied` event: The account-credit rail credited a referrer (or a referee's store-credit reward) on their customer account in your billing system, with your credentials: a Stripe customer balance transaction or a Chargebee promotional credit. Sent for every provider; Stripe rows also send `stripe_credit.applied`. `transactionId` is the provider's record.
+type AccountCreditAppliedEventData struct {
+	ID                 string  `json:"id"`
+	ProgramID          string  `json:"programId"`
+	SourceEventID      string  `json:"sourceEventId"` // The settled commission line, the reversal, or the referee reward this applies.
+	Kind               string  `json:"kind"`
+	CommissionID       *string `json:"commissionId"`
+	PartnerID          *string `json:"partnerId"`
+	CustomerRef        *string `json:"customerRef"`
+	AmountMinor        int64   `json:"amountMinor"`        // Positive, integer minor units. Credits are sent to Stripe as a negative amount, debits as positive.
+	Currency           string  `json:"currency"`           // The commission's currency.
+	AppliedAmountMinor *int64  `json:"appliedAmountMinor"` // What was (or will be) sent to Stripe, in appliedCurrency: amountMinor converted at your FX rate when the balance currency differs. A debit uses its credit's currency and rate.
+	AppliedCurrency    *string `json:"appliedCurrency"`    // The Stripe customer balance currency the row is applied in.
+	Status             string  `json:"status"`
+	Attempts           int64   `json:"attempts"`
+	LastError          *string `json:"lastError"`
+	CreatedAt          string  `json:"createdAt"`
+	UpdatedAt          string  `json:"updatedAt"`
+	Provider           string  `json:"provider"`      // The billing provider credited: `stripe` or `chargebee`.
+	ConnectionID       *string `json:"connectionId"`  // The billing connection whose credentials were used; null for Stripe on its own key path.
+	CustomerID         *string `json:"customerId"`    // The provider's customer id (Stripe `cus_…`, Chargebee customer id).
+	TransactionID      *string `json:"transactionId"` // The provider's record of the credit or debit once applied (Stripe balance transaction, Chargebee promotional credit).
+}
+
+// AccountCreditAppliedEvent: An account credit was applied in your billing system: the `account_credit.applied` delivery body.
+type AccountCreditAppliedEvent struct {
+	ID        string                        `json:"id"` // The event id (`evt_…`); the same event delivered to several endpoints has the same id.
+	Topic     string                        `json:"topic"`
+	OrgID     string                        `json:"orgId"`
+	Livemode  bool                          `json:"livemode"` // false for events from test mode.
+	CreatedAt string                        `json:"createdAt"`
+	Data      AccountCreditAppliedEventData `json:"data"`
+}
+
+// AccountCreditReversedEventData: `data` of a `account_credit.reversed` event: The account-credit rail debited back (part of) an applied credit after `commission.reversed`, in the credit's currency and at its rate. Stripe rows also send `stripe_credit.applied`.
+type AccountCreditReversedEventData struct {
+	ID                 string  `json:"id"`
+	ProgramID          string  `json:"programId"`
+	SourceEventID      string  `json:"sourceEventId"` // The settled commission line, the reversal, or the referee reward this applies.
+	Kind               string  `json:"kind"`
+	CommissionID       *string `json:"commissionId"`
+	PartnerID          *string `json:"partnerId"`
+	CustomerRef        *string `json:"customerRef"`
+	AmountMinor        int64   `json:"amountMinor"`        // Positive, integer minor units. Credits are sent to Stripe as a negative amount, debits as positive.
+	Currency           string  `json:"currency"`           // The commission's currency.
+	AppliedAmountMinor *int64  `json:"appliedAmountMinor"` // What was (or will be) sent to Stripe, in appliedCurrency: amountMinor converted at your FX rate when the balance currency differs. A debit uses its credit's currency and rate.
+	AppliedCurrency    *string `json:"appliedCurrency"`    // The Stripe customer balance currency the row is applied in.
+	Status             string  `json:"status"`
+	Attempts           int64   `json:"attempts"`
+	LastError          *string `json:"lastError"`
+	CreatedAt          string  `json:"createdAt"`
+	UpdatedAt          string  `json:"updatedAt"`
+	Provider           string  `json:"provider"`      // The billing provider credited: `stripe` or `chargebee`.
+	ConnectionID       *string `json:"connectionId"`  // The billing connection whose credentials were used; null for Stripe on its own key path.
+	CustomerID         *string `json:"customerId"`    // The provider's customer id (Stripe `cus_…`, Chargebee customer id).
+	TransactionID      *string `json:"transactionId"` // The provider's record of the credit or debit once applied (Stripe balance transaction, Chargebee promotional credit).
+}
+
+// AccountCreditReversedEvent: An account credit was debited back after a reversal: the `account_credit.reversed` delivery body.
+type AccountCreditReversedEvent struct {
+	ID        string                         `json:"id"` // The event id (`evt_…`); the same event delivered to several endpoints has the same id.
+	Topic     string                         `json:"topic"`
+	OrgID     string                         `json:"orgId"`
+	Livemode  bool                           `json:"livemode"` // false for events from test mode.
+	CreatedAt string                         `json:"createdAt"`
+	Data      AccountCreditReversedEventData `json:"data"`
+}
+
+// AccountCreditFailedEventData: `data` of a `account_credit.failed` event: The account-credit rail stopped retrying a credit or debit after its last attempt: no customer matched (`no_customer`), several did (`ambiguous_customer`), no FX rate converts to the balance currency (`fx_rate_missing`) or the provider refused it (`failed`). `POST /v1/programs/{id}/credit-rail/requeue` gives the first three another round. Stripe rows also send `stripe_credit.failed`.
+type AccountCreditFailedEventData struct {
+	ID                 string  `json:"id"`
+	ProgramID          string  `json:"programId"`
+	SourceEventID      string  `json:"sourceEventId"` // The settled commission line, the reversal, or the referee reward this applies.
+	Kind               string  `json:"kind"`
+	CommissionID       *string `json:"commissionId"`
+	PartnerID          *string `json:"partnerId"`
+	CustomerRef        *string `json:"customerRef"`
+	AmountMinor        int64   `json:"amountMinor"`        // Positive, integer minor units. Credits are sent to Stripe as a negative amount, debits as positive.
+	Currency           string  `json:"currency"`           // The commission's currency.
+	AppliedAmountMinor *int64  `json:"appliedAmountMinor"` // What was (or will be) sent to Stripe, in appliedCurrency: amountMinor converted at your FX rate when the balance currency differs. A debit uses its credit's currency and rate.
+	AppliedCurrency    *string `json:"appliedCurrency"`    // The Stripe customer balance currency the row is applied in.
+	Status             string  `json:"status"`
+	Attempts           int64   `json:"attempts"`
+	LastError          *string `json:"lastError"`
+	CreatedAt          string  `json:"createdAt"`
+	UpdatedAt          string  `json:"updatedAt"`
+	Provider           string  `json:"provider"`      // The billing provider credited: `stripe` or `chargebee`.
+	ConnectionID       *string `json:"connectionId"`  // The billing connection whose credentials were used; null for Stripe on its own key path.
+	CustomerID         *string `json:"customerId"`    // The provider's customer id (Stripe `cus_…`, Chargebee customer id).
+	TransactionID      *string `json:"transactionId"` // The provider's record of the credit or debit once applied (Stripe balance transaction, Chargebee promotional credit).
+}
+
+// AccountCreditFailedEvent: An account credit or debit gave up: the `account_credit.failed` delivery body.
+type AccountCreditFailedEvent struct {
+	ID        string                       `json:"id"` // The event id (`evt_…`); the same event delivered to several endpoints has the same id.
+	Topic     string                       `json:"topic"`
+	OrgID     string                       `json:"orgId"`
+	Livemode  bool                         `json:"livemode"` // false for events from test mode.
+	CreatedAt string                       `json:"createdAt"`
+	Data      AccountCreditFailedEventData `json:"data"`
+}
+
 // WebhookEndpointRecoveredEventData: `data` of a `webhook_endpoint.recovered` event: Sent to your active endpoints, including the recovered one, when a delivery succeeds after the endpoint was failing.
 type WebhookEndpointRecoveredEventData struct {
 	EndpointID   string `json:"endpointId"`
@@ -3375,6 +3522,12 @@ type PostBillingConnectionsIdRotateSecretResponse struct {
 	PreviousSecretExpiresAt string `json:"previousSecretExpiresAt"`
 }
 
+// DeleteBillingConnectionsIdResponse is generated from the OpenAPI component of the same name.
+type DeleteBillingConnectionsIdResponse struct {
+	Ok                     bool `json:"ok"`
+	ProviderWebhookRemoved bool `json:"providerWebhookRemoved"` // Whether the provider webhooks registered with `autoRegister` were removed (only where credentials were kept: BigCommerce). Best effort.
+}
+
 // GetBillingEventsResponse is generated from the OpenAPI component of the same name.
 type GetBillingEventsResponse struct {
 	Object     string         `json:"object"`
@@ -4250,6 +4403,51 @@ type PostSandboxSimulateResponse struct {
 	Reversals    int64  `json:"reversals"`
 }
 
+// GetSandboxBillingFixturesResponseDataItem is generated from the OpenAPI component of the same name.
+type GetSandboxBillingFixturesResponseDataItem struct {
+	Provider  string   `json:"provider"`
+	Event     string   `json:"event"`     // Provider-neutral name, e.g. `payment.paid`.
+	Native    string   `json:"native"`    // The provider's own event name (also accepted as `event`).
+	Overrides []string `json:"overrides"` // The `overrides` fields this fixture uses.
+}
+
+// GetSandboxBillingFixturesResponse is generated from the OpenAPI component of the same name.
+type GetSandboxBillingFixturesResponse struct {
+	Data []GetSandboxBillingFixturesResponseDataItem `json:"data"`
+}
+
+// PostSandboxBillingFixturesResponseResultsItem is generated from the OpenAPI component of the same name.
+type PostSandboxBillingFixturesResponseResultsItem struct {
+	Duplicate      bool    `json:"duplicate"`
+	BillingEventID *string `json:"billingEventId"`
+	Conversions    int64   `json:"conversions"`
+	LinesCreated   int64   `json:"linesCreated"`
+	Reversals      int64   `json:"reversals"`
+	Ignored        *string `json:"ignored,omitempty"`
+}
+
+// PostSandboxBillingFixturesResponseCommissionsItem is generated from the OpenAPI component of the same name.
+type PostSandboxBillingFixturesResponseCommissionsItem struct {
+	ID                  string  `json:"id"`
+	Type                string  `json:"type"`
+	PartnerID           string  `json:"partnerId"`
+	AmountMinor         int64   `json:"amountMinor"`
+	Currency            string  `json:"currency"`
+	RelatedCommissionID *string `json:"relatedCommissionId"`
+}
+
+// PostSandboxBillingFixturesResponse is generated from the OpenAPI component of the same name.
+type PostSandboxBillingFixturesResponse struct {
+	EventID     string                                              `json:"eventId"` // The event id the connector dedupes on (`evt_fixture_…`, your `eventId`, or derived from the object, e.g. `shopify_order_…`).
+	Event       string                                              `json:"event"`
+	Provider    string                                              `json:"provider"`
+	NativeEvent string                                              `json:"nativeEvent"` // The provider's own event name.
+	Received    int64                                               `json:"received"`    // Billing events the connector parsed from the fixture.
+	Results     []PostSandboxBillingFixturesResponseResultsItem     `json:"results"`
+	Commissions []PostSandboxBillingFixturesResponseCommissionsItem `json:"commissions"` // Commission events the fixture created (earned, reversed…).
+	Payload     GetOpenapiJsonResponse                              `json:"payload"`     // The provider payload that was processed (Recurly and BigCommerce: the enriched payload).
+}
+
 // GetSandboxStripeFixturesResponseDataItem is generated from the OpenAPI component of the same name.
 type GetSandboxStripeFixturesResponseDataItem struct {
 	Event     string   `json:"event"`
@@ -4259,36 +4457,6 @@ type GetSandboxStripeFixturesResponseDataItem struct {
 // GetSandboxStripeFixturesResponse is generated from the OpenAPI component of the same name.
 type GetSandboxStripeFixturesResponse struct {
 	Data []GetSandboxStripeFixturesResponseDataItem `json:"data"`
-}
-
-// PostSandboxStripeFixturesResponseResultsItem is generated from the OpenAPI component of the same name.
-type PostSandboxStripeFixturesResponseResultsItem struct {
-	Duplicate      bool    `json:"duplicate"`
-	BillingEventID *string `json:"billingEventId"`
-	Conversions    int64   `json:"conversions"`
-	LinesCreated   int64   `json:"linesCreated"`
-	Reversals      int64   `json:"reversals"`
-	Ignored        *string `json:"ignored,omitempty"`
-}
-
-// PostSandboxStripeFixturesResponseCommissionsItem is generated from the OpenAPI component of the same name.
-type PostSandboxStripeFixturesResponseCommissionsItem struct {
-	ID                  string  `json:"id"`
-	Type                string  `json:"type"`
-	PartnerID           string  `json:"partnerId"`
-	AmountMinor         int64   `json:"amountMinor"`
-	Currency            string  `json:"currency"`
-	RelatedCommissionID *string `json:"relatedCommissionId"`
-}
-
-// PostSandboxStripeFixturesResponse is generated from the OpenAPI component of the same name.
-type PostSandboxStripeFixturesResponse struct {
-	EventID     string                                             `json:"eventId"` // The Stripe event id sent (`evt_fixture_…`, or your `eventId`).
-	Event       string                                             `json:"event"`
-	Received    int64                                              `json:"received"` // Billing events the connector parsed from the fixture.
-	Results     []PostSandboxStripeFixturesResponseResultsItem     `json:"results"`
-	Commissions []PostSandboxStripeFixturesResponseCommissionsItem `json:"commissions"` // Commission events the fixture created (earned, reversed…).
-	Payload     GetOpenapiJsonResponse                             `json:"payload"`     // The Stripe event that was processed.
 }
 
 // PostImportProviderResponse is generated from the OpenAPI component of the same name.
@@ -5680,14 +5848,17 @@ type PostAuthConnectionsIdRotateSecretResponse struct {
 
 // PatchAuthConnectionsIdResponse is generated from the OpenAPI component of the same name.
 type PatchAuthConnectionsIdResponse struct {
-	ID               string  `json:"id"`
-	Provider         string  `json:"provider"`
-	Name             string  `json:"name"`
-	Status           string  `json:"status"`
-	AutoEnrollUsers  *bool   `json:"autoEnrollUsers,omitempty"`
-	DestinationURL   *string `json:"destinationUrl,omitempty"`
-	SignatureVersion *string `json:"signatureVersion,omitempty"`
-	RequiresV2       *bool   `json:"requiresV2,omitempty"`
+	ID                      string             `json:"id"`
+	Provider                string             `json:"provider"`
+	Name                    string             `json:"name"`
+	Status                  string             `json:"status"`
+	AutoEnrollUsers         *bool              `json:"autoEnrollUsers,omitempty"`
+	DestinationURL          *string            `json:"destinationUrl,omitempty"`
+	ResolveBillingCustomers *bool              `json:"resolveBillingCustomers,omitempty"`
+	SignatureVersion        *string            `json:"signatureVersion,omitempty"`
+	RequiresV2              *bool              `json:"requiresV2,omitempty"`
+	TokenVerification       *TokenVerification `json:"tokenVerification,omitempty"`
+	AllowedOrigins          []string           `json:"allowedOrigins,omitempty"` // Browser origins allowed to call POST /v1/widget/session.
 }
 
 // PostAuthConnectionsIdRevokePreviousSecretResponse is generated from the OpenAPI component of the same name.
@@ -5819,6 +5990,14 @@ type PostAuthConnectionsIdUsersResponse struct {
 	Partner  json.RawMessage                                    `json:"partner"`
 	Updated  []string                                           `json:"updated,omitempty"`
 	Notes    []string                                           `json:"notes,omitempty"`
+}
+
+// GetAuthConnectionsIdUsersCustomerRefReferralResponse is generated from the OpenAPI component of the same name.
+type GetAuthConnectionsIdUsersCustomerRefReferralResponse struct {
+	PartnerID  string  `json:"partnerId"`
+	Code       *string `json:"code"`
+	LinkURL    *string `json:"linkUrl"`
+	EnrolledAt string  `json:"enrolledAt"`
 }
 
 // PostAuthConnectionsIdSignalsResponseReferralsItem is generated from the OpenAPI component of the same name.
@@ -8057,6 +8236,71 @@ type GetProgramsIdStripeCreditsLogResponse struct {
 	NextCursor *string                                         `json:"next_cursor"`
 }
 
+// GetProgramsIdCreditRailResponseCreateCustomerIfMissingOption1 is generated from the OpenAPI component of the same name.
+type GetProgramsIdCreditRailResponseCreateCustomerIfMissingOption1 struct {
+	Metadata map[string]string `json:"metadata,omitempty"`
+}
+
+// GetProgramsIdCreditRailResponseCapabilities is generated from the OpenAPI component of the same name.
+type GetProgramsIdCreditRailResponseCapabilities struct {
+	CustomerCurrency bool `json:"customerCurrency"` // The provider reports a customer balance currency; without it credits go in the commission's currency (or balanceCurrency).
+	CreateCustomer   bool `json:"createCustomer"`   // createCustomerIfMissing is available.
+}
+
+// GetProgramsIdCreditRailResponse is generated from the OpenAPI component of the same name.
+type GetProgramsIdCreditRailResponse struct {
+	ProgramID               string                                                         `json:"programId"`
+	Provider                string                                                         `json:"provider"` // The billing provider credits go to: the connection's provider, or `stripe` with no connection.
+	ConnectionID            *string                                                        `json:"connectionId"`
+	Enabled                 bool                                                           `json:"enabled"`
+	ReferrerMatch           string                                                         `json:"referrerMatch"`
+	MetadataKey             *string                                                        `json:"metadataKey"`
+	RefereeRewards          bool                                                           `json:"refereeRewards"`
+	BalanceCurrency         *string                                                        `json:"balanceCurrency"`
+	CreateCustomerIfMissing *GetProgramsIdCreditRailResponseCreateCustomerIfMissingOption1 `json:"createCustomerIfMissing"`
+	WaitForCustomer         bool                                                           `json:"waitForCustomer"`
+	CredentialsConnected    bool                                                           `json:"credentialsConnected"` // Whether credentials are available: the connection's stored API credentials, or for Stripe its key path.
+	Capabilities            GetProgramsIdCreditRailResponseCapabilities                    `json:"capabilities"`
+}
+
+// PostProgramsIdCreditRailRequeueResponse is generated from the OpenAPI component of the same name.
+type PostProgramsIdCreditRailRequeueResponse struct {
+	Requeued  int64    `json:"requeued"`
+	CreditIds []string `json:"creditIds"`
+}
+
+// GetProgramsIdCreditRailLogResponseDataItem is generated from the OpenAPI component of the same name.
+type GetProgramsIdCreditRailLogResponseDataItem struct {
+	ID                 string  `json:"id"`
+	ProgramID          string  `json:"programId"`
+	SourceEventID      string  `json:"sourceEventId"` // The settled commission line, the reversal, or the referee reward this applies.
+	Kind               string  `json:"kind"`
+	CommissionID       *string `json:"commissionId"`
+	PartnerID          *string `json:"partnerId"`
+	CustomerRef        *string `json:"customerRef"`
+	AmountMinor        int64   `json:"amountMinor"`        // Positive, integer minor units. Credits are sent to Stripe as a negative amount, debits as positive.
+	Currency           string  `json:"currency"`           // The commission's currency.
+	AppliedAmountMinor *int64  `json:"appliedAmountMinor"` // What was (or will be) sent to Stripe, in appliedCurrency: amountMinor converted at your FX rate when the balance currency differs. A debit uses its credit's currency and rate.
+	AppliedCurrency    *string `json:"appliedCurrency"`    // The Stripe customer balance currency the row is applied in.
+	Status             string  `json:"status"`
+	Attempts           int64   `json:"attempts"`
+	LastError          *string `json:"lastError"`
+	CreatedAt          string  `json:"createdAt"`
+	UpdatedAt          string  `json:"updatedAt"`
+	Provider           string  `json:"provider"`      // The billing provider credited: `stripe` or `chargebee`.
+	ConnectionID       *string `json:"connectionId"`  // The billing connection whose credentials were used; null for Stripe on its own key path.
+	CustomerID         *string `json:"customerId"`    // The provider's customer id (Stripe `cus_…`, Chargebee customer id).
+	TransactionID      *string `json:"transactionId"` // The provider's record of the credit or debit once applied (Stripe balance transaction, Chargebee promotional credit).
+}
+
+// GetProgramsIdCreditRailLogResponse is generated from the OpenAPI component of the same name.
+type GetProgramsIdCreditRailLogResponse struct {
+	Object     string                                       `json:"object"`
+	Data       []GetProgramsIdCreditRailLogResponseDataItem `json:"data"`
+	HasMore    bool                                         `json:"has_more"`
+	NextCursor *string                                      `json:"next_cursor"`
+}
+
 // PostWebhooksBillingConnectionIdResponseResultsItem is generated from the OpenAPI component of the same name.
 type PostWebhooksBillingConnectionIdResponseResultsItem struct {
 	Duplicate      bool    `json:"duplicate"`
@@ -8788,6 +9032,11 @@ type PostWidgetTokensBody struct {
 	TtlSeconds         *int64  `json:"ttlSeconds,omitempty"`
 }
 
+// PostWidgetSessionBody is generated from the OpenAPI component of the same name.
+type PostWidgetSessionBody struct {
+	ProgramID string `json:"programId"`
+}
+
 // PostReferralsAssociateBodyConsent is generated from the OpenAPI component of the same name.
 type PostReferralsAssociateBodyConsent struct {
 	Provider  string   `json:"provider"` // The adapter that read it (`onetrust`, `tcf`, `cookiemunch`, …), `custom` for `aff.consent()`, `none`, or `no-cmp`.
@@ -9037,6 +9286,8 @@ type PostBillingConnectionsBody struct {
 	ProgramIds             []string                              `json:"programIds,omitempty"`
 	StripeKey              *string                               `json:"stripeKey,omitempty"`
 	CreditRail             *PostBillingConnectionsBodyCreditRail `json:"creditRail,omitempty"`
+	AutoRegister           *bool                                 `json:"autoRegister,omitempty"`
+	Credentials            map[string]json.RawMessage            `json:"credentials,omitempty"`
 }
 
 // PutBillingConnectionsIdSecretBody is generated from the OpenAPI component of the same name.
@@ -9050,6 +9301,7 @@ type PutBillingConnectionsIdCredentialsBody struct {
 	APIToken  *string `json:"apiToken,omitempty"`
 	StoreHash *string `json:"storeHash,omitempty"`
 	Region    *string `json:"region,omitempty"`
+	Site      *string `json:"site,omitempty"`
 }
 
 // PatchBillingConnectionsIdBodyFilterOption1 is generated from the OpenAPI component of the same name.
@@ -9346,22 +9598,44 @@ type PostSandboxSimulateBody struct {
 	Months     *int64  `json:"months,omitempty"`
 }
 
+// PostSandboxBillingFixturesBodyOverrides is generated from the OpenAPI component of the same name.
+type PostSandboxBillingFixturesBodyOverrides struct {
+	CustomerRef    *string           `json:"customerRef,omitempty"`
+	AmountMinor    *int64            `json:"amountMinor,omitempty"`
+	Currency       *string           `json:"currency,omitempty"`
+	Metadata       map[string]string `json:"metadata,omitempty"`
+	InvoiceID      *string           `json:"invoiceId,omitempty"`
+	OrderID        *string           `json:"orderId,omitempty"`
+	ChargeID       *string           `json:"chargeId,omitempty"`
+	SubscriptionID *string           `json:"subscriptionId,omitempty"`
+}
+
+// PostSandboxBillingFixturesBody is generated from the OpenAPI component of the same name.
+type PostSandboxBillingFixturesBody struct {
+	ConnectionID string                                   `json:"connectionId"`
+	EventID      *string                                  `json:"eventId,omitempty"`
+	Overrides    *PostSandboxBillingFixturesBodyOverrides `json:"overrides,omitempty"`
+	Event        string                                   `json:"event"`
+}
+
 // PostSandboxStripeFixturesBodyOverrides is generated from the OpenAPI component of the same name.
 type PostSandboxStripeFixturesBodyOverrides struct {
-	CustomerRef *string           `json:"customerRef,omitempty"`
-	AmountMinor *int64            `json:"amountMinor,omitempty"`
-	Currency    *string           `json:"currency,omitempty"`
-	Metadata    map[string]string `json:"metadata,omitempty"`
-	InvoiceID   *string           `json:"invoiceId,omitempty"`
-	ChargeID    *string           `json:"chargeId,omitempty"`
+	CustomerRef    *string           `json:"customerRef,omitempty"`
+	AmountMinor    *int64            `json:"amountMinor,omitempty"`
+	Currency       *string           `json:"currency,omitempty"`
+	Metadata       map[string]string `json:"metadata,omitempty"`
+	InvoiceID      *string           `json:"invoiceId,omitempty"`
+	OrderID        *string           `json:"orderId,omitempty"`
+	ChargeID       *string           `json:"chargeId,omitempty"`
+	SubscriptionID *string           `json:"subscriptionId,omitempty"`
 }
 
 // PostSandboxStripeFixturesBody is generated from the OpenAPI component of the same name.
 type PostSandboxStripeFixturesBody struct {
 	ConnectionID string                                  `json:"connectionId"`
-	Event        string                                  `json:"event"`
 	EventID      *string                                 `json:"eventId,omitempty"`
 	Overrides    *PostSandboxStripeFixturesBodyOverrides `json:"overrides,omitempty"`
+	Event        string                                  `json:"event"`
 }
 
 // PostImportProviderBody is generated from the OpenAPI component of the same name.
@@ -9883,17 +10157,40 @@ type PostAuthConnectionsBodyKeys struct {
 	AutoEnroll    *string `json:"autoEnroll,omitempty"`
 }
 
+// PostAuthConnectionsBodyTokenVerificationClaims is generated from the OpenAPI component of the same name.
+type PostAuthConnectionsBodyTokenVerificationClaims struct {
+	CustomerRef   *string `json:"customerRef,omitempty"`
+	Email         *string `json:"email,omitempty"`
+	EmailVerified *string `json:"emailVerified,omitempty"`
+	Name          *string `json:"name,omitempty"`
+}
+
+// PostAuthConnectionsBodyTokenVerification is generated from the OpenAPI component of the same name.
+type PostAuthConnectionsBodyTokenVerification struct {
+	Preset       *string                                         `json:"preset,omitempty"`
+	Tenant       *string                                         `json:"tenant,omitempty"`
+	Issuer       *string                                         `json:"issuer,omitempty"`
+	JwksURL      *string                                         `json:"jwksUrl,omitempty"`
+	KeyType      *string                                         `json:"keyType,omitempty"`
+	SharedSecret *string                                         `json:"sharedSecret,omitempty"`
+	Audience     *string                                         `json:"audience,omitempty"`
+	MaxAgeS      *int64                                          `json:"maxAgeS,omitempty"`
+	Claims       *PostAuthConnectionsBodyTokenVerificationClaims `json:"claims,omitempty"`
+}
+
 // PostAuthConnectionsBody is generated from the OpenAPI component of the same name.
 type PostAuthConnectionsBody struct {
-	Provider        string                       `json:"provider"`
-	ProgramID       string                       `json:"programId"`
-	InstanceID      *string                      `json:"instanceId,omitempty"`
-	AppID           *string                      `json:"appId,omitempty"`
-	AutoEnrollUsers *bool                        `json:"autoEnrollUsers,omitempty"`
-	DestinationURL  *string                      `json:"destinationUrl,omitempty"`
-	Name            *string                      `json:"name,omitempty"`
-	Secret          *string                      `json:"secret,omitempty"`
-	Keys            *PostAuthConnectionsBodyKeys `json:"keys,omitempty"`
+	Provider          string                                    `json:"provider"`
+	ProgramID         string                                    `json:"programId"`
+	InstanceID        *string                                   `json:"instanceId,omitempty"`
+	AppID             *string                                   `json:"appId,omitempty"`
+	AutoEnrollUsers   *bool                                     `json:"autoEnrollUsers,omitempty"`
+	DestinationURL    *string                                   `json:"destinationUrl,omitempty"`
+	Name              *string                                   `json:"name,omitempty"`
+	Secret            *string                                   `json:"secret,omitempty"`
+	Keys              *PostAuthConnectionsBodyKeys              `json:"keys,omitempty"`
+	TokenVerification *PostAuthConnectionsBodyTokenVerification `json:"tokenVerification,omitempty"`
+	AllowedOrigins    []string                                  `json:"allowedOrigins,omitempty"`
 }
 
 // PutAuthConnectionsIdSecretBody is generated from the OpenAPI component of the same name.
@@ -9901,13 +10198,37 @@ type PutAuthConnectionsIdSecretBody struct {
 	Secret string `json:"secret"`
 }
 
+// PatchAuthConnectionsIdBodyTokenVerificationOption1Claims is generated from the OpenAPI component of the same name.
+type PatchAuthConnectionsIdBodyTokenVerificationOption1Claims struct {
+	CustomerRef   *string `json:"customerRef,omitempty"`
+	Email         *string `json:"email,omitempty"`
+	EmailVerified *string `json:"emailVerified,omitempty"`
+	Name          *string `json:"name,omitempty"`
+}
+
+// PatchAuthConnectionsIdBodyTokenVerificationOption1 is generated from the OpenAPI component of the same name.
+type PatchAuthConnectionsIdBodyTokenVerificationOption1 struct {
+	Preset       *string                                                   `json:"preset,omitempty"`
+	Tenant       *string                                                   `json:"tenant,omitempty"`
+	Issuer       *string                                                   `json:"issuer,omitempty"`
+	JwksURL      *string                                                   `json:"jwksUrl,omitempty"`
+	KeyType      *string                                                   `json:"keyType,omitempty"`
+	SharedSecret *string                                                   `json:"sharedSecret,omitempty"`
+	Audience     *string                                                   `json:"audience,omitempty"`
+	MaxAgeS      *int64                                                    `json:"maxAgeS,omitempty"`
+	Claims       *PatchAuthConnectionsIdBodyTokenVerificationOption1Claims `json:"claims,omitempty"`
+}
+
 // PatchAuthConnectionsIdBody is generated from the OpenAPI component of the same name.
 type PatchAuthConnectionsIdBody struct {
-	Status           *string `json:"status,omitempty"`
-	Name             *string `json:"name,omitempty"`
-	AutoEnrollUsers  *bool   `json:"autoEnrollUsers,omitempty"`
-	DestinationURL   *string `json:"destinationUrl,omitempty"`
-	SignatureVersion *string `json:"signatureVersion,omitempty"`
+	Status                  *string                                             `json:"status,omitempty"`
+	Name                    *string                                             `json:"name,omitempty"`
+	AutoEnrollUsers         *bool                                               `json:"autoEnrollUsers,omitempty"`
+	DestinationURL          *string                                             `json:"destinationUrl,omitempty"`
+	ResolveBillingCustomers *bool                                               `json:"resolveBillingCustomers,omitempty"`
+	SignatureVersion        *string                                             `json:"signatureVersion,omitempty"`
+	TokenVerification       *PatchAuthConnectionsIdBodyTokenVerificationOption1 `json:"tokenVerification,omitempty"`
+	AllowedOrigins          []string                                            `json:"allowedOrigins,omitempty"`
 }
 
 // PostAuthConnectionsIdSignupsBodyReferral is generated from the OpenAPI component of the same name.
@@ -9971,10 +10292,20 @@ type PostAuthConnectionsIdAliasesBody struct {
 
 // PostAuthConnectionsIdUsersBody is generated from the OpenAPI component of the same name.
 type PostAuthConnectionsIdUsersBody struct {
-	CustomerRef string  `json:"customerRef"`
-	Email       *string `json:"email,omitempty"`
-	Name        *string `json:"name,omitempty"`
-	Status      *string `json:"status,omitempty"`
+	CustomerRef   string  `json:"customerRef"`
+	Email         *string `json:"email,omitempty"`
+	EmailVerified *bool   `json:"emailVerified,omitempty"`
+	Name          *string `json:"name,omitempty"`
+	Status        *string `json:"status,omitempty"`
+}
+
+// PostAuthConnectionsIdWidgetTokensBody is generated from the OpenAPI component of the same name.
+type PostAuthConnectionsIdWidgetTokensBody struct {
+	CustomerRef   string  `json:"customerRef"`
+	Email         *string `json:"email,omitempty"`
+	EmailVerified *bool   `json:"emailVerified,omitempty"`
+	DisplayName   *string `json:"displayName,omitempty"`
+	TtlSeconds    *int64  `json:"ttlSeconds,omitempty"`
 }
 
 // PostAuthConnectionsIdSignalsBody is generated from the OpenAPI component of the same name.
@@ -10227,6 +10558,28 @@ type PutProgramsIdStripeCreditsBody struct {
 
 // PostProgramsIdStripeCreditsRequeueBody is generated from the OpenAPI component of the same name.
 type PostProgramsIdStripeCreditsRequeueBody struct {
+	CreditIds []string `json:"creditIds,omitempty"`
+}
+
+// PutProgramsIdCreditRailBodyCreateCustomerIfMissingOption1 is generated from the OpenAPI component of the same name.
+type PutProgramsIdCreditRailBodyCreateCustomerIfMissingOption1 struct {
+	Metadata map[string]string `json:"metadata,omitempty"`
+}
+
+// PutProgramsIdCreditRailBody is generated from the OpenAPI component of the same name.
+type PutProgramsIdCreditRailBody struct {
+	Enabled                 bool                                                       `json:"enabled"`
+	ReferrerMatch           *string                                                    `json:"referrerMatch,omitempty"`
+	MetadataKey             *string                                                    `json:"metadataKey,omitempty"`
+	RefereeRewards          *bool                                                      `json:"refereeRewards,omitempty"`
+	BalanceCurrency         *string                                                    `json:"balanceCurrency,omitempty"`
+	CreateCustomerIfMissing *PutProgramsIdCreditRailBodyCreateCustomerIfMissingOption1 `json:"createCustomerIfMissing,omitempty"`
+	WaitForCustomer         *bool                                                      `json:"waitForCustomer,omitempty"`
+	ConnectionID            *string                                                    `json:"connectionId,omitempty"`
+}
+
+// PostProgramsIdCreditRailRequeueBody is generated from the OpenAPI component of the same name.
+type PostProgramsIdCreditRailRequeueBody struct {
 	CreditIds []string `json:"creditIds,omitempty"`
 }
 

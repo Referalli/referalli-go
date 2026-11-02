@@ -59,6 +59,7 @@ var Operations = func() map[string][2]string {
 		{"getAuditLogs", "GET", "/v1/audit-logs"},
 		{"getAuthConnections", "GET", "/v1/auth/connections"},
 		{"getAuthConnectionsIdExport", "GET", "/v1/auth/connections/{id}/export"},
+		{"getAuthConnectionsIdUsersCustomerRefReferral", "GET", "/v1/auth/connections/{id}/users/{customerRef}/referral"},
 		{"getAuthConnectionsProviders", "GET", "/v1/auth/connections/providers"},
 		{"getAuthProviders", "GET", "/v1/auth/providers"},
 		{"getBillingConnections", "GET", "/v1/billing/connections"},
@@ -194,6 +195,8 @@ var Operations = func() map[string][2]string {
 		{"getPrograms", "GET", "/v1/programs"},
 		{"getProgramsId", "GET", "/v1/programs/{id}"},
 		{"getProgramsIdAutopricing", "GET", "/v1/programs/{id}/autopricing"},
+		{"getProgramsIdCreditRail", "GET", "/v1/programs/{id}/credit-rail"},
+		{"getProgramsIdCreditRailLog", "GET", "/v1/programs/{id}/credit-rail/log"},
 		{"getProgramsIdEnrollments", "GET", "/v1/programs/{id}/enrollments"},
 		{"getProgramsIdGraph", "GET", "/v1/programs/{id}/graph"},
 		{"getProgramsIdGroups", "GET", "/v1/programs/{id}/groups"},
@@ -223,6 +226,7 @@ var Operations = func() map[string][2]string {
 		{"getRoiPatternsPattern", "GET", "/v1/roi/patterns/{pattern}"},
 		{"getRoiSummary", "GET", "/v1/roi/summary"},
 		{"getRoiTraceCustomerRef", "GET", "/v1/roi/trace/{customerRef}"},
+		{"getSandboxBillingFixtures", "GET", "/v1/sandbox/billing-fixtures"},
 		{"getSandboxStripeFixtures", "GET", "/v1/sandbox/stripe-fixtures"},
 		{"getSetupStatus", "GET", "/v1/setup/status"},
 		{"getStatus", "GET", "/v1/status"},
@@ -288,6 +292,7 @@ var Operations = func() map[string][2]string {
 		{"postAuthConnectionsIdSignals", "POST", "/v1/auth/connections/{id}/signals"},
 		{"postAuthConnectionsIdSignups", "POST", "/v1/auth/connections/{id}/signups"},
 		{"postAuthConnectionsIdUsers", "POST", "/v1/auth/connections/{id}/users"},
+		{"postAuthConnectionsIdWidgetTokens", "POST", "/v1/auth/connections/{id}/widget-tokens"},
 		{"postAuthConnectionsInstall", "POST", "/v1/auth/connections/install"},
 		{"postAuthLogout", "POST", "/v1/auth/logout"},
 		{"postBillingActivate", "POST", "/v1/billing/activate"},
@@ -397,6 +402,7 @@ var Operations = func() map[string][2]string {
 		{"postPrograms", "POST", "/v1/programs"},
 		{"postProgramsIdApplyLeveling", "POST", "/v1/programs/{id}/apply-leveling"},
 		{"postProgramsIdAutopriceRun", "POST", "/v1/programs/{id}/autoprice/run"},
+		{"postProgramsIdCreditRailRequeue", "POST", "/v1/programs/{id}/credit-rail/requeue"},
 		{"postProgramsIdEnrollments", "POST", "/v1/programs/{id}/enrollments"},
 		{"postProgramsIdEnrollmentsEnrollmentIdApprove", "POST", "/v1/programs/{id}/enrollments/{enrollmentId}/approve"},
 		{"postProgramsIdEnrollmentsEnrollmentIdReject", "POST", "/v1/programs/{id}/enrollments/{enrollmentId}/reject"},
@@ -415,6 +421,7 @@ var Operations = func() map[string][2]string {
 		{"postRewardsIdRedeem", "POST", "/v1/rewards/{id}/redeem"},
 		{"postRewardsRedeemByCode", "POST", "/v1/rewards/redeem-by-code"},
 		{"postRoiPatternsPatternReview", "POST", "/v1/roi/patterns/{pattern}/review"},
+		{"postSandboxBillingFixtures", "POST", "/v1/sandbox/billing-fixtures"},
 		{"postSandboxSimulate", "POST", "/v1/sandbox/simulate"},
 		{"postSandboxStripeFixtures", "POST", "/v1/sandbox/stripe-fixtures"},
 		{"postSupportAppsAdapterTest", "POST", "/v1/support/apps/{adapter}/test"},
@@ -432,6 +439,7 @@ var Operations = func() map[string][2]string {
 		{"postWebhookEndpoints", "POST", "/v1/webhook-endpoints"},
 		{"postWebhookEndpointsIdReplay", "POST", "/v1/webhook-endpoints/{id}/replay"},
 		{"postWebhookEndpointsIdRotateSecret", "POST", "/v1/webhook-endpoints/{id}/rotate-secret"},
+		{"postWidgetSession", "POST", "/v1/widget/session"},
 		{"postWidgetTokens", "POST", "/v1/widget/tokens"},
 		{"postZapierConversions", "POST", "/v1/zapier/conversions"},
 		{"postZapierHooks", "POST", "/v1/zapier/hooks"},
@@ -471,6 +479,7 @@ var Operations = func() map[string][2]string {
 		{"putProfitabilityProductsProductRef", "PUT", "/v1/profitability/products/{productRef}"},
 		{"putProfitabilitySettings", "PUT", "/v1/profitability/settings"},
 		{"putProgramsIdAutopricing", "PUT", "/v1/programs/{id}/autopricing"},
+		{"putProgramsIdCreditRail", "PUT", "/v1/programs/{id}/credit-rail"},
 		{"putProgramsIdIncrementality", "PUT", "/v1/programs/{id}/incrementality"},
 		{"putProgramsIdNegotiationPolicy", "PUT", "/v1/programs/{id}/negotiation-policy"},
 		{"putProgramsIdPartnersPartnerIdGroup", "PUT", "/v1/programs/{id}/partners/{partnerId}/group"},
@@ -552,13 +561,13 @@ func (c *Client) DeleteAuthConnectionsID(ctx context.Context, id string, opts ..
 
 // DeleteBillingConnectionsID calls Delete a billing connection. DELETE /v1/billing/connections/{id}.
 //
-// Deletes the connection: its secrets and credentials are wiped and its webhook URL stops accepting events. Recorded billing events stay. Audited.
+// Deletes the connection: its secrets and credentials are wiped and its webhook URL stops accepting events. Recorded billing events stay. Webhooks registered with `autoRegister` are removed from the provider, best effort, only where the connection kept credentials (BigCommerce): `providerWebhookRemoved` says whether they were. Audited.
 //
 // **Auth:** an API key with `billing:write`, or a session with role `owner`, `admin`.
 //
 // **Scopes:** `billing:write`, `full`, `admin`.
-func (c *Client) DeleteBillingConnectionsID(ctx context.Context, id string, opts ...RequestOption) (*Ok, error) {
-	var out Ok
+func (c *Client) DeleteBillingConnectionsID(ctx context.Context, id string, opts ...RequestOption) (*DeleteBillingConnectionsIdResponse, error) {
+	var out DeleteBillingConnectionsIdResponse
 	if err := c.do(ctx, "DELETE", "/v1/billing/connections/"+url.PathEscape(id), nil, nil, &out, "json", opts); err != nil {
 		return nil, err
 	}
@@ -1741,6 +1750,19 @@ func (p *GetAuthConnectionsIDExportParams) values() url.Values {
 func (c *Client) GetAuthConnectionsIDExport(ctx context.Context, id string, params *GetAuthConnectionsIDExportParams, opts ...RequestOption) (*GetAuthConnectionsIdExportResponse, error) {
 	var out GetAuthConnectionsIdExportResponse
 	if err := c.do(ctx, "GET", "/v1/auth/connections/"+url.PathEscape(id)+"/export", params.values(), nil, &out, "json", opts); err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// GetAuthConnectionsIDUsersCustomerRefReferral calls Get a user's referral link (signed protocol). GET /v1/auth/connections/{id}/users/{customerRef}/referral.
+//
+// The user's partner identity in the connection's program, so the platform can keep the link on its own user object: `{ partnerId, code, linkUrl, enrolledAt }`, or `404 not_enrolled`. Sign the query string (empty) as the payload, or use a v2 signature. Signed with the connection secret in `x-referalli-signature: t=<unix>,v1=…,v2=…` (v2 also signs the request line; once a connection has seen v2 it requires it), with a unique `x-referalli-id` per call. The legacy header names from before the rename are also accepted, for existing integrations. Calls older than 5 minutes, reused ids (`409 replay`), paused connections (`423 connection_paused`) and unknown fields (`422`) are refused.
+//
+// **Auth:** none.
+func (c *Client) GetAuthConnectionsIDUsersCustomerRefReferral(ctx context.Context, id string, customerRef string, opts ...RequestOption) (*GetAuthConnectionsIdUsersCustomerRefReferralResponse, error) {
+	var out GetAuthConnectionsIdUsersCustomerRefReferralResponse
+	if err := c.do(ctx, "GET", "/v1/auth/connections/"+url.PathEscape(id)+"/users/"+url.PathEscape(customerRef)+"/referral", nil, nil, &out, "json", opts); err != nil {
 		return nil, err
 	}
 	return &out, nil
@@ -5904,6 +5926,76 @@ func (c *Client) GetProgramsIDAutopricing(ctx context.Context, id string, opts .
 	return &out, nil
 }
 
+// GetProgramsIDCreditRail calls Get a program's account-credit rail settings. GET /v1/programs/{id}/credit-rail.
+//
+// The provider-neutral view of the account-credit rail: which billing provider credits go to (`provider`, from the billing connection `connectionId`, or `stripe` with no connection), the same matching and currency settings as the Stripe endpoints, whether credentials are available (`credentialsConnected`) and what the provider supports (`capabilities.customerCurrency`, `capabilities.createCustomer`). Credentials are never returned. A program set up with `PUT /v1/programs/{id}/stripe-credits` reads here as `provider: "stripe"`.
+//
+// **Auth:** an API key with `payouts:read`, or a session of any role.
+//
+// **Scopes:** `payouts:read`, `payouts:write`, `read`, `full`, `admin`.
+func (c *Client) GetProgramsIDCreditRail(ctx context.Context, id string, opts ...RequestOption) (*GetProgramsIdCreditRailResponse, error) {
+	var out GetProgramsIdCreditRailResponse
+	if err := c.do(ctx, "GET", "/v1/programs/"+url.PathEscape(id)+"/credit-rail", nil, nil, &out, "json", opts); err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// GetProgramsIDCreditRailLogParams are the query parameters of GetProgramsIDCreditRailLog.
+type GetProgramsIDCreditRailLogParams struct {
+	Limit         *int64  `json:"limit,omitempty"`
+	StartingAfter *string `json:"starting_after,omitempty"`
+	EndingBefore  *string `json:"ending_before,omitempty"`
+	CreatedGte    *string `json:"created[gte],omitempty"`
+	CreatedLte    *string `json:"created[lte],omitempty"`
+}
+
+func (p *GetProgramsIDCreditRailLogParams) values() url.Values {
+	v := url.Values{}
+	if p == nil {
+		return v
+	}
+	setQuery(v, "limit", p.Limit)
+	setQuery(v, "starting_after", p.StartingAfter)
+	setQuery(v, "ending_before", p.EndingBefore)
+	setQuery(v, "created[gte]", p.CreatedGte)
+	setQuery(v, "created[lte]", p.CreatedLte)
+	return v
+}
+
+// GetProgramsIDCreditRailLog calls List a program's account credits. GET /v1/programs/{id}/credit-rail/log.
+//
+// Every credit and debit the rail queued for this program, newest first, provider-neutral: `provider`, `connectionId`, `customerId` (the provider's customer) and `transactionId` (the provider's record once applied) instead of the Stripe-named fields of `GET /v1/programs/{id}/stripe-credits/log`. Statuses and retries as there.
+//
+// **Auth:** an API key with `payouts:read`, or a session of any role.
+//
+// **Scopes:** `payouts:read`, `payouts:write`, `read`, `full`, `admin`.
+//
+// limit: Items per page, 1 to 100 (default 50). From API version 2026-11-01; ignored under 2026-10-21, where lists are a capped plain array.
+// starting_after: A cursor: the id of an item (the previous page's `next_cursor`); returns the items after it. From API version 2026-11-01; ignored under 2026-10-21, where lists are a capped plain array.
+// ending_before: A cursor: returns the items before this item id (the previous page). Not with `starting_after`. From API version 2026-11-01; ignored under 2026-10-21, where lists are a capped plain array.
+// created[gte]: Only items created at or after this time (ISO 8601), on lists of timestamped records. From API version 2026-11-01; ignored under 2026-10-21, where lists are a capped plain array.
+// created[lte]: Only items created at or before this time (ISO 8601), on lists of timestamped records. From API version 2026-11-01; ignored under 2026-10-21, where lists are a capped plain array.
+func (c *Client) GetProgramsIDCreditRailLog(ctx context.Context, id string, params *GetProgramsIDCreditRailLogParams, opts ...RequestOption) (*Page[GetProgramsIdCreditRailLogResponseDataItem], error) {
+	var out Page[GetProgramsIdCreditRailLogResponseDataItem]
+	if err := c.do(ctx, "GET", "/v1/programs/"+url.PathEscape(id)+"/credit-rail/log", params.values(), nil, &out, "json", opts); err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// GetProgramsIDCreditRailLogEach yields every item of GetProgramsIDCreditRailLog, following the pages.
+func (c *Client) GetProgramsIDCreditRailLogEach(ctx context.Context, id string, params *GetProgramsIDCreditRailLogParams, opts ...RequestOption) iter.Seq2[GetProgramsIdCreditRailLogResponseDataItem, error] {
+	return paginate(func(cursor *string) (*Page[GetProgramsIdCreditRailLogResponseDataItem], error) {
+		p := GetProgramsIDCreditRailLogParams{}
+		if params != nil {
+			p = *params
+		}
+		p.StartingAfter = cursor
+		return c.GetProgramsIDCreditRailLog(ctx, id, &p, opts...)
+	})
+}
+
 // GetProgramsIDEnrollmentsParams are the query parameters of GetProgramsIDEnrollments.
 type GetProgramsIDEnrollmentsParams struct {
 	Status        *string `json:"status,omitempty"`
@@ -7010,9 +7102,38 @@ func (c *Client) GetRoiTraceCustomerRef(ctx context.Context, customerRef string,
 	return &out, nil
 }
 
+// GetSandboxBillingFixturesParams are the query parameters of GetSandboxBillingFixtures.
+type GetSandboxBillingFixturesParams struct {
+	Provider *string `json:"provider,omitempty"`
+}
+
+func (p *GetSandboxBillingFixturesParams) values() url.Values {
+	v := url.Values{}
+	if p == nil {
+		return v
+	}
+	setQuery(v, "provider", p.Provider)
+	return v
+}
+
+// GetSandboxBillingFixtures calls List billing event fixtures. GET /v1/sandbox/billing-fixtures.
+//
+// Test mode only. The provider events `POST /v1/sandbox/billing-fixtures` can send, for every billing provider or the one named by `provider`: the provider-neutral `event` name (`payment.paid`, `payment.refunded`, `payment.disputed`, `subscription.created`, `subscription.canceled`, …), the provider's own `native` name, and the `overrides` fields each uses.
+//
+// **Auth:** an API key with `billing:read`, or a session of any role.
+//
+// **Scopes:** `billing:read`, `billing:write`, `read`, `full`, `admin`.
+func (c *Client) GetSandboxBillingFixtures(ctx context.Context, params *GetSandboxBillingFixturesParams, opts ...RequestOption) (*GetSandboxBillingFixturesResponse, error) {
+	var out GetSandboxBillingFixturesResponse
+	if err := c.do(ctx, "GET", "/v1/sandbox/billing-fixtures", params.values(), nil, &out, "json", opts); err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
 // GetSandboxStripeFixtures calls List Stripe event fixtures. GET /v1/sandbox/stripe-fixtures.
 //
-// Test mode only. The Stripe event types `POST /v1/sandbox/stripe-fixtures` can send, each with the `overrides` fields it uses.
+// Test mode only. The Stripe event types `POST /v1/sandbox/stripe-fixtures` can send, each with the `overrides` fields it uses. Kept for existing callers: `GET /v1/sandbox/billing-fixtures?provider=stripe` lists the same.
 //
 // **Auth:** an API key with `billing:read`, or a session of any role.
 //
@@ -7827,7 +7948,7 @@ func (c *Client) PatchAPIKeysID(ctx context.Context, id string, body PatchApiKey
 
 // PatchAuthConnectionsID calls Update an auth connection. PATCH /v1/auth/connections/{id}.
 //
-// Pauses or resumes a connection, renames it, changes `autoEnrollUsers` or the destination of auto-created links, or (signed-protocol connections) sets `signatureVersion`: `v2` to require request-line signatures, `v1+v2` to accept both again.
+// Pauses or resumes a connection, renames it, changes `autoEnrollUsers` or the destination of auto-created links, turns `resolveBillingCustomers` on or off, or (signed-protocol connections) sets `signatureVersion`: `v2` to require request-line signatures, `v1+v2` to accept both again. `resolveBillingCustomers` (any provider, default false): a billing customer that arrives with no customerRef (no `referalli_customer_ref` metadata, no `customerRefMetadataKey` hit) in a program this connection serves (within the billing connection's `programIds`) is resolved through this connection's users: `referalli_user_id` or `<provider>_user_id` metadata naming a user it reported, else exactly one user whose current email is the customer's and verified. The billing link is recorded as metadata would record it; none or several matches record `ignoredReason: "identity_unresolved"` / `"identity_ambiguous"` on the billing event. Explicit metadata always wins. Matching uses only the org's own data. `tokenVerification` replaces the widget-session verifier (an HS256 secret is kept when `sharedSecret` is left out; `null` removes it) and `allowedOrigins` replaces the origin list.
 //
 // **Auth:** an API key with `integrations:write`, or a session with role `owner`, `admin`.
 //
@@ -8212,7 +8333,7 @@ func (c *Client) PostAuthBackchannelLogout(ctx context.Context, body PostAuthBac
 
 // PostAuthConnections calls Connect an auth platform. POST /v1/auth/connections.
 //
-// Connects your sign-up system so new users are attributed server-side without calling associate: `clerk`, `supabase`, `workos` or `generic` receive the platform's user webhooks at the returned URL; `atlas` and `custom` call the signed protocol endpoints under `/v1/auth/connections/{id}/`. `autoEnrollUsers` makes every new user a partner too. Returns the signing secret once. 409 when an Atlas instance already has a connection.
+// Connects your sign-up system so new users are attributed server-side without calling associate: `clerk`, `supabase`, `workos` or `generic` receive the platform's user webhooks at the returned URL; `atlas` and `custom` call the signed protocol endpoints under `/v1/auth/connections/{id}/`. `autoEnrollUsers` makes every new user a partner too. `tokenVerification` and `allowedOrigins` let the referral widget run with no server route (`POST /v1/widget/session`); an HS256 `sharedSecret` is sealed and never returned. Returns the signing secret once. 409 when an Atlas instance already has a connection.
 //
 // **Auth:** an API key with `integrations:write`, or a session with role `owner`, `admin`.
 //
@@ -8346,6 +8467,19 @@ func (c *Client) PostAuthConnectionsIDUsers(ctx context.Context, id string, body
 	return &out, nil
 }
 
+// PostAuthConnectionsIDWidgetTokens calls Mint a widget token for a user (signed protocol). POST /v1/auth/connections/{id}/widget-tokens.
+//
+// For platforms that hold the connection secret (hosted account pages, sessions that aren't JWTs): a referral-widget token for `customerRef` in the connection's program, the same answer as `POST /v1/widget/session`. With the program's widget `autoEnroll`, a non-partner is enrolled only when `emailVerified` is true; otherwise `404 not_enrolled`. `ttlSeconds` 60 to 3600 (default 900). Signed with the connection secret in `x-referalli-signature: t=<unix>,v1=…,v2=…` (v2 also signs the request line; once a connection has seen v2 it requires it), with a unique `x-referalli-id` per call. The legacy header names from before the rename are also accepted, for existing integrations. Calls older than 5 minutes, reused ids (`409 replay`), paused connections (`423 connection_paused`) and unknown fields (`422`) are refused.
+//
+// **Auth:** none.
+func (c *Client) PostAuthConnectionsIDWidgetTokens(ctx context.Context, id string, body PostAuthConnectionsIdWidgetTokensBody, opts ...RequestOption) (*WidgetSession, error) {
+	var out WidgetSession
+	if err := c.do(ctx, "POST", "/v1/auth/connections/"+url.PathEscape(id)+"/widget-tokens", nil, body, &out, "json", opts); err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
 // PostAuthConnectionsInstall calls Approve a one-click install. POST /v1/auth/connections/install.
 //
 // The dashboard's consent step for `GET /v1/oauth/authorize`: `allow` returns the redirect back to the platform with a single-use code (10 minutes) for the chosen program; `deny` returns it with `error=access_denied`. Owner or admin. Audited.
@@ -8406,7 +8540,7 @@ func (c *Client) PostBillingCheckout(ctx context.Context, body PostBillingChecko
 
 // PostBillingConnections calls Create a billing connection. POST /v1/billing/connections.
 //
-// Connects a billing provider (`stripe`, `paddle`, `lemonsqueezy`, `polar`, `chargebee`, `shopify`, `recurly`, `braintree`, `woocommerce`, `bigcommerce` or `generic`) so its payment webhooks become commissions. Returns the `webhookUrl` path to register with the provider and its signing secret (generated unless you pass the provider's own `webhookSecret`); the secret is returned only here. For Stripe, pass `stripeKey` (a restricted key with Webhook Endpoints write and Customers write) instead of `webhookSecret`: Referalli registers a webhook endpoint at this connection's URL on your Stripe account with the events it reads and API version 2025-03-31.basil, stores the signing secret Stripe returns and answers with `stripeWebhookEndpointId`; nothing is saved unless Stripe registered it. If an endpoint on the account already points at one of your Stripe connections, it is updated and that connection returned with `reused: true` (one still `awaiting_secret` gets a fresh endpoint and its secret). `creditRail: { programId, ...settings }` also stores the key as that program's Stripe credit key and applies the `PUT /v1/programs/{id}/stripe-credits` settings (`enabled` defaults to true). The key is never returned and is stored only for `creditRail`. Deleting the connection leaves the Stripe endpoint in place. Errors: `422 stripe_key_wrong_mode`, `422 stripe_key_invalid`, `422 stripe_key_permission`, `502 stripe_unavailable`. A `filter` (`productIds`, `priceIds`, `skus` and/or exact `metadata`) limits which payments and subscription events earn when one provider account sells several products; the rest are recorded as `ignored_by_filter`. `programIds` limits the connection to those programs when one org runs several products: its events earn only through referrals in them, and a payment from a customer referred only in another program earns nothing (the event records `ignoredReason: "no_referral_in_scope"`); null or omitted = every program. A program-scoped API key must send `programIds` within its own. `status` is `awaiting_secret` when a provider that issues its own signing secret (Stripe, Paddle, Polar, Shopify, Recurly, Braintree) is connected without `webhookSecret`: its webhooks fail `401` until `PUT …/secret` stores the provider's secret, then it reads `active`. Audited.
+// Connects a billing provider (`stripe`, `paddle`, `lemonsqueezy`, `polar`, `chargebee`, `shopify`, `recurly`, `braintree`, `woocommerce`, `bigcommerce` or `generic`) so its payment webhooks become commissions. Returns the `webhookUrl` path to register with the provider and its signing secret (generated unless you pass the provider's own `webhookSecret`); the secret is returned only here. For Stripe, pass `stripeKey` (a restricted key with Webhook Endpoints write and Customers write) instead of `webhookSecret`: Referalli registers a webhook endpoint at this connection's URL on your Stripe account with the events it reads and API version 2025-03-31.basil, stores the signing secret Stripe returns and answers with `stripeWebhookEndpointId`; nothing is saved unless Stripe registered it. If an endpoint on the account already points at one of your Stripe connections, it is updated and that connection returned with `reused: true` (one still `awaiting_secret` gets a fresh endpoint and its secret). `creditRail: { programId, ...settings }` also stores the key as that program's Stripe credit key and applies the `PUT /v1/programs/{id}/stripe-credits` settings (`enabled` defaults to true). The key is never returned and is stored only for `creditRail`. Deleting the connection leaves the Stripe endpoint in place. Errors: `422 stripe_key_wrong_mode`, `422 stripe_key_invalid`, `422 stripe_key_permission`, `502 stripe_unavailable`. `autoRegister: true` with the provider's API `credentials` does the same for Shopify (`shopDomain`, `accessToken`, `apiSecret`), Paddle (`apiKey`), Polar (`accessToken`), Lemon Squeezy (`apiKey`, `storeId`), BigCommerce (`storeHash`, `apiToken`) and WooCommerce (`siteUrl`, `consumerKey`, `consumerSecret`), and for Stripe with `credentials: { secretKey }` (the `stripeKey` path); Chargebee, Recurly and Braintree have no webhook API and are set up by hand. It registers webhooks at this connection's URL with exactly the events Referalli reads, stores the secret that signs them (the provider's, Shopify's app API secret, or one Referalli chooses) and answers `active` with `providerWebhookIds`; a re-run reuses them (`reused: true`), nothing is saved unless the provider registered them, and the credentials are never returned and are kept (sealed) only for BigCommerce, whose connector reads orders with them. Errors: `422 provider_credentials_invalid`, `422 provider_permission`, `502 provider_unavailable`. A `filter` (`productIds`, `priceIds`, `skus` and/or exact `metadata`) limits which payments and subscription events earn when one provider account sells several products; the rest are recorded as `ignored_by_filter`. `programIds` limits the connection to those programs when one org runs several products: its events earn only through referrals in them, and a payment from a customer referred only in another program earns nothing (the event records `ignoredReason: "no_referral_in_scope"`); null or omitted = every program. A program-scoped API key must send `programIds` within its own. `status` is `awaiting_secret` when a provider that issues its own signing secret (Stripe, Paddle, Polar, Shopify, Recurly, Braintree) is connected without `webhookSecret`: its webhooks fail `401` until `PUT …/secret` stores the provider's secret, then it reads `active`. Audited.
 //
 // **Auth:** an API key with `billing:write`, or a session with role `owner`, `admin`.
 //
@@ -9947,6 +10081,21 @@ func (c *Client) PostProgramsIDAutopriceRun(ctx context.Context, id string, body
 	return &out, nil
 }
 
+// PostProgramsIDCreditRailRequeue calls Requeue stuck account credits. POST /v1/programs/{id}/credit-rail/requeue.
+//
+// Same as `POST /v1/programs/{id}/stripe-credits/requeue`, for every provider: resets the attempt count of this program's `no_customer`, `ambiguous_customer` and `fx_rate_missing` rows (all, or only `creditIds`). Owner or admin. Audited.
+//
+// **Auth:** an API key with `payouts:write`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `payouts:write`, `full`, `admin`.
+func (c *Client) PostProgramsIDCreditRailRequeue(ctx context.Context, id string, body PostProgramsIdCreditRailRequeueBody, opts ...RequestOption) (*PostProgramsIdCreditRailRequeueResponse, error) {
+	var out PostProgramsIdCreditRailRequeueResponse
+	if err := c.do(ctx, "POST", "/v1/programs/"+url.PathEscape(id)+"/credit-rail/requeue", nil, body, &out, "json", opts); err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
 // PostProgramsIDEnrollments calls Enroll a partner. POST /v1/programs/{id}/enrollments.
 //
 // Enrolls an existing partner in the program, approved at once. Publishes `partner.enrolled`. 409 when already enrolled. `externalRef` is this program's own id for the partner, when their partner `externalRef` belongs to another product sharing the org; this program's webhooks and `GET /v1/partners?externalRef=` then use it. `mint` also gives them a referral code in the program, as `POST /v1/programs/{id}/referrers` does: `coupon: true` a coupon, `link: {}` a tracked link to `link.destinationUrl` or else the program's default destination (`{code}` in it becomes the code; 400 when the program has none and you send none). Their existing code in the program is reused. The response then adds `code` and `linkUrl` (null without a link).
@@ -10215,6 +10364,21 @@ func (c *Client) PostRoiPatternsPatternReview(ctx context.Context, pattern strin
 	return &out, nil
 }
 
+// PostSandboxBillingFixtures calls Send a billing event fixture. POST /v1/sandbox/billing-fixtures.
+//
+// Test mode only (`409 test_mode_only` otherwise). Builds a realistic webhook payload for the provider of billing connection `connectionId` (Stripe, Paddle, Lemon Squeezy, Polar, Chargebee, Shopify, Recurly, Braintree, WooCommerce, BigCommerce or the generic contract) and runs it through the same pipeline as a signed webhook to that connection, so you can watch commissions happen without a provider account. `event` is a provider-neutral name (`payment.paid`, `payment.refunded`, `payment.disputed`, `subscription.created`, `subscription.canceled`; Stripe also `subscription.updated`, `customer.created` and `customer.updated`; generic `customer.updated`) or the provider's own event name; `GET /v1/sandbox/billing-fixtures?provider=` lists what each provider has. `overrides` sets `customerRef` (the provider customer id), `amountMinor`, `currency`, `metadata`, `invoiceId` (alias `orderId`: the paid invoice, order or transaction), `subscriptionId` and, for Stripe, `chargeId`; a refund or dispute finds its payment by `invoiceId` (Stripe: `chargeId`), so reuse the paid one. Recurly and BigCommerce fixtures are the enriched payload, so no API credentials are needed. Each call is a new event unless you pass `eventId`, which replays (the second answers `duplicate: true`). Returns the event id, the processing results, the commission events created and the payload sent. Audited.
+//
+// **Auth:** an API key with `billing:write`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `billing:write`, `full`, `admin`.
+func (c *Client) PostSandboxBillingFixtures(ctx context.Context, body PostSandboxBillingFixturesBody, opts ...RequestOption) (*PostSandboxBillingFixturesResponse, error) {
+	var out PostSandboxBillingFixturesResponse
+	if err := c.do(ctx, "POST", "/v1/sandbox/billing-fixtures", nil, body, &out, "json", opts); err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
 // PostSandboxSimulate calls Simulate billing history. POST /v1/sandbox/simulate.
 //
 // Generates deterministic billing history through the real commission pipeline, so you can see commissions flow without a provider: a new sandbox customer referred to the partner, `months` (default 3) of subscription payments at `priceMinor`, then for `scenario: "refund"` a half refund of the first invoice or for `churn` a cancellation. Returns the customer and what was created. Audited.
@@ -10232,13 +10396,13 @@ func (c *Client) PostSandboxSimulate(ctx context.Context, body PostSandboxSimula
 
 // PostSandboxStripeFixtures calls Send a Stripe event fixture. POST /v1/sandbox/stripe-fixtures.
 //
-// Test mode only (`409 test_mode_only` otherwise). Builds a realistic Stripe event (`invoice.paid`, `charge.refunded`, `charge.dispute.created`, `customer.created`, `customer.updated`, `customer.subscription.created`, `customer.subscription.updated` or `customer.subscription.deleted`) and runs it through the same pipeline as a signed webhook to the stripe billing connection `connectionId`, so you can watch commissions happen without a Stripe account. `overrides` sets `customerRef` (the Stripe customer id), `amountMinor`, `currency`, `metadata`, `invoiceId` and `chargeId`; refunds and disputes find their payment by `chargeId`, so reuse the `invoice.paid` one. Each call is a new event unless you pass `eventId`, which replays (the second answers `duplicate: true`). Returns the event id, the processing results, the commission events created and the payload sent. Audited.
+// Test mode only (`409 test_mode_only` otherwise). Builds a realistic Stripe event (`invoice.paid`, `charge.refunded`, `charge.dispute.created`, `customer.created`, `customer.updated`, `customer.subscription.created`, `customer.subscription.updated` or `customer.subscription.deleted`) and runs it through the same pipeline as a signed webhook to the stripe billing connection `connectionId`, so you can watch commissions happen without a Stripe account. `overrides` sets `customerRef` (the Stripe customer id), `amountMinor`, `currency`, `metadata`, `invoiceId`, `chargeId` and `subscriptionId`; refunds and disputes find their payment by `chargeId`, so reuse the `invoice.paid` one. Each call is a new event unless you pass `eventId`, which replays (the second answers `duplicate: true`). Returns the event id, the processing results, the commission events created and the payload sent. Audited. The Stripe-only alias of `POST /v1/sandbox/billing-fixtures`.
 //
 // **Auth:** an API key with `billing:write`, or a session with role `owner`, `admin`.
 //
 // **Scopes:** `billing:write`, `full`, `admin`.
-func (c *Client) PostSandboxStripeFixtures(ctx context.Context, body PostSandboxStripeFixturesBody, opts ...RequestOption) (*PostSandboxStripeFixturesResponse, error) {
-	var out PostSandboxStripeFixturesResponse
+func (c *Client) PostSandboxStripeFixtures(ctx context.Context, body PostSandboxStripeFixturesBody, opts ...RequestOption) (*PostSandboxBillingFixturesResponse, error) {
+	var out PostSandboxBillingFixturesResponse
 	if err := c.do(ctx, "POST", "/v1/sandbox/stripe-fixtures", nil, body, &out, "json", opts); err != nil {
 		return nil, err
 	}
@@ -10480,6 +10644,19 @@ func (c *Client) PostWebhookEndpointsIDRotateSecret(ctx context.Context, id stri
 	return &out, nil
 }
 
+// PostWidgetSession calls Exchange a user session for a widget token. POST /v1/widget/session.
+//
+// Public, called by the referral widget from the browser with no merchant server route: `Authorization: Bearer <the signed-in user's own session JWT>` from their auth provider, body `{ programId }`. The program's auth connections say how to verify it (`tokenVerification`: a preset such as Clerk, Supabase, Firebase, Auth0, Cognito, WorkOS or Atlas, or your own issuer with a JWKS URL or HS256 secret); only connections whose issuer equals the token's `iss` are tried. Signature, issuer, audience (when configured) and expiry are checked with 60 seconds of clock skew. `customerRef` comes from `sub` (or the mapped claim). With the program's `settings.widget.autoEnroll`, a user who is not a partner yet is enrolled, but only with an email the token marks verified (`email_verified`); otherwise `404 not_enrolled`. CORS: only the connection's `allowedOrigins` (another origin gets `403` and no CORS header). Any token problem is a generic `401`. Rate-limited per connection, per user and (failures) per IP.
+//
+// **Auth:** none.
+func (c *Client) PostWidgetSession(ctx context.Context, body PostWidgetSessionBody, opts ...RequestOption) (*WidgetSession, error) {
+	var out WidgetSession
+	if err := c.do(ctx, "POST", "/v1/widget/session", nil, body, &out, "json", opts); err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
 // PostWidgetTokens calls Mint a referral widget token. POST /v1/widget/tokens.
 //
 // Your backend mints a short-lived token (60 to 3600 seconds, default 900) for a signed-in customer, identified by `customerRef` or `partnerExternalRef`, for the in-app referral widget. When the program has `settings.widget.autoEnroll`, a customer who isn't a partner yet is created on demand (send `email`). The token only reads that partner's own data.
@@ -10542,7 +10719,7 @@ func (c *Client) PutAuthConnectionsIDSecret(ctx context.Context, id string, body
 
 // PutBillingConnectionsIDCredentials calls Set provider API credentials. PUT /v1/billing/connections/{id}/credentials.
 //
-// For providers that send thin webhooks (Recurly, BigCommerce), the API credentials used to fetch the full event: `apiKey`, or `apiToken` plus `storeHash`, and `region`. Stored encrypted. 400 for providers that take no credentials or when a required field is missing. Audited.
+// For providers that send thin webhooks (Recurly, BigCommerce), the API credentials used to fetch the full event: `apiKey`, or `apiToken` plus `storeHash`, and `region`. Chargebee: `apiKey` and `site` (the subdomain), used by the account-credit rail (`PUT /v1/programs/{id}/credit-rail`); setting them needs a recent sign-in. Stored encrypted. 400 for providers that take no credentials or when a required field is missing. Audited.
 //
 // **Auth:** an API key with `billing:write`, or a session with role `owner`, `admin`.
 //
@@ -11055,6 +11232,21 @@ func (c *Client) PutProgramsIDAutopricing(ctx context.Context, id string, body P
 	return &out, nil
 }
 
+// PutProgramsIDCreditRail calls Set a program's account-credit rail settings. PUT /v1/programs/{id}/credit-rail.
+//
+// Turns the account-credit rail on or off for a program and picks where credits go. `connectionId` names a billing connection: its provider picks the adapter (`stripe` or `chargebee`; verified live: Stripe only) and its stored API credentials are used (Chargebee: `PUT /v1/billing/connections/{id}/credentials` with `apiKey` and `site`). The connection's `programIds` must include the program or be empty. With no `connectionId` the provider is Stripe on its own key path (`PUT /v1/stripe-credits/connection`, a program key, or a Stripe payout connection). Every other field means what it means on `PUT /v1/programs/{id}/stripe-credits` and is replaced on every PUT. A provider without customer creation (Chargebee) refuses `createCustomerIfMissing` (400); Chargebee matches `referrerMatch: "metadata"` on `metadataKey` `id` (the customer id) or a custom field `cf_…`. Credentials are checked with the provider on save: `422 provider_credentials_invalid`, `422 provider_credentials_wrong_mode` (a Chargebee `…-test` site in live mode, or another site in test mode), `422 provider_permission` (cannot write credits), `502 provider_unavailable`; enabling without credentials is `409 credit_credentials_required` (`409 stripe_key_required` for Stripe). Owner or admin. Audited.
+//
+// **Auth:** an API key with `payouts:write`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `payouts:write`, `full`, `admin`.
+func (c *Client) PutProgramsIDCreditRail(ctx context.Context, id string, body PutProgramsIdCreditRailBody, opts ...RequestOption) (*GetProgramsIdCreditRailResponse, error) {
+	var out GetProgramsIdCreditRailResponse
+	if err := c.do(ctx, "PUT", "/v1/programs/"+url.PathEscape(id)+"/credit-rail", nil, body, &out, "json", opts); err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
 // PutProgramsIDIncrementality calls Set the incrementality holdout. PUT /v1/programs/{id}/incrementality.
 //
 // Holds out a random control share of referrals (`holdoutBps`, up to 5000 = 50%) from being commissioned, so comparing control and treatment conversion measures the true lift partners cause. 0 turns it off.
@@ -11346,6 +11538,8 @@ func (c *Client) Call(ctx context.Context, operationID string, path map[string]s
 			return nil, err
 		}
 		return c.GetAuthConnectionsIDExport(ctx, path["id"], &p, opts...)
+	case "getAuthConnectionsIdUsersCustomerRefReferral":
+		return c.GetAuthConnectionsIDUsersCustomerRefReferral(ctx, path["id"], path["customerRef"], opts...)
 	case "getAuthConnectionsProviders":
 		return c.GetAuthConnectionsProviders(ctx, opts...)
 	case "getAuthProviders":
@@ -11884,6 +12078,14 @@ func (c *Client) Call(ctx context.Context, operationID string, path map[string]s
 		return c.GetProgramsID(ctx, path["id"], opts...)
 	case "getProgramsIdAutopricing":
 		return c.GetProgramsIDAutopricing(ctx, path["id"], opts...)
+	case "getProgramsIdCreditRail":
+		return c.GetProgramsIDCreditRail(ctx, path["id"], opts...)
+	case "getProgramsIdCreditRailLog":
+		var p GetProgramsIDCreditRailLogParams
+		if err := decodeQuery(query, &p); err != nil {
+			return nil, err
+		}
+		return c.GetProgramsIDCreditRailLog(ctx, path["id"], &p, opts...)
 	case "getProgramsIdEnrollments":
 		var p GetProgramsIDEnrollmentsParams
 		if err := decodeQuery(query, &p); err != nil {
@@ -12014,6 +12216,12 @@ func (c *Client) Call(ctx context.Context, operationID string, path map[string]s
 			return nil, err
 		}
 		return c.GetRoiTraceCustomerRef(ctx, path["customerRef"], &p, opts...)
+	case "getSandboxBillingFixtures":
+		var p GetSandboxBillingFixturesParams
+		if err := decodeQuery(query, &p); err != nil {
+			return nil, err
+		}
+		return c.GetSandboxBillingFixtures(ctx, &p, opts...)
 	case "getSandboxStripeFixtures":
 		return c.GetSandboxStripeFixtures(ctx, opts...)
 	case "getSetupStatus":
@@ -12328,6 +12536,12 @@ func (c *Client) Call(ctx context.Context, operationID string, path map[string]s
 			return nil, err
 		}
 		return c.PostAuthConnectionsIDUsers(ctx, path["id"], b, opts...)
+	case "postAuthConnectionsIdWidgetTokens":
+		var b PostAuthConnectionsIdWidgetTokensBody
+		if err := decodeInto(body, &b); err != nil {
+			return nil, err
+		}
+		return c.PostAuthConnectionsIDWidgetTokens(ctx, path["id"], b, opts...)
 	case "postAuthConnectionsInstall":
 		var b PostAuthConnectionsInstallBody
 		if err := decodeInto(body, &b); err != nil {
@@ -12826,6 +13040,12 @@ func (c *Client) Call(ctx context.Context, operationID string, path map[string]s
 			return nil, err
 		}
 		return c.PostProgramsIDAutopriceRun(ctx, path["id"], b, opts...)
+	case "postProgramsIdCreditRailRequeue":
+		var b PostProgramsIdCreditRailRequeueBody
+		if err := decodeInto(body, &b); err != nil {
+			return nil, err
+		}
+		return c.PostProgramsIDCreditRailRequeue(ctx, path["id"], b, opts...)
 	case "postProgramsIdEnrollments":
 		var b PostProgramsIdEnrollmentsBody
 		if err := decodeInto(body, &b); err != nil {
@@ -12910,6 +13130,12 @@ func (c *Client) Call(ctx context.Context, operationID string, path map[string]s
 			return nil, err
 		}
 		return c.PostRoiPatternsPatternReview(ctx, path["pattern"], b, opts...)
+	case "postSandboxBillingFixtures":
+		var b PostSandboxBillingFixturesBody
+		if err := decodeInto(body, &b); err != nil {
+			return nil, err
+		}
+		return c.PostSandboxBillingFixtures(ctx, b, opts...)
 	case "postSandboxSimulate":
 		var b PostSandboxSimulateBody
 		if err := decodeInto(body, &b); err != nil {
@@ -12992,6 +13218,12 @@ func (c *Client) Call(ctx context.Context, operationID string, path map[string]s
 		return c.PostWebhookEndpointsIDReplay(ctx, path["id"], &p, opts...)
 	case "postWebhookEndpointsIdRotateSecret":
 		return c.PostWebhookEndpointsIDRotateSecret(ctx, path["id"], opts...)
+	case "postWidgetSession":
+		var b PostWidgetSessionBody
+		if err := decodeInto(body, &b); err != nil {
+			return nil, err
+		}
+		return c.PostWidgetSession(ctx, b, opts...)
 	case "postWidgetTokens":
 		var b PostWidgetTokensBody
 		if err := decodeInto(body, &b); err != nil {
@@ -13226,6 +13458,12 @@ func (c *Client) Call(ctx context.Context, operationID string, path map[string]s
 			return nil, err
 		}
 		return c.PutProgramsIDAutopricing(ctx, path["id"], b, opts...)
+	case "putProgramsIdCreditRail":
+		var b PutProgramsIdCreditRailBody
+		if err := decodeInto(body, &b); err != nil {
+			return nil, err
+		}
+		return c.PutProgramsIDCreditRail(ctx, path["id"], b, opts...)
 	case "putProgramsIdIncrementality":
 		var b PutProgramsIdIncrementalityBody
 		if err := decodeInto(body, &b); err != nil {
