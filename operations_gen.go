@@ -222,6 +222,7 @@ var Operations = func() map[string][2]string {
 		{"getRoiPatternsPattern", "GET", "/v1/roi/patterns/{pattern}"},
 		{"getRoiSummary", "GET", "/v1/roi/summary"},
 		{"getRoiTraceCustomerRef", "GET", "/v1/roi/trace/{customerRef}"},
+		{"getSandboxStripeFixtures", "GET", "/v1/sandbox/stripe-fixtures"},
 		{"getSetupStatus", "GET", "/v1/setup/status"},
 		{"getStatus", "GET", "/v1/status"},
 		{"getStatusIncidents", "GET", "/v1/status/incidents"},
@@ -272,6 +273,7 @@ var Operations = func() map[string][2]string {
 		{"postAgentsRegister", "POST", "/v1/agents/register"},
 		{"postAnomaliesScan", "POST", "/v1/anomalies/scan"},
 		{"postApiKeys", "POST", "/v1/api-keys"},
+		{"postApiKeysIdRotate", "POST", "/v1/api-keys/{id}/rotate"},
 		{"postAssets", "POST", "/v1/assets"},
 		{"postAttributionReplay", "POST", "/v1/attribution/replay"},
 		{"postAuthBackchannelLogout", "POST", "/v1/auth/backchannel-logout"},
@@ -400,6 +402,7 @@ var Operations = func() map[string][2]string {
 		{"postProgramsIdGroups", "POST", "/v1/programs/{id}/groups"},
 		{"postProgramsIdPromotions", "POST", "/v1/programs/{id}/promotions"},
 		{"postProgramsIdReferrers", "POST", "/v1/programs/{id}/referrers"},
+		{"postProgramsIdStripeCreditsRequeue", "POST", "/v1/programs/{id}/stripe-credits/requeue"},
 		{"postPromotionsIdEnd", "POST", "/v1/promotions/{id}/end"},
 		{"postPublicProgramsHandleJoin", "POST", "/v1/public/programs/{handle}/join"},
 		{"postQualityRecompute", "POST", "/v1/quality/recompute"},
@@ -412,6 +415,7 @@ var Operations = func() map[string][2]string {
 		{"postRewardsRedeemByCode", "POST", "/v1/rewards/redeem-by-code"},
 		{"postRoiPatternsPatternReview", "POST", "/v1/roi/patterns/{pattern}/review"},
 		{"postSandboxSimulate", "POST", "/v1/sandbox/simulate"},
+		{"postSandboxStripeFixtures", "POST", "/v1/sandbox/stripe-fixtures"},
 		{"postSupportAppsAdapterTest", "POST", "/v1/support/apps/{adapter}/test"},
 		{"postSupportCardsOrgIdAdapter", "POST", "/v1/support/cards/{orgId}/{adapter}"},
 		{"postSupportPlatformChatlyCard", "POST", "/v1/support/platform/chatly-card"},
@@ -1373,11 +1377,11 @@ func (p *GetAPIKeysParams) values() url.Values {
 
 // GetAPIKeys calls List API keys. GET /v1/api-keys.
 //
-// Every key of the org, live and test (a test-mode caller sees test keys only), oldest first, with scopes, pinned version, owner, expiry and last use. Never returns the secret. Filter by `mode` or `owner`.
+// Every key of the org, live and test (a test-mode caller sees test keys only), oldest first, with scopes, pinned version, owner, expiry and last use. Never returns the secret. Filter by `mode` (`live`, `test`, or `both`, the default) or `owner`.
 //
 // **Auth:** an API key with `team:read` (or `full`), or a session of any role.
 //
-// mode: Only live or only test keys; default both.
+// mode: Only live or only test keys; `both` (the default) lists both.
 // owner: Only keys with this owner.
 // limit: Items per page, 1 to 100 (default 50). From API version 2026-11-01; ignored under 2026-10-21, where lists are a capped plain array.
 // starting_after: A cursor: the id of an item (the previous page's `next_cursor`); returns the items after it. From API version 2026-11-01; ignored under 2026-10-21, where lists are a capped plain array.
@@ -2686,13 +2690,15 @@ func (c *Client) GetFraudCasesEach(ctx context.Context, params *GetFraudCasesPar
 
 // GetFXRatesParams are the query parameters of GetFXRates.
 type GetFXRatesParams struct {
-	Base          *string `json:"base,omitempty"`
-	Quote         *string `json:"quote,omitempty"`
-	Limit         *int64  `json:"limit,omitempty"`
-	StartingAfter *string `json:"starting_after,omitempty"`
-	EndingBefore  *string `json:"ending_before,omitempty"`
-	CreatedGte    *string `json:"created[gte],omitempty"`
-	CreatedLte    *string `json:"created[lte],omitempty"`
+	Base           *string `json:"base,omitempty"`
+	Quote          *string `json:"quote,omitempty"`
+	EffectiveAtGte *string `json:"effectiveAt[gte],omitempty"`
+	EffectiveAtLte *string `json:"effectiveAt[lte],omitempty"`
+	Limit          *int64  `json:"limit,omitempty"`
+	StartingAfter  *string `json:"starting_after,omitempty"`
+	EndingBefore   *string `json:"ending_before,omitempty"`
+	CreatedGte     *string `json:"created[gte],omitempty"`
+	CreatedLte     *string `json:"created[lte],omitempty"`
 }
 
 func (p *GetFXRatesParams) values() url.Values {
@@ -2702,6 +2708,8 @@ func (p *GetFXRatesParams) values() url.Values {
 	}
 	setQuery(v, "base", p.Base)
 	setQuery(v, "quote", p.Quote)
+	setQuery(v, "effectiveAt[gte]", p.EffectiveAtGte)
+	setQuery(v, "effectiveAt[lte]", p.EffectiveAtLte)
 	setQuery(v, "limit", p.Limit)
 	setQuery(v, "starting_after", p.StartingAfter)
 	setQuery(v, "ending_before", p.EndingBefore)
@@ -2712,10 +2720,12 @@ func (p *GetFXRatesParams) values() url.Values {
 
 // GetFXRates calls List FX rates. GET /v1/fx-rates.
 //
-// The org's rates first, then the platform fallback, newest per pair first. A payout uses the org's latest rate at or before the run, else the platform's. Filter by `base` and `quote`.
+// The org's rates first, then the platform fallback, newest per pair first. A payout uses the org's latest rate at or before the run, else the platform's. Filter by `base`, `quote`, `effectiveAt[gte]` and `effectiveAt[lte]`. Live mode leaves out the `fixture` sample rows; test mode lists them.
 //
 // **Auth:** an API key with `payouts:read` (or `full`), or a session with role `owner`, `admin`, `finance`.
 //
+// effectiveAt[gte]: Only rates effective at or after this time.
+// effectiveAt[lte]: Only rates effective at or before this time.
 // limit: Items per page, 1 to 100 (default 50). From API version 2026-11-01; ignored under 2026-10-21, where lists are a capped plain array.
 // starting_after: A cursor: the id of an item (the previous page's `next_cursor`); returns the items after it. From API version 2026-11-01; ignored under 2026-10-21, where lists are a capped plain array.
 // ending_before: A cursor: returns the items before this item id (the previous page). Not with `starting_after`. From API version 2026-11-01; ignored under 2026-10-21, where lists are a capped plain array.
@@ -3118,7 +3128,7 @@ func (c *Client) GetMarketplaceListingEach(ctx context.Context, params *GetMarke
 
 // GetMe calls Get the current caller. GET /v1/me.
 //
-// Who is calling. With a user session: the user and their org memberships (no `x-org-id` needed). With an API key: the key (name, prefix, scopes, pinned version, mode, owner, expiry) and its org.
+// Who is calling. With a user session: the user and their org memberships (no `x-org-id` needed). With an API key: `{ user: null, memberships: [], apiKey, org: { id, name } }`, where `apiKey` holds the key (name, prefix, scopes, pinned `apiVersion`, `livemode`, owner, expiry, `programIds`). The mode is `apiKey.livemode`; there is no top-level `livemode`.
 //
 // **Auth:** an API key with `team:read` (or `full`), or a session of any role.
 func (c *Client) GetMe(ctx context.Context, opts ...RequestOption) (*GetMeResponse, error) {
@@ -3361,7 +3371,7 @@ func (c *Client) GetOpenapiYaml(ctx context.Context, opts ...RequestOption) (str
 
 // GetOrg calls Get the organization. GET /v1/org.
 //
-// The current org: name, plan, settings, public `trackingToken`, payout KYC requirement and mode (`livemode`; test orgs also carry `liveOrgId`).
+// The current org: `id`, name, plan, settings, public `trackingToken`, payout KYC requirement and mode (`livemode`; test orgs also carry `liveOrgId`).
 //
 // **Auth:** an API key with `org:read` (or `full`), or a session of any role.
 func (c *Client) GetOrg(ctx context.Context, opts ...RequestOption) (*Org, error) {
@@ -4581,6 +4591,7 @@ func (c *Client) GetPartnerReferralsIDTransparency(ctx context.Context, id strin
 type GetPartnersParams struct {
 	Email           *string `json:"email,omitempty"`
 	ExternalRef     *string `json:"externalRef,omitempty"`
+	ProgramID       *string `json:"programId,omitempty"`
 	Status          *string `json:"status,omitempty"`
 	IncludeArchived *string `json:"includeArchived,omitempty"`
 	Limit           *int64  `json:"limit,omitempty"`
@@ -4597,6 +4608,7 @@ func (p *GetPartnersParams) values() url.Values {
 	}
 	setQuery(v, "email", p.Email)
 	setQuery(v, "externalRef", p.ExternalRef)
+	setQuery(v, "programId", p.ProgramID)
 	setQuery(v, "status", p.Status)
 	setQuery(v, "includeArchived", p.IncludeArchived)
 	setQuery(v, "limit", p.Limit)
@@ -4609,7 +4621,7 @@ func (p *GetPartnersParams) values() url.Values {
 
 // GetPartners calls List partners. GET /v1/partners.
 //
-// Partners, newest first. Filter by `email`, `externalRef` or `status`. Archived partners are hidden unless you ask for them with `status=archived` or `includeArchived=true`.
+// Partners, newest first. Filter by `email`, `externalRef` (the partner's own or a program-scoped one on an enrollment) or `status`. `programId` returns only partners enrolled in that program, each with the program's own `externalRef` for them when it has one, and then `externalRef` matches that. Archived partners are hidden unless you ask for them with `status=archived` or `includeArchived=true`. Always a list, even for a filter that matches one partner: read `data[0]`. Partner reads carry no `code` or `link`; use `GET /v1/partners/{id}/summary?programId=` or `GET /v1/links?partnerId=` for those.
 //
 // **Auth:** an API key with `partners:read` (or `full`), or a session of any role.
 //
@@ -5578,7 +5590,7 @@ func (p *GetProgramsParams) values() url.Values {
 
 // GetPrograms calls List programs. GET /v1/programs.
 //
-// The org's programs, oldest first, with their settings. `slug` returns just that program.
+// The org's programs, oldest first, with their settings. `slug` returns just that program, still as a list (`data` holds one program, or none).
 //
 // **Auth:** an API key with `programs:read` (or `full`), or a session of any role.
 //
@@ -5856,7 +5868,7 @@ func (c *Client) GetProgramsIDRefereeReward(ctx context.Context, id string, opts
 
 // GetProgramsIDStripeCredits calls Get a program's Stripe balance credit settings. GET /v1/programs/{id}/stripe-credits.
 //
-// Whether settled lines of this program are credited to the partner's Stripe customer balance, how that customer is found (`referrerMatch`), and whether store-credit referee rewards are credited too. `keyConnected` says whether a Stripe key is available.
+// Whether settled lines of this program are credited to the partner's Stripe customer balance, how that customer is found (`referrerMatch`), and whether store-credit referee rewards are credited too. `keyConnected` says whether a Stripe key is available to this program; `hasOwnKey` whether that is the program's own key rather than the org's. The key is never returned.
 //
 // **Auth:** an API key with `payouts:read` (or `full`), or a session of any role.
 func (c *Client) GetProgramsIDStripeCredits(ctx context.Context, id string, opts ...RequestOption) (*GetProgramsIdStripeCreditsResponse, error) {
@@ -5891,7 +5903,7 @@ func (p *GetProgramsIDStripeCreditsLogParams) values() url.Values {
 
 // GetProgramsIDStripeCreditsLog calls List a program's Stripe balance credits. GET /v1/programs/{id}/stripe-credits/log.
 //
-// Every credit and debit the rail queued for this program, newest first: amount, Stripe customer, `status` (`pending`, `applied`, `no_customer`, `failed`, `canceled`), attempts, the Stripe balance transaction id once applied, and the last error. Unapplied rows are retried hourly, up to 24 tries.
+// Every credit and debit the rail queued for this program, newest first: amount and currency (the commission's), `appliedAmountMinor`/`appliedCurrency` (what is sent to Stripe after any conversion; a debit uses its credit's currency and rate), Stripe customer, `status` (`pending`, `applied`, `no_customer`, `ambiguous_customer`, `fx_rate_missing`, `failed`, `canceled`), attempts, the Stripe balance transaction id once applied, and the last error. Unapplied rows are retried hourly, up to 24 tries.
 //
 // **Auth:** an API key with `payouts:read` (or `full`), or a session of any role.
 //
@@ -6670,6 +6682,19 @@ func (c *Client) GetRoiTraceCustomerRef(ctx context.Context, customerRef string,
 	return &out, nil
 }
 
+// GetSandboxStripeFixtures calls List Stripe event fixtures. GET /v1/sandbox/stripe-fixtures.
+//
+// Test mode only. The Stripe event types `POST /v1/sandbox/stripe-fixtures` can send, each with the `overrides` fields it uses.
+//
+// **Auth:** an API key with `billing:read` (or `full`), or a session of any role.
+func (c *Client) GetSandboxStripeFixtures(ctx context.Context, opts ...RequestOption) (*GetSandboxStripeFixturesResponse, error) {
+	var out GetSandboxStripeFixturesResponse
+	if err := c.do(ctx, "GET", "/v1/sandbox/stripe-fixtures", nil, nil, &out, "json", opts); err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
 // GetSetupStatus calls Get setup progress. GET /v1/setup/status.
 //
 // The install checker: which integration steps are done (auth or associate, program and rule, partner, snippet or click, billing, a payable partner, webhooks) and the next steps as hints.
@@ -7193,6 +7218,7 @@ func (c *Client) GetWebhookDeliveriesID(ctx context.Context, id string, opts ...
 
 // GetWebhookEndpointsParams are the query parameters of GetWebhookEndpoints.
 type GetWebhookEndpointsParams struct {
+	ProgramID     *string `json:"programId,omitempty"`
 	Limit         *int64  `json:"limit,omitempty"`
 	StartingAfter *string `json:"starting_after,omitempty"`
 	EndingBefore  *string `json:"ending_before,omitempty"`
@@ -7205,6 +7231,7 @@ func (p *GetWebhookEndpointsParams) values() url.Values {
 	if p == nil {
 		return v
 	}
+	setQuery(v, "programId", p.ProgramID)
 	setQuery(v, "limit", p.Limit)
 	setQuery(v, "starting_after", p.StartingAfter)
 	setQuery(v, "ending_before", p.EndingBefore)
@@ -7215,10 +7242,11 @@ func (p *GetWebhookEndpointsParams) values() url.Values {
 
 // GetWebhookEndpoints calls List webhook endpoints. GET /v1/webhook-endpoints.
 //
-// Endpoints with their topics, programs, status (`active`, `paused`, `disabled`), secret-rotation state and failure state. Secrets are never returned.
+// Endpoints with their topics, programs, status (`active`, `paused`, `disabled`), secret-rotation state and failure state. Secrets are never returned. `programId` lists only the endpoints limited to that program (org-wide endpoints, which get every program's events, are left out).
 //
 // **Auth:** an API key with `webhooks:read` (or `full`), or a session of any role.
 //
+// programId: Only endpoints limited to this program (not the org-wide ones, which get every program's events).
 // limit: Items per page, 1 to 100 (default 50). From API version 2026-11-01; ignored under 2026-10-21, where lists are a capped plain array.
 // starting_after: A cursor: the id of an item (the previous page's `next_cursor`); returns the items after it. From API version 2026-11-01; ignored under 2026-10-21, where lists are a capped plain array.
 // ending_before: A cursor: returns the items before this item id (the previous page). Not with `starting_after`. From API version 2026-11-01; ignored under 2026-10-21, where lists are a capped plain array.
@@ -7418,7 +7446,7 @@ func (c *Client) PatchAdminStatusIncidentsID(ctx context.Context, id string, bod
 
 // PatchAPIKeysID calls Update an API key. PATCH /v1/api-keys/{id}.
 //
-// Changes a key's pinned `apiVersion`, `owner`, expiry (`expiresInDays` from now; `null` removes it) or `programIds` (`null` makes it org-wide). Revoked keys are 404. Needs an owner or admin session, or an API key with the `admin` scope. Audited.
+// Changes a key's pinned `apiVersion`, `owner`, expiry (`expiresInDays` from now; `null` removes it) or `programIds` (`null` makes it org-wide); `apiVersion: "latest"` pins it to today's newest version. A new expiry re-arms the `api_key.expiring` notices. Revoked keys are 404. Needs an owner or admin session, or an API key with the `admin` scope. Audited.
 //
 // **Auth:** an API key with `team:write` (or `full`), or a session of any role.
 func (c *Client) PatchAPIKeysID(ctx context.Context, id string, body PatchApiKeysIdBody, opts ...RequestOption) (*PatchApiKeysIdResponse, error) {
@@ -7717,12 +7745,25 @@ func (c *Client) PostAnomaliesScan(ctx context.Context, opts ...RequestOption) (
 
 // PostAPIKeys calls Create an API key. POST /v1/api-keys.
 //
-// Mints a secret key (`rk_live_…` / `rk_test_…`), shown only in this response. `scopes` defaults to `full`; a key can't grant scopes it doesn't hold. `mode` picks live, test or a matching pair of both (`both` returns `{ pairId, live, test }`); a test-mode caller can mint test keys only. `publishable: true` mints a browser-safe `rk_pub_` key limited to `programs:read` and `events:write` from `allowedOrigins`. `apiVersion` pins the key (default: latest). `programIds` limits the key to those programs (their partners, links, referrals, commissions, enrollments, and webhook endpoints whose `programIds` are all within the key's, with their deliveries); a program-scoped key gets 403 `program_scoped_key` on org-wide endpoints (keys, team, org settings, billing, payouts, the event feed, analytics, creating programs). Needs an owner or admin session, or an API key with the `admin` scope. Audited.
+// Mints a secret key (`rk_live_…` / `rk_test_…`), shown only in this response (and in its `Idempotency-Key` replay: a retry with the same key and body within 24 hours returns this response again, secret included, without minting another). `scopes` defaults to `full`; a key can't grant scopes it doesn't hold. `mode` picks live, test or a matching pair of both (`both` returns `{ pairId, live, test }`); a test-mode caller can mint test keys only. `publishable: true` mints a browser-safe `rk_pub_` key limited to `programs:read` and `events:write` from `allowedOrigins`. `apiVersion` pins the key to a version, or `latest` (the default) to the newest version at the time of the call; the pin never moves on its own (a key keeps answering in that version after newer ones ship) until you `PATCH` it or send a `referalli-version` header. A key pinned to `2026-10-21` gets every list as a capped plain array instead of the paginated envelope. `programIds` limits the key to those programs (their partners, links, referrals, commissions, enrollments, and webhook endpoints whose `programIds` are all within the key's, with their deliveries); a program-scoped key gets 403 `program_scoped_key` on org-wide endpoints (keys, team, org settings, billing, payouts, the event feed, analytics, creating programs). An `api_keys:mint` key may also call this (and no other key endpoint): it can't mint `admin` or `api_keys:mint` keys or scopes it doesn't hold, and a program-scoped one must send `programIds` within its own (`403` otherwise). Needs an owner or admin session, or an API key with the `admin` scope. Audited.
 //
 // **Auth:** an API key with `team:write` (or `full`), or a session of any role.
 func (c *Client) PostAPIKeys(ctx context.Context, body PostApiKeysBody, opts ...RequestOption) (*PostApiKeysResponse, error) {
 	var out PostApiKeysResponse
 	if err := c.do(ctx, "POST", "/v1/api-keys", nil, body, &out, "json", opts); err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// PostAPIKeysIDRotate calls Rotate an API key. POST /v1/api-keys/{id}/rotate.
+//
+// Mints a replacement key with the same name, scopes, origins, version pin, owner, programs and lifetime (an expiring key's new expiry is the same length from now), returned once with `rotatedFrom: { id, expiresAt }`. The old key keeps working for `graceHours` (default 24, at most 168, 0 = stop now), then expires; it gets no `api_key.expiring` notice. An expired or revoked key can't be rotated (409 `api_key_expired` / 404). Needs an owner or admin session, or an API key with the `admin` scope. Audited.
+//
+// **Auth:** an API key with `team:write` (or `full`), or a session of any role.
+func (c *Client) PostAPIKeysIDRotate(ctx context.Context, id string, body PostApiKeysIdRotateBody, opts ...RequestOption) (*PostApiKeysIdRotateResponse, error) {
+	var out PostApiKeysIdRotateResponse
+	if err := c.do(ctx, "POST", "/v1/api-keys/"+url.PathEscape(id)+"/rotate", nil, body, &out, "json", opts); err != nil {
 		return nil, err
 	}
 	return &out, nil
@@ -8996,11 +9037,11 @@ func (c *Client) PostPartnerProgramsProgramIDApply(ctx context.Context, programI
 
 // PostPartners calls Create a partner. POST /v1/partners.
 //
-// Creates a partner. `email` is unique per org, and so is `externalRef` (your own id for them, such as a user id). With `upsert: true` an existing partner matching the email or externalRef is returned instead of a 409 (and gets the externalRef if it had none). Over the plan's partner limit this is `402 payment_required`. Audited.
+// Creates a partner. `email` is unique per org, and so is `externalRef` (your own id for them, such as a user id). With `upsert: true` an existing partner matching the email or externalRef is returned instead of a 409 (and gets the externalRef if it had none), with `matchedBy` (`email` or `externalRef`) and `externalRefKept`: true when the partner keeps its own externalRef (another product's) and yours was not applied to it, because yours is the program-scoped one on its enrollment. An email match whose partner has a different externalRef and no enrollment carrying yours is a 409. Over the plan's partner limit this is `402 payment_required`. Audited.
 //
 // **Auth:** an API key with `partners:write` (or `full`), or a session with role `owner`, `admin`.
-func (c *Client) PostPartners(ctx context.Context, body PostPartnersBody, opts ...RequestOption) (*Partner, error) {
-	var out Partner
+func (c *Client) PostPartners(ctx context.Context, body PostPartnersBody, opts ...RequestOption) (*PostPartnersResponse, error) {
+	var out PostPartnersResponse
 	if err := c.do(ctx, "POST", "/v1/partners", nil, body, &out, "json", opts); err != nil {
 		return nil, err
 	}
@@ -9295,7 +9336,7 @@ func (c *Client) PostProfitabilityRebuild(ctx context.Context, opts ...RequestOp
 
 // PostPrograms calls Create a program. POST /v1/programs.
 //
-// Creates an affiliate program: its attribution model, cookie window, how long after sign-up a conversion still counts, terms, public page and settings. `slug` is unique per org. Terms are versioned so partners can be asked to accept new ones. Over the plan's program limit this is `402 payment_required`.
+// Creates an affiliate program: its attribution model, cookie window, how long after sign-up a conversion still counts (`signupToConversionDays`, 1 to 1095, default 365; `cookieWindowDays` is 1 to 400, default 60), terms, public page and settings. `slug` is unique per org. Terms are versioned so partners can be asked to accept new ones. Over the plan's program limit this is `402 payment_required`.
 //
 // **Auth:** an API key with `programs:write` (or `full`), or a session with role `owner`, `admin`.
 func (c *Client) PostPrograms(ctx context.Context, body PostProgramsBody, opts ...RequestOption) (*Program, error) {
@@ -9334,11 +9375,11 @@ func (c *Client) PostProgramsIDAutopriceRun(ctx context.Context, id string, body
 
 // PostProgramsIDEnrollments calls Enroll a partner. POST /v1/programs/{id}/enrollments.
 //
-// Enrolls an existing partner in the program, approved at once. Publishes `partner.enrolled`. 409 when already enrolled. `externalRef` is this program's own id for the partner, when their partner `externalRef` belongs to another product sharing the org; this program's webhooks and `GET /v1/partners?externalRef=` then use it.
+// Enrolls an existing partner in the program, approved at once. Publishes `partner.enrolled`. 409 when already enrolled. `externalRef` is this program's own id for the partner, when their partner `externalRef` belongs to another product sharing the org; this program's webhooks and `GET /v1/partners?externalRef=` then use it. `mint` also gives them a referral code in the program, as `POST /v1/programs/{id}/referrers` does: `coupon: true` a coupon, `link: {}` a tracked link to `link.destinationUrl` or else the program's default destination (`{code}` in it becomes the code; 400 when the program has none and you send none). Their existing code in the program is reused. The response then adds `code` and `linkUrl` (null without a link).
 //
 // **Auth:** an API key with `programs:write` (or `full`), or a session with role `owner`, `admin`.
-func (c *Client) PostProgramsIDEnrollments(ctx context.Context, id string, body PostProgramsIdEnrollmentsBody, opts ...RequestOption) (*Enrollment, error) {
-	var out Enrollment
+func (c *Client) PostProgramsIDEnrollments(ctx context.Context, id string, body PostProgramsIdEnrollmentsBody, opts ...RequestOption) (*PostProgramsIdEnrollmentsResponse, error) {
+	var out PostProgramsIdEnrollmentsResponse
 	if err := c.do(ctx, "POST", "/v1/programs/"+url.PathEscape(id)+"/enrollments", nil, body, &out, "json", opts); err != nil {
 		return nil, err
 	}
@@ -9405,6 +9446,19 @@ func (c *Client) PostProgramsIDPromotions(ctx context.Context, id string, body P
 func (c *Client) PostProgramsIDReferrers(ctx context.Context, id string, body PostProgramsIdReferrersBody, opts ...RequestOption) (*PostProgramsIdReferrersResponse, error) {
 	var out PostProgramsIdReferrersResponse
 	if err := c.do(ctx, "POST", "/v1/programs/"+url.PathEscape(id)+"/referrers", nil, body, &out, "json", opts); err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// PostProgramsIDStripeCreditsRequeue calls Requeue stuck Stripe balance credits. POST /v1/programs/{id}/stripe-credits/requeue.
+//
+// Resets the attempt count of this program's `no_customer`, `ambiguous_customer` and `fx_rate_missing` rows (all of them, or only `creditIds`) so the hourly sweep gives them another 24 tries: call it after adding the billing link, making the customer match unique or recording the FX rate. Rows in other statuses are left alone. Returns the requeued ids. Owner or admin. Audited.
+//
+// **Auth:** an API key with `payouts:write` (or `full`), or a session with role `owner`, `admin`.
+func (c *Client) PostProgramsIDStripeCreditsRequeue(ctx context.Context, id string, body PostProgramsIdStripeCreditsRequeueBody, opts ...RequestOption) (*PostProgramsIdStripeCreditsRequeueResponse, error) {
+	var out PostProgramsIdStripeCreditsRequeueResponse
+	if err := c.do(ctx, "POST", "/v1/programs/"+url.PathEscape(id)+"/stripe-credits/requeue", nil, body, &out, "json", opts); err != nil {
 		return nil, err
 	}
 	return &out, nil
@@ -9561,6 +9615,19 @@ func (c *Client) PostRoiPatternsPatternReview(ctx context.Context, pattern strin
 func (c *Client) PostSandboxSimulate(ctx context.Context, body PostSandboxSimulateBody, opts ...RequestOption) (*PostSandboxSimulateResponse, error) {
 	var out PostSandboxSimulateResponse
 	if err := c.do(ctx, "POST", "/v1/sandbox/simulate", nil, body, &out, "json", opts); err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// PostSandboxStripeFixtures calls Send a Stripe event fixture. POST /v1/sandbox/stripe-fixtures.
+//
+// Test mode only (`409 test_mode_only` otherwise). Builds a realistic Stripe event (`invoice.paid`, `charge.refunded`, `charge.dispute.created`, `customer.created`, `customer.updated`, `customer.subscription.created`, `customer.subscription.updated` or `customer.subscription.deleted`) and runs it through the same pipeline as a signed webhook to the stripe billing connection `connectionId`, so you can watch commissions happen without a Stripe account. `overrides` sets `customerRef` (the Stripe customer id), `amountMinor`, `currency`, `metadata`, `invoiceId` and `chargeId`; refunds and disputes find their payment by `chargeId`, so reuse the `invoice.paid` one. Each call is a new event unless you pass `eventId`, which replays (the second answers `duplicate: true`). Returns the event id, the processing results, the commission events created and the payload sent. Audited.
+//
+// **Auth:** an API key with `billing:write` (or `full`), or a session with role `owner`, `admin`.
+func (c *Client) PostSandboxStripeFixtures(ctx context.Context, body PostSandboxStripeFixturesBody, opts ...RequestOption) (*PostSandboxStripeFixturesResponse, error) {
+	var out PostSandboxStripeFixturesResponse
+	if err := c.do(ctx, "POST", "/v1/sandbox/stripe-fixtures", nil, body, &out, "json", opts); err != nil {
 		return nil, err
 	}
 	return &out, nil
@@ -9724,7 +9791,7 @@ func (c *Client) PostWebhookDeliveriesIDReplay(ctx context.Context, id string, o
 
 // PostWebhookEndpoints calls Create a webhook endpoint. POST /v1/webhook-endpoints.
 //
-// Subscribes an HTTPS URL to event topics (default `["*"]`, every event; see the `webhooks` section of this document for each topic's payload). `programIds` limits it to events about those programs (org-wide events such as payouts are then not sent). Deliveries are signed the Standard Webhooks way with the returned `secret` (`whsec_…`), shown only here. `legacySignature: true` also sends the deprecated body-only signature. `alertContacts` (up to 10 emails) are emailed, with the org owner, when the endpoint has failed for 1 hour and again at 24 hours; it is disabled after 72 hours of failures or 1,000 failed attempts in a row.
+// Subscribes an HTTPS URL to event topics (default `["*"]`, every event; see the `webhooks` section of this document for each topic's payload). `programIds` limits it to events about those programs (org-wide events such as payouts are then not sent). Deliveries are signed the Standard Webhooks way with the returned `secret` (`whsec_…`), shown only here. `legacySignature: true` also sends the deprecated body-only signature. `alertContacts` (up to 10 emails) are emailed, with the org owner, when the endpoint has failed for 1 hour and again at 24 hours; it is disabled after 72 hours of failures or 1,000 failed attempts in a row. `status: "paused"` creates it without delivering anything until you `PATCH` it to `active` (default `active`).
 //
 // **Auth:** an API key with `webhooks:write` (or `full`), or a session with role `owner`, `admin`.
 func (c *Client) PostWebhookEndpoints(ctx context.Context, body PostWebhookEndpointsBody, opts ...RequestOption) (*PostWebhookEndpointsResponse, error) {
@@ -10351,7 +10418,7 @@ func (c *Client) PutProgramsIDRefereeReward(ctx context.Context, id string, body
 
 // PutProgramsIDStripeCredits calls Set a program's Stripe balance credit settings. PUT /v1/programs/{id}/stripe-credits.
 //
-// Turns the rail on or off for a program. Each `commission.settled` line with method `merchant_credit` is credited to the referrer's Stripe customer balance; a later `commission.reversed` debits it back. `referrerMatch`: `billing_link` (the partner's externalRef is a `cus_…` id or is billing-linked to one), `metadata` (Stripe customer search on `metadata[metadataKey]` = the partner's externalRef) or `email` (the one Stripe customer with the partner's email). `refereeRewards: true` also credits `store_credit` referee rewards to the referred customer. Custom units (`x_…`) are never credited. Enabling needs a key (`409 stripe_key_required`). Owner or admin. Audited.
+// Turns the rail on or off for a program. Each `commission.settled` line with method `merchant_credit` is credited to the referrer's Stripe customer balance; a later `commission.reversed` debits it back. `referrerMatch`: `billing_link` (the partner's externalRef is a `cus_…` id or is billing-linked to one), `metadata` (Stripe customer search on `metadata[metadataKey]` = the partner's externalRef) or `email` (the one Stripe customer with the partner's email). `refereeRewards: true` also credits `store_credit` referee rewards to the referred customer. Custom units (`x_…`) are never credited. `balanceCurrency` (ISO code, stored lowercase) forces the currency every credit is sent in; without it a credit goes in the Stripe customer's balance currency, or the commission's when the customer has none yet. When that differs from the commission's currency the amount is converted at your FX rate (`POST /v1/fx-rates`, half-even rounding); with no rate the credit waits as `fx_rate_missing`. `createCustomerIfMissing: { metadata }` creates a Stripe customer for a referrer none matches (the partner's email, `metadata[metadataKey]` = the partner's externalRef, plus your metadata) and credits it; referee credits never create customers. Metadata and email matching need exactly one Stripe customer: several is `ambiguous_customer`, never a guess. `balanceCurrency` and `createCustomerIfMissing` are replaced on every PUT (omitted = off). Enabling needs a key (`409 stripe_key_required`). `secretKey` gives the program its own Stripe key, used instead of the org's for all of its credits and debits (a separate Stripe account per product, say); `null` removes it, omitting it keeps it. The key is checked with Stripe before it is saved: `422 stripe_key_invalid` (Stripe rejects it), `422 stripe_key_wrong_mode` (a test key in live mode or a live key in test mode) or `422 stripe_key_permission` (no Customers write), `502 stripe_unavailable` if Stripe cannot be reached. Owner or admin; setting or removing a key needs a recent sign-in. Audited (never the key).
 //
 // **Auth:** an API key with `payouts:write` (or `full`), or a session with role `owner`, `admin`.
 func (c *Client) PutProgramsIDStripeCredits(ctx context.Context, id string, body PutProgramsIdStripeCreditsBody, opts ...RequestOption) (*GetProgramsIdStripeCreditsResponse, error) {
@@ -10377,7 +10444,7 @@ func (c *Client) PutRewardsRulesKey(ctx context.Context, key string, body PutRew
 
 // PutStripeCreditsConnection calls Connect a Stripe key for balance credits. PUT /v1/stripe-credits/connection.
 //
-// Stores your own Stripe restricted key (`rk_…`, with Customers write) for the balance credit rail, encrypted and never echoed. Without one the rail uses the secret key of your Stripe payout connection, if any. Owner or admin, recent sign-in. Audited.
+// Stores your own Stripe restricted key (`rk_…`, with Customers write) for the balance credit rail, encrypted and never echoed. Without one the rail uses the secret key of your Stripe payout connection, if any. A program can override it with its own key (`PUT /v1/programs/{id}/stripe-credits`). The key is checked with Stripe before it is saved: `422 stripe_key_invalid` (Stripe rejects it), `422 stripe_key_wrong_mode` (a test key in live mode or a live key in test mode) or `422 stripe_key_permission` (no Customers write), `502 stripe_unavailable` if Stripe cannot be reached. Owner or admin, recent sign-in. Audited.
 //
 // **Auth:** an API key with `payouts:write` (or `full`), or a session with role `owner`, `admin`.
 func (c *Client) PutStripeCreditsConnection(ctx context.Context, body PutStripeCreditsConnectionBody, opts ...RequestOption) (*GetStripeCreditsConnectionResponse, error) {
@@ -11223,6 +11290,8 @@ func (c *Client) Call(ctx context.Context, operationID string, path map[string]s
 			return nil, err
 		}
 		return c.GetRoiTraceCustomerRef(ctx, path["customerRef"], &p, opts...)
+	case "getSandboxStripeFixtures":
+		return c.GetSandboxStripeFixtures(ctx, opts...)
 	case "getSetupStatus":
 		return c.GetSetupStatus(ctx, opts...)
 	case "getStatus":
@@ -11459,6 +11528,12 @@ func (c *Client) Call(ctx context.Context, operationID string, path map[string]s
 			return nil, err
 		}
 		return c.PostAPIKeys(ctx, b, opts...)
+	case "postApiKeysIdRotate":
+		var b PostApiKeysIdRotateBody
+		if err := decodeInto(body, &b); err != nil {
+			return nil, err
+		}
+		return c.PostAPIKeysIDRotate(ctx, path["id"], b, opts...)
 	case "postAssets":
 		var b PostAssetsBody
 		if err := decodeInto(body, &b); err != nil {
@@ -12055,6 +12130,12 @@ func (c *Client) Call(ctx context.Context, operationID string, path map[string]s
 			return nil, err
 		}
 		return c.PostProgramsIDReferrers(ctx, path["id"], b, opts...)
+	case "postProgramsIdStripeCreditsRequeue":
+		var b PostProgramsIdStripeCreditsRequeueBody
+		if err := decodeInto(body, &b); err != nil {
+			return nil, err
+		}
+		return c.PostProgramsIDStripeCreditsRequeue(ctx, path["id"], b, opts...)
 	case "postPromotionsIdEnd":
 		return c.PostPromotionsIDEnd(ctx, path["id"], opts...)
 	case "postPublicProgramsHandleJoin":
@@ -12111,6 +12192,12 @@ func (c *Client) Call(ctx context.Context, operationID string, path map[string]s
 			return nil, err
 		}
 		return c.PostSandboxSimulate(ctx, b, opts...)
+	case "postSandboxStripeFixtures":
+		var b PostSandboxStripeFixturesBody
+		if err := decodeInto(body, &b); err != nil {
+			return nil, err
+		}
+		return c.PostSandboxStripeFixtures(ctx, b, opts...)
 	case "postSupportAppsAdapterTest":
 		var b PostSupportAppsAdapterTestBody
 		if err := decodeInto(body, &b); err != nil {

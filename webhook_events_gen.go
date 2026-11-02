@@ -7,6 +7,7 @@ import "encoding/json"
 
 // Every webhook topic the API publishes.
 const (
+	TopicAPIKeyExpiring           = "api_key.expiring"
 	TopicBillingEventRecorded     = "billing_event.recorded"
 	TopicClickRecorded            = "click.recorded"
 	TopicCommissionEarned         = "commission.earned"
@@ -17,6 +18,7 @@ const (
 	TopicDealSubmitted            = "deal.submitted"
 	TopicDisputeResolved          = "dispute.resolved"
 	TopicFraudCaseOpened          = "fraud.case_opened"
+	TopicFXRatesUpdated           = "fx.rates_updated"
 	TopicPartnerApplied           = "partner.applied"
 	TopicPartnerApproved          = "partner.approved"
 	TopicPartnerEnrolled          = "partner.enrolled"
@@ -48,6 +50,7 @@ const (
 
 // Topics lists every webhook topic.
 var Topics = []string{
+	TopicAPIKeyExpiring,
 	TopicBillingEventRecorded,
 	TopicClickRecorded,
 	TopicCommissionEarned,
@@ -58,6 +61,7 @@ var Topics = []string{
 	TopicDealSubmitted,
 	TopicDisputeResolved,
 	TopicFraudCaseOpened,
+	TopicFXRatesUpdated,
 	TopicPartnerApplied,
 	TopicPartnerApproved,
 	TopicPartnerEnrolled,
@@ -85,6 +89,17 @@ var Topics = []string{
 	TopicWebhookEndpointDisabled,
 	TopicWebhookEndpointFailing,
 	TopicWebhookEndpointRecovered,
+}
+
+// AsAPIKeyExpiring decodes the data of a `api_key.expiring` event (An API key expires soon).
+// It returns a *WrongTopicError for an event of another topic.
+func (e *WebhookEvent) AsAPIKeyExpiring() (ApiKeyExpiringEventData, error) {
+	var out ApiKeyExpiringEventData
+	if e.Topic != TopicAPIKeyExpiring {
+		return out, &WrongTopicError{Want: TopicAPIKeyExpiring, Got: e.Topic}
+	}
+	err := json.Unmarshal(e.Data, &out)
+	return out, err
 }
 
 // AsBillingEventRecorded decodes the data of a `billing_event.recorded` event (A billing event was recorded).
@@ -192,6 +207,17 @@ func (e *WebhookEvent) AsFraudCaseOpened() (FraudCaseOpenedEventData, error) {
 	var out FraudCaseOpenedEventData
 	if e.Topic != TopicFraudCaseOpened {
 		return out, &WrongTopicError{Want: TopicFraudCaseOpened, Got: e.Topic}
+	}
+	err := json.Unmarshal(e.Data, &out)
+	return out, err
+}
+
+// AsFXRatesUpdated decodes the data of a `fx.rates_updated` event (The org's FX rates changed).
+// It returns a *WrongTopicError for an event of another topic.
+func (e *WebhookEvent) AsFXRatesUpdated() (FxRatesUpdatedEventData, error) {
+	var out FxRatesUpdatedEventData
+	if e.Topic != TopicFXRatesUpdated {
+		return out, &WrongTopicError{Want: TopicFXRatesUpdated, Got: e.Topic}
 	}
 	err := json.Unmarshal(e.Data, &out)
 	return out, err

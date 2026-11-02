@@ -2060,6 +2060,51 @@ type PrivacyRequestCompletedEvent struct {
 	Data      PrivacyRequestCompletedEventData `json:"data"`
 }
 
+// ApiKeyExpiringEventData: `data` of a `api_key.expiring` event: Sent 30, 7 and 1 days before an API key with an expiry stops working (once each; a key first seen inside a window gets only that notice). Rotate it with `POST /v1/api-keys/{id}/rotate` or extend it with `PATCH /v1/api-keys/{id}`. A key rotated out (in its grace period) gets no notice.
+type ApiKeyExpiringEventData struct {
+	KeyID      string  `json:"keyId"`
+	Name       string  `json:"name"`
+	Prefix     string  `json:"prefix"` // The first 12 characters of the secret, as listed.
+	Owner      *string `json:"owner"`
+	ExpiresAt  string  `json:"expiresAt"`
+	DaysBefore int64   `json:"daysBefore"` // Which notice this is.
+}
+
+// ApiKeyExpiringEvent: An API key expires soon: the `api_key.expiring` delivery body.
+type ApiKeyExpiringEvent struct {
+	ID        string                  `json:"id"` // The event id (`evt_…`); the same event delivered to several endpoints has the same id.
+	Topic     string                  `json:"topic"`
+	OrgID     string                  `json:"orgId"`
+	Livemode  bool                    `json:"livemode"` // false for events from test mode.
+	CreatedAt string                  `json:"createdAt"`
+	Data      ApiKeyExpiringEventData `json:"data"`
+}
+
+// FxRatesUpdatedEventDataPairsItem is generated from the OpenAPI component of the same name.
+type FxRatesUpdatedEventDataPairsItem struct {
+	Base  string  `json:"base"`  // Lowercase ISO 4217 code.
+	Quote string  `json:"quote"` // Lowercase ISO 4217 code.
+	Rate  *string `json:"rate"`  // Exact decimal string; null when the override was cleared.
+}
+
+// FxRatesUpdatedEventData: `data` of a `fx.rates_updated` event: Sent when the rates your cross-currency payouts convert at change: a rate recorded with `POST /v1/fx-rates` (`recorded`), new daily feed rates (`feed_synced`, once per sync that inserted any), or a manual rate cleared back to the feed (`override_cleared`, `rate` null). Read the current rates with `GET /v1/fx-rates`. Org-wide, so program-scoped webhook endpoints never get it.
+type FxRatesUpdatedEventData struct {
+	Reason      string                             `json:"reason"`
+	Source      string                             `json:"source"`      // `manual` for a recorded or cleared rate, or the feed (`ecb`).
+	EffectiveAt *string                            `json:"effectiveAt"` // When the new rates take effect; null for a cleared override.
+	Pairs       []FxRatesUpdatedEventDataPairsItem `json:"pairs"`
+}
+
+// FxRatesUpdatedEvent: The org's FX rates changed: the `fx.rates_updated` delivery body.
+type FxRatesUpdatedEvent struct {
+	ID        string                  `json:"id"` // The event id (`evt_…`); the same event delivered to several endpoints has the same id.
+	Topic     string                  `json:"topic"`
+	OrgID     string                  `json:"orgId"`
+	Livemode  bool                    `json:"livemode"` // false for events from test mode.
+	CreatedAt string                  `json:"createdAt"`
+	Data      FxRatesUpdatedEventData `json:"data"`
+}
+
 // WebhookEndpointDisabledEventData: `data` of a `webhook_endpoint.disabled` event: Sent to your other active endpoints when one is disabled after every delivery failed for 72 hours (or 1000 attempts in a row).
 type WebhookEndpointDisabledEventData struct {
 	EndpointID     string `json:"endpointId"`
@@ -2110,8 +2155,10 @@ type StripeCreditAppliedEventData struct {
 	CommissionID               *string `json:"commissionId"`
 	PartnerID                  *string `json:"partnerId"`
 	CustomerRef                *string `json:"customerRef"`
-	AmountMinor                int64   `json:"amountMinor"` // Positive, integer minor units. Credits are sent to Stripe as a negative amount, debits as positive.
-	Currency                   string  `json:"currency"`
+	AmountMinor                int64   `json:"amountMinor"`        // Positive, integer minor units. Credits are sent to Stripe as a negative amount, debits as positive.
+	Currency                   string  `json:"currency"`           // The commission's currency.
+	AppliedAmountMinor         *int64  `json:"appliedAmountMinor"` // What was (or will be) sent to Stripe, in appliedCurrency: amountMinor converted at your FX rate when the balance currency differs. A debit uses its credit's currency and rate.
+	AppliedCurrency            *string `json:"appliedCurrency"`    // The Stripe customer balance currency the row is applied in.
 	StripeCustomerID           *string `json:"stripeCustomerId"`
 	Status                     string  `json:"status"`
 	Attempts                   int64   `json:"attempts"`
@@ -2131,7 +2178,7 @@ type StripeCreditAppliedEvent struct {
 	Data      StripeCreditAppliedEventData `json:"data"`
 }
 
-// StripeCreditFailedEventData: `data` of a `stripe_credit.failed` event: The Stripe balance credit rail stopped retrying a credit or debit after its last attempt: no Stripe customer matched (`no_customer`) or Stripe refused it (`failed`). `lastError` says why.
+// StripeCreditFailedEventData: `data` of a `stripe_credit.failed` event: The Stripe balance credit rail stopped retrying a credit or debit after its last attempt: no Stripe customer matched (`no_customer`), several did (`ambiguous_customer`), no FX rate converts to the balance currency (`fx_rate_missing`) or Stripe refused it (`failed`). `POST /v1/programs/{id}/stripe-credits/requeue` gives the first three another round. `lastError` says why.
 type StripeCreditFailedEventData struct {
 	ID                         string  `json:"id"`
 	ProgramID                  string  `json:"programId"`
@@ -2140,8 +2187,10 @@ type StripeCreditFailedEventData struct {
 	CommissionID               *string `json:"commissionId"`
 	PartnerID                  *string `json:"partnerId"`
 	CustomerRef                *string `json:"customerRef"`
-	AmountMinor                int64   `json:"amountMinor"` // Positive, integer minor units. Credits are sent to Stripe as a negative amount, debits as positive.
-	Currency                   string  `json:"currency"`
+	AmountMinor                int64   `json:"amountMinor"`        // Positive, integer minor units. Credits are sent to Stripe as a negative amount, debits as positive.
+	Currency                   string  `json:"currency"`           // The commission's currency.
+	AppliedAmountMinor         *int64  `json:"appliedAmountMinor"` // What was (or will be) sent to Stripe, in appliedCurrency: amountMinor converted at your FX rate when the balance currency differs. A debit uses its credit's currency and rate.
+	AppliedCurrency            *string `json:"appliedCurrency"`    // The Stripe customer balance currency the row is applied in.
 	StripeCustomerID           *string `json:"stripeCustomerId"`
 	Status                     string  `json:"status"`
 	Attempts                   int64   `json:"attempts"`
@@ -2820,6 +2869,9 @@ type PostProgramsIdReferrersResponse struct {
 	LinkURL     *string `json:"linkUrl"`
 }
 
+// PostProgramsIdEnrollmentsResponse is generated from the OpenAPI component of the same name.
+type PostProgramsIdEnrollmentsResponse = any
+
 // GetProgramsIdEnrollmentsResponseDataItem is generated from the OpenAPI component of the same name.
 type GetProgramsIdEnrollmentsResponseDataItem struct {
 	ID             string         `json:"id"`
@@ -2851,6 +2903,9 @@ type PostProgramsIdEnrollmentsEnrollmentIdRejectResponse struct {
 	ID     string `json:"id"`
 	Status string `json:"status"`
 }
+
+// PostPartnersResponse is generated from the OpenAPI component of the same name.
+type PostPartnersResponse = any
 
 // GetPartnersResponse is generated from the OpenAPI component of the same name.
 type GetPartnersResponse struct {
@@ -2911,6 +2966,9 @@ type PatchApiKeysIdResponse struct {
 	ExpiresAt  *string  `json:"expiresAt"`
 	ProgramIds []string `json:"programIds"`
 }
+
+// PostApiKeysIdRotateResponse is generated from the OpenAPI component of the same name.
+type PostApiKeysIdRotateResponse = any
 
 // DeleteApiKeysIdResponse is generated from the OpenAPI component of the same name.
 type DeleteApiKeysIdResponse struct {
@@ -4083,6 +4141,7 @@ type PostWebhookEndpointsResponse struct {
 	ProgramIds      []string `json:"programIds"`
 	LegacySignature bool     `json:"legacySignature"`
 	AlertContacts   []string `json:"alertContacts"`
+	Status          string   `json:"status"`
 	Secret          string   `json:"secret"` // Returned only here. whsec_ + base64 key (Standard Webhooks).
 }
 
@@ -4137,6 +4196,47 @@ type PostSandboxSimulateResponse struct {
 	Conversions  int64  `json:"conversions"`
 	LinesCreated int64  `json:"linesCreated"`
 	Reversals    int64  `json:"reversals"`
+}
+
+// GetSandboxStripeFixturesResponseDataItem is generated from the OpenAPI component of the same name.
+type GetSandboxStripeFixturesResponseDataItem struct {
+	Event     string   `json:"event"`
+	Overrides []string `json:"overrides"` // The `overrides` fields this fixture uses.
+}
+
+// GetSandboxStripeFixturesResponse is generated from the OpenAPI component of the same name.
+type GetSandboxStripeFixturesResponse struct {
+	Data []GetSandboxStripeFixturesResponseDataItem `json:"data"`
+}
+
+// PostSandboxStripeFixturesResponseResultsItem is generated from the OpenAPI component of the same name.
+type PostSandboxStripeFixturesResponseResultsItem struct {
+	Duplicate      bool    `json:"duplicate"`
+	BillingEventID *string `json:"billingEventId"`
+	Conversions    int64   `json:"conversions"`
+	LinesCreated   int64   `json:"linesCreated"`
+	Reversals      int64   `json:"reversals"`
+	Ignored        *string `json:"ignored,omitempty"`
+}
+
+// PostSandboxStripeFixturesResponseCommissionsItem is generated from the OpenAPI component of the same name.
+type PostSandboxStripeFixturesResponseCommissionsItem struct {
+	ID                  string  `json:"id"`
+	Type                string  `json:"type"`
+	PartnerID           string  `json:"partnerId"`
+	AmountMinor         int64   `json:"amountMinor"`
+	Currency            string  `json:"currency"`
+	RelatedCommissionID *string `json:"relatedCommissionId"`
+}
+
+// PostSandboxStripeFixturesResponse is generated from the OpenAPI component of the same name.
+type PostSandboxStripeFixturesResponse struct {
+	EventID     string                                             `json:"eventId"` // The Stripe event id sent (`evt_fixture_…`, or your `eventId`).
+	Event       string                                             `json:"event"`
+	Received    int64                                              `json:"received"` // Billing events the connector parsed from the fixture.
+	Results     []PostSandboxStripeFixturesResponseResultsItem     `json:"results"`
+	Commissions []PostSandboxStripeFixturesResponseCommissionsItem `json:"commissions"` // Commission events the fixture created (earned, reversed…).
+	Payload     GetOpenapiJsonResponse                             `json:"payload"`     // The Stripe event that was processed.
 }
 
 // PostImportProviderResponse is generated from the OpenAPI component of the same name.
@@ -7850,14 +7950,28 @@ type GetStripeCreditsConnectionResponse struct {
 	ConnectedAt *string `json:"connectedAt"`
 }
 
+// GetProgramsIdStripeCreditsResponseCreateCustomerIfMissingOption1 is generated from the OpenAPI component of the same name.
+type GetProgramsIdStripeCreditsResponseCreateCustomerIfMissingOption1 struct {
+	Metadata map[string]string `json:"metadata,omitempty"`
+}
+
 // GetProgramsIdStripeCreditsResponse is generated from the OpenAPI component of the same name.
 type GetProgramsIdStripeCreditsResponse struct {
-	ProgramID      string  `json:"programId"`
-	Enabled        bool    `json:"enabled"`
-	ReferrerMatch  string  `json:"referrerMatch"`
-	MetadataKey    *string `json:"metadataKey"`
-	RefereeRewards bool    `json:"refereeRewards"`
-	KeyConnected   bool    `json:"keyConnected"`
+	ProgramID               string                                                            `json:"programId"`
+	Enabled                 bool                                                              `json:"enabled"`
+	ReferrerMatch           string                                                            `json:"referrerMatch"`
+	MetadataKey             *string                                                           `json:"metadataKey"`
+	RefereeRewards          bool                                                              `json:"refereeRewards"`
+	BalanceCurrency         *string                                                           `json:"balanceCurrency"`         // Currency every credit is sent in; null = the Stripe customer's balance currency, else the commission's.
+	CreateCustomerIfMissing *GetProgramsIdStripeCreditsResponseCreateCustomerIfMissingOption1 `json:"createCustomerIfMissing"` // When set, a referrer no Stripe customer matches gets one created with this extra metadata.
+	KeyConnected            bool                                                              `json:"keyConnected"`
+	HasOwnKey               bool                                                              `json:"hasOwnKey"`
+}
+
+// PostProgramsIdStripeCreditsRequeueResponse is generated from the OpenAPI component of the same name.
+type PostProgramsIdStripeCreditsRequeueResponse struct {
+	Requeued  int64    `json:"requeued"`
+	CreditIds []string `json:"creditIds"`
 }
 
 // GetProgramsIdStripeCreditsLogResponseDataItem is generated from the OpenAPI component of the same name.
@@ -7869,8 +7983,10 @@ type GetProgramsIdStripeCreditsLogResponseDataItem struct {
 	CommissionID               *string `json:"commissionId"`
 	PartnerID                  *string `json:"partnerId"`
 	CustomerRef                *string `json:"customerRef"`
-	AmountMinor                int64   `json:"amountMinor"` // Positive, integer minor units. Credits are sent to Stripe as a negative amount, debits as positive.
-	Currency                   string  `json:"currency"`
+	AmountMinor                int64   `json:"amountMinor"`        // Positive, integer minor units. Credits are sent to Stripe as a negative amount, debits as positive.
+	Currency                   string  `json:"currency"`           // The commission's currency.
+	AppliedAmountMinor         *int64  `json:"appliedAmountMinor"` // What was (or will be) sent to Stripe, in appliedCurrency: amountMinor converted at your FX rate when the balance currency differs. A debit uses its credit's currency and rate.
+	AppliedCurrency            *string `json:"appliedCurrency"`    // The Stripe customer balance currency the row is applied in.
 	StripeCustomerID           *string `json:"stripeCustomerId"`
 	Status                     string  `json:"status"`
 	Attempts                   int64   `json:"attempts"`
@@ -8498,10 +8614,22 @@ type PostProgramsIdReferrersBody struct {
 	Code        *string `json:"code,omitempty"`
 }
 
+// PostProgramsIdEnrollmentsBodyMintLink is generated from the OpenAPI component of the same name.
+type PostProgramsIdEnrollmentsBodyMintLink struct {
+	DestinationURL *string `json:"destinationUrl,omitempty"`
+}
+
+// PostProgramsIdEnrollmentsBodyMint is generated from the OpenAPI component of the same name.
+type PostProgramsIdEnrollmentsBodyMint struct {
+	Coupon *bool                                  `json:"coupon,omitempty"`
+	Link   *PostProgramsIdEnrollmentsBodyMintLink `json:"link,omitempty"`
+}
+
 // PostProgramsIdEnrollmentsBody is generated from the OpenAPI component of the same name.
 type PostProgramsIdEnrollmentsBody struct {
-	PartnerID   string  `json:"partnerId"`
-	ExternalRef *string `json:"externalRef,omitempty"`
+	PartnerID   string                             `json:"partnerId"`
+	ExternalRef *string                            `json:"externalRef,omitempty"`
+	Mint        *PostProgramsIdEnrollmentsBodyMint `json:"mint,omitempty"`
 }
 
 // PostPartnersBody is generated from the OpenAPI component of the same name.
@@ -8542,6 +8670,11 @@ type PatchApiKeysIdBody struct {
 	Owner         *string  `json:"owner,omitempty"`
 	ExpiresInDays *int64   `json:"expiresInDays,omitempty"`
 	ProgramIds    []string `json:"programIds,omitempty"`
+}
+
+// PostApiKeysIdRotateBody is generated from the OpenAPI component of the same name.
+type PostApiKeysIdRotateBody struct {
+	GraceHours *int64 `json:"graceHours,omitempty"`
 }
 
 // PostTestClockAdvanceBody is generated from the OpenAPI component of the same name.
@@ -9117,6 +9250,7 @@ type PostWebhookEndpointsBody struct {
 	LegacySignature *bool    `json:"legacySignature,omitempty"`
 	ProgramIds      []string `json:"programIds,omitempty"`
 	AlertContacts   []string `json:"alertContacts,omitempty"`
+	Status          *string  `json:"status,omitempty"`
 }
 
 // PatchWebhookEndpointsIdBody is generated from the OpenAPI component of the same name.
@@ -9136,6 +9270,24 @@ type PostSandboxSimulateBody struct {
 	Scenario   *string `json:"scenario,omitempty"`
 	PriceMinor *int64  `json:"priceMinor,omitempty"`
 	Months     *int64  `json:"months,omitempty"`
+}
+
+// PostSandboxStripeFixturesBodyOverrides is generated from the OpenAPI component of the same name.
+type PostSandboxStripeFixturesBodyOverrides struct {
+	CustomerRef *string           `json:"customerRef,omitempty"`
+	AmountMinor *int64            `json:"amountMinor,omitempty"`
+	Currency    *string           `json:"currency,omitempty"`
+	Metadata    map[string]string `json:"metadata,omitempty"`
+	InvoiceID   *string           `json:"invoiceId,omitempty"`
+	ChargeID    *string           `json:"chargeId,omitempty"`
+}
+
+// PostSandboxStripeFixturesBody is generated from the OpenAPI component of the same name.
+type PostSandboxStripeFixturesBody struct {
+	ConnectionID string                                  `json:"connectionId"`
+	Event        string                                  `json:"event"`
+	EventID      *string                                 `json:"eventId,omitempty"`
+	Overrides    *PostSandboxStripeFixturesBodyOverrides `json:"overrides,omitempty"`
 }
 
 // PostImportProviderBody is generated from the OpenAPI component of the same name.
@@ -9982,12 +10134,25 @@ type PutStripeCreditsConnectionBody struct {
 	SecretKey string `json:"secretKey"`
 }
 
+// PutProgramsIdStripeCreditsBodyCreateCustomerIfMissingOption1 is generated from the OpenAPI component of the same name.
+type PutProgramsIdStripeCreditsBodyCreateCustomerIfMissingOption1 struct {
+	Metadata map[string]string `json:"metadata,omitempty"`
+}
+
 // PutProgramsIdStripeCreditsBody is generated from the OpenAPI component of the same name.
 type PutProgramsIdStripeCreditsBody struct {
-	Enabled        bool    `json:"enabled"`
-	ReferrerMatch  *string `json:"referrerMatch,omitempty"`
-	MetadataKey    *string `json:"metadataKey,omitempty"`
-	RefereeRewards *bool   `json:"refereeRewards,omitempty"`
+	Enabled                 bool                                                          `json:"enabled"`
+	ReferrerMatch           *string                                                       `json:"referrerMatch,omitempty"`
+	MetadataKey             *string                                                       `json:"metadataKey,omitempty"`
+	RefereeRewards          *bool                                                         `json:"refereeRewards,omitempty"`
+	BalanceCurrency         *string                                                       `json:"balanceCurrency,omitempty"`
+	CreateCustomerIfMissing *PutProgramsIdStripeCreditsBodyCreateCustomerIfMissingOption1 `json:"createCustomerIfMissing,omitempty"`
+	SecretKey               *string                                                       `json:"secretKey,omitempty"`
+}
+
+// PostProgramsIdStripeCreditsRequeueBody is generated from the OpenAPI component of the same name.
+type PostProgramsIdStripeCreditsRequeueBody struct {
+	CreditIds []string `json:"creditIds,omitempty"`
 }
 
 // PostGraphqlBody is generated from the OpenAPI component of the same name.

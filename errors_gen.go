@@ -88,6 +88,11 @@ type StripeKeyRequiredError struct{ *APIError }
 
 func (e *StripeKeyRequiredError) Unwrap() error { return e.APIError }
 
+// ApiKeyExpiredError is the `api_key_expired` error (HTTP 409). Match it with errors.As.
+type ApiKeyExpiredError struct{ *APIError }
+
+func (e *ApiKeyExpiredError) Unwrap() error { return e.APIError }
+
 // ReplayError is the `replay` error (HTTP 409). Match it with errors.As.
 type ReplayError struct{ *APIError }
 
@@ -118,6 +123,21 @@ type IdempotencyKeyReusedError struct{ *APIError }
 
 func (e *IdempotencyKeyReusedError) Unwrap() error { return e.APIError }
 
+// StripeKeyInvalidError is the `stripe_key_invalid` error (HTTP 422). Match it with errors.As.
+type StripeKeyInvalidError struct{ *APIError }
+
+func (e *StripeKeyInvalidError) Unwrap() error { return e.APIError }
+
+// StripeKeyWrongModeError is the `stripe_key_wrong_mode` error (HTTP 422). Match it with errors.As.
+type StripeKeyWrongModeError struct{ *APIError }
+
+func (e *StripeKeyWrongModeError) Unwrap() error { return e.APIError }
+
+// StripeKeyPermissionError is the `stripe_key_permission` error (HTTP 422). Match it with errors.As.
+type StripeKeyPermissionError struct{ *APIError }
+
+func (e *StripeKeyPermissionError) Unwrap() error { return e.APIError }
+
 // PayloadTooLargeError is the `payload_too_large` error (HTTP 413). Match it with errors.As.
 type PayloadTooLargeError struct{ *APIError }
 
@@ -142,6 +162,11 @@ func (e *InternalServerError) Unwrap() error { return e.APIError }
 type AtlasError struct{ *APIError }
 
 func (e *AtlasError) Unwrap() error { return e.APIError }
+
+// StripeUnavailableError is the `stripe_unavailable` error (HTTP 502). Match it with errors.As.
+type StripeUnavailableError struct{ *APIError }
+
+func (e *StripeUnavailableError) Unwrap() error { return e.APIError }
 
 // SsoProviderError is the `sso_provider_error` error (HTTP 502). Match it with errors.As.
 type SsoProviderError struct{ *APIError }
@@ -189,6 +214,8 @@ func typedError(base *APIError) error {
 		return &IdempotencyInProgressError{base}
 	case "stripe_key_required":
 		return &StripeKeyRequiredError{base}
+	case "api_key_expired":
+		return &ApiKeyExpiredError{base}
 	case "replay":
 		return &ReplayError{base}
 	case "live_mode_only":
@@ -201,6 +228,12 @@ func typedError(base *APIError) error {
 		return &GoneError{base}
 	case "idempotency_key_reused":
 		return &IdempotencyKeyReusedError{base}
+	case "stripe_key_invalid":
+		return &StripeKeyInvalidError{base}
+	case "stripe_key_wrong_mode":
+		return &StripeKeyWrongModeError{base}
+	case "stripe_key_permission":
+		return &StripeKeyPermissionError{base}
 	case "payload_too_large":
 		return &PayloadTooLargeError{base}
 	case "connection_paused":
@@ -211,6 +244,8 @@ func typedError(base *APIError) error {
 		return &InternalServerError{base}
 	case "atlas_error":
 		return &AtlasError{base}
+	case "stripe_unavailable":
+		return &StripeUnavailableError{base}
 	case "sso_provider_error":
 		return &SsoProviderError{base}
 	case "sso_not_configured":
