@@ -18,6 +18,11 @@ type BadRequestError struct{ *APIError }
 
 func (e *BadRequestError) Unwrap() error { return e.APIError }
 
+// InvalidHandoffTokenError is the `invalid_handoff_token` error (HTTP 400). Match it with errors.As.
+type InvalidHandoffTokenError struct{ *APIError }
+
+func (e *InvalidHandoffTokenError) Unwrap() error { return e.APIError }
+
 // AuthenticationError is the `unauthorized` error (HTTP 401). Match it with errors.As.
 type AuthenticationError struct{ *APIError }
 
@@ -216,6 +221,8 @@ func typedError(base *APIError) error {
 		return &ModeMismatchError{base}
 	case "bad_request":
 		return &BadRequestError{base}
+	case "invalid_handoff_token":
+		return &InvalidHandoffTokenError{base}
 	case "unauthorized":
 		return &AuthenticationError{base}
 	case "step_up_required":

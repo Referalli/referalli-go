@@ -90,7 +90,7 @@ func Example_configuration() {
 func Example_errors() {
 	ctx := context.Background()
 	client := referalli.New("rk_live_...")
-	_, err := client.GetPartnersID(ctx, "ptr_missing")
+	_, err := client.GetPartnersID(ctx, "ptr_missing", nil)
 	var notFound *referalli.NotFoundError
 	var limited *referalli.RateLimitedError
 	switch {

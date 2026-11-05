@@ -73,17 +73,18 @@ type ProgramSettingsMobileAppOption1 struct {
 
 // ProgramSettings is generated from the OpenAPI component of the same name.
 type ProgramSettings struct {
-	ProbabilisticPolicy string                           `json:"probabilisticPolicy"`
-	SelfReferralPolicy  string                           `json:"selfReferralPolicy"`
-	SplitCommissions    bool                             `json:"splitCommissions"`
-	UTMTemplate         map[string]string                `json:"utmTemplate"`
-	AllowPaidSearch     bool                             `json:"allowPaidSearch"`
-	ChallengeLinks      bool                             `json:"challengeLinks"`
-	Settlement          string                           `json:"settlement"`
-	RiskPolicy          ProgramSettingsRiskPolicy        `json:"riskPolicy"`
-	Widget              ProgramSettingsWidget            `json:"widget"`
-	RefereeReward       *GetOpenapiJsonResponse          `json:"refereeReward,omitempty"`
-	MobileApp           *ProgramSettingsMobileAppOption1 `json:"mobileApp"` // The mobile apps that open this program's links (universal links / App Links), or null.
+	ProbabilisticPolicy       string                           `json:"probabilisticPolicy"`
+	SelfReferralPolicy        string                           `json:"selfReferralPolicy"`
+	SplitCommissions          bool                             `json:"splitCommissions"`
+	UTMTemplate               map[string]string                `json:"utmTemplate"`
+	AllowPaidSearch           bool                             `json:"allowPaidSearch"`
+	ChallengeLinks            bool                             `json:"challengeLinks"`
+	Settlement                string                           `json:"settlement"`
+	SignupPaymentGraceMinutes int64                            `json:"signupPaymentGraceMinutes"` // How long before the referral a payment still earns, 0 to 1440. Default 5.
+	RiskPolicy                ProgramSettingsRiskPolicy        `json:"riskPolicy"`
+	Widget                    ProgramSettingsWidget            `json:"widget"`
+	RefereeReward             *GetOpenapiJsonResponse          `json:"refereeReward,omitempty"`
+	MobileApp                 *ProgramSettingsMobileAppOption1 `json:"mobileApp"` // The mobile apps that open this program's links (universal links / App Links), or null.
 }
 
 // ProgramPublicPage is generated from the OpenAPI component of the same name.
@@ -206,7 +207,7 @@ type AttributionReasoning struct {
 	ConsideredTouchpoints *int64       `json:"consideredTouchpoints,omitempty"`
 	WindowDays            *int64       `json:"windowDays,omitempty"`
 	Notes                 []string     `json:"notes,omitempty"`
-	NoteCodes             []ReasonNote `json:"noteCodes,omitempty"`
+	NoteCodes             []ReasonNote `json:"noteCodes,omitempty"` // The attribution engine's codes behind `notes`, on stored referrals. Not the same list as the signed signups call's `reasoning.codes` (SignupReasonCode).
 }
 
 // ReferralTouchCreditsItem is generated from the OpenAPI component of the same name.
@@ -263,15 +264,21 @@ type AssociateResponseReferralOption1 struct {
 	OrgID           string                                             `json:"orgId"`
 }
 
-// AssociateResponseReasoning is generated from the OpenAPI component of the same name.
+// AssociateResponseReasoning: Why a partner was skipped or the referral held, in English (no codes here). The matched referral carries its own `reasoning.notes` and `reasoning.noteCodes`.
 type AssociateResponseReasoning struct {
 	Notes []string `json:"notes"`
 }
 
 // AssociateResponse is generated from the OpenAPI component of the same name.
 type AssociateResponse struct {
-	Referral  *AssociateResponseReferralOption1 `json:"referral"` // null when no partner matched (not an error).
-	Reasoning *AssociateResponseReasoning       `json:"reasoning,omitempty"`
+	Referral  *AssociateResponseReferralOption1 `json:"referral"`            // null when no partner matched (not an error).
+	Reasoning *AssociateResponseReasoning       `json:"reasoning,omitempty"` // Why a partner was skipped or the referral held, in English (no codes here). The matched referral carries its own `reasoning.notes` and `reasoning.noteCodes`.
+}
+
+// HandoffToken is generated from the OpenAPI component of the same name.
+type HandoffToken struct {
+	HandoffToken string `json:"handoffToken"` // Opaque; keep it in your own session and pass it to `POST /v1/referrals/associate`.
+	ExpiresAt    string `json:"expiresAt"`
 }
 
 // CommissionEvent is generated from the OpenAPI component of the same name.
@@ -365,9 +372,18 @@ type ProgramTermsRecurringOption3 struct {
 	Months int64  `json:"months"`
 }
 
-// ProgramTermsSummary is generated from the OpenAPI component of the same name.
+// ProgramTermsSummary: The same sentence in each partner-portal locale.
 type ProgramTermsSummary struct {
 	En string `json:"en"`
+	Es string `json:"es"`
+	De string `json:"de"`
+	Fr string `json:"fr"`
+	Pt string `json:"pt"`
+	It string `json:"it"`
+	Nl string `json:"nl"`
+	Sv string `json:"sv"`
+	Ja string `json:"ja"`
+	Zh string `json:"zh"`
 }
 
 // ProgramTerms is generated from the OpenAPI component of the same name.
@@ -377,8 +393,10 @@ type ProgramTerms struct {
 	Base        json.RawMessage     `json:"base"`
 	Recurring   json.RawMessage     `json:"recurring"`
 	HoldDays    int64               `json:"holdDays"`
-	RatesVary   bool                `json:"ratesVary"` // Overrides, tiers or new-vs-expansion rates can change the rate a partner earns.
-	Summary     ProgramTermsSummary `json:"summary"`
+	RatesVary   bool                `json:"ratesVary"`        // Overrides, tiers or new-vs-expansion rates can change the rate a partner earns.
+	Summary     ProgramTermsSummary `json:"summary"`          // The same sentence in each partner-portal locale.
+	Locale      *string             `json:"locale,omitempty"` // With `?locale=` or `Accept-Language`: the locale chosen (`en` when the one asked for is not supported).
+	Text        *string             `json:"text,omitempty"`   // With `?locale=` or `Accept-Language`: the summary in `locale`.
 }
 
 // BillingFilter is generated from the OpenAPI component of the same name.
@@ -489,6 +507,7 @@ type BillingConnection struct {
 	NeedsCredentials        bool                      `json:"needsCredentials"` // The provider sends thin webhooks: set API credentials (Recurly, BigCommerce).
 	HasCredentials          bool                      `json:"hasCredentials"`
 	ValueMapping            *ValueMapping             `json:"valueMapping"`                      // Where cash / credit / discount / cost live in this connection's payload; null uses the built-in extractor.
+	MaxAmountMinor          *int64                    `json:"maxAmountMinor"`                    // A payment above this is held for release. null: the default, 1,000,000,000 minor units.
 	Filter                  *BillingFilter            `json:"filter"`                            // Only matching events earn; the rest are recorded as ignored_by_filter. null takes every event.
 	CustomerRefMetadataKey  *string                   `json:"customerRefMetadataKey,omitempty"`  // The provider metadata key that holds your customerRef, when it is not referalli_customer_ref.
 	StripeWebhookEndpointID *string                   `json:"stripeWebhookEndpointId,omitempty"` // The Stripe webhook endpoint (`we_…`) Referalli registered for this connection with `stripeKey`.
@@ -526,7 +545,8 @@ type BillingEvent struct {
 	OccurredAt    string              `json:"occurredAt"`
 	ConnectionID  *string             `json:"connectionId"`
 	ProductRef    string              `json:"productRef"`
-	Status        string              `json:"status"`        // ignored_by_filter: recorded, never processed (product filter or internal customer).
+	Status        string              `json:"status"`        // held: a payment over the connection limit or dated in the future; it earns nothing until released with POST /v1/billing/events/{id}/release. ignored_by_filter: recorded, never processed (product filter or internal customer). parked: a refund or dispute waiting up to 7 days for its payment.
+	ParkedUntil   *string             `json:"parkedUntil"`   // When a parked event is dropped if its payment has not arrived. Null unless status is parked.
 	IgnoredReason *string             `json:"ignoredReason"` // Why it earned nothing. no_referral_in_scope (status processed): the customer is referred only in programs outside the connection's programIds. identity_unresolved / identity_ambiguous (status processed): the customer had no customerRef and an auth connection with resolveBillingCustomers matched no user, or several.
 	Catalog       map[string][]string `json:"catalog"`       // The productIds, priceIds and skus the event named.
 }
@@ -817,6 +837,31 @@ type Org struct {
 	LiveOrgID         *string                `json:"liveOrgId,omitempty"` // On a test org: the live org it belongs to.
 }
 
+// TrackingTokensLive is generated from the OpenAPI component of the same name.
+type TrackingTokensLive struct {
+	OrgID         string `json:"orgId"`
+	TrackingToken string `json:"trackingToken"`
+	ScriptURL     string `json:"scriptUrl"`    // The aff.js URL for this mode.
+	LinkBaseURL   string `json:"linkBaseUrl"`  // The org's verified link domain, else Referalli's public origin.
+	LinkTemplate  string `json:"linkTemplate"` // A partner link, with `{code}` for the link code.
+}
+
+// TrackingTokensTest is generated from the OpenAPI component of the same name.
+type TrackingTokensTest struct {
+	OrgID         string `json:"orgId"`
+	TrackingToken string `json:"trackingToken"`
+	ScriptURL     string `json:"scriptUrl"`    // The aff.js URL for this mode.
+	LinkBaseURL   string `json:"linkBaseUrl"`  // The org's verified link domain, else Referalli's public origin.
+	LinkTemplate  string `json:"linkTemplate"` // A partner link, with `{code}` for the link code.
+}
+
+// TrackingTokens is generated from the OpenAPI component of the same name.
+type TrackingTokens struct {
+	Mode string             `json:"mode"` // The caller's mode (the key's, or the session's referalli-mode).
+	Live TrackingTokensLive `json:"live"`
+	Test TrackingTokensTest `json:"test"`
+}
+
 // Member is generated from the OpenAPI component of the same name.
 type Member struct {
 	UserID string  `json:"userId"`
@@ -904,6 +949,13 @@ type WidgetSession struct {
 	Partner   WidgetSessionPartner `json:"partner"`
 }
 
+// AuthConnectionLastErrorOption1 is generated from the OpenAPI component of the same name.
+type AuthConnectionLastErrorOption1 struct {
+	At      string `json:"at"`
+	Code    string `json:"code"`
+	Message string `json:"message"`
+}
+
 // AuthConnectionRotation is generated from the OpenAPI component of the same name.
 type AuthConnectionRotation struct {
 	InProgress              bool    `json:"inProgress"`
@@ -912,22 +964,25 @@ type AuthConnectionRotation struct {
 
 // AuthConnection is generated from the OpenAPI component of the same name.
 type AuthConnection struct {
-	ID                      string                 `json:"id"`
-	Provider                string                 `json:"provider"`
-	ProgramID               string                 `json:"programId"`
-	Name                    string                 `json:"name"`
-	Status                  string                 `json:"status"`
-	CreatedAt               string                 `json:"createdAt"`
-	Rotation                AuthConnectionRotation `json:"rotation"`
-	InstanceID              *string                `json:"instanceId,omitempty"` // Signed-protocol connections: the Atlas instance, or a custom label.
-	AppID                   *string                `json:"appId,omitempty"`      // Atlas connections serving an Atlas ID app instead of an instance.
-	AutoEnrollUsers         *bool                  `json:"autoEnrollUsers,omitempty"`
-	DestinationURL          *string                `json:"destinationUrl,omitempty"`
-	ResolveBillingCustomers *bool                  `json:"resolveBillingCustomers,omitempty"` // Billing customers that arrive with no customerRef are resolved through this connection's users (a user-id metadata key, else exactly one verified email).
-	SignatureVersion        *string                `json:"signatureVersion,omitempty"`
-	RequiresV2              *bool                  `json:"requiresV2,omitempty"` // True once signatureVersion is v2 or the connection has seen a v2 call.
-	TokenVerification       *TokenVerification     `json:"tokenVerification,omitempty"`
-	AllowedOrigins          []string               `json:"allowedOrigins,omitempty"` // Browser origins allowed to call POST /v1/widget/session.
+	ID                      string                          `json:"id"`
+	Provider                string                          `json:"provider"`
+	ProgramID               string                          `json:"programId"`
+	Name                    string                          `json:"name"`
+	Status                  string                          `json:"status"`
+	CreatedAt               string                          `json:"createdAt"`
+	LastSignupAt            *string                         `json:"lastSignupAt,omitempty"` // When the connection last filed a new sign-up (its signedUpAt); null when never. Webhook connections count only sign-ups that carried referral context; test sign-ups never count.
+	LastError               *AuthConnectionLastErrorOption1 `json:"lastError,omitempty"`    // The last inbound call (sign-up, partner, account…) this connection refused after its signature checked out, such as a body with fields the endpoint does not take. Compare `at` with `lastSignupAt`: a newer error means sign-ups are failing. Null when none.
+	Rotation                AuthConnectionRotation          `json:"rotation"`
+	ProgramBound            *bool                           `json:"programBound,omitempty"` // A program-scoped key made this connection, so its signed calls (erase, export and the rest) reach only its own program.
+	InstanceID              *string                         `json:"instanceId,omitempty"`   // Signed-protocol connections: the Atlas instance, or a custom label.
+	AppID                   *string                         `json:"appId,omitempty"`        // Atlas connections serving an Atlas ID app instead of an instance.
+	AutoEnrollUsers         *bool                           `json:"autoEnrollUsers,omitempty"`
+	DestinationURL          *string                         `json:"destinationUrl,omitempty"`
+	ResolveBillingCustomers *bool                           `json:"resolveBillingCustomers,omitempty"` // Billing customers that arrive with no customerRef are resolved through this connection's users (a user-id metadata key, else exactly one verified email).
+	SignatureVersion        *string                         `json:"signatureVersion,omitempty"`
+	RequiresV2              *bool                           `json:"requiresV2,omitempty"` // True once signatureVersion is v2 or the connection has seen a v2 call.
+	TokenVerification       *TokenVerification              `json:"tokenVerification,omitempty"`
+	AllowedOrigins          []string                        `json:"allowedOrigins,omitempty"` // Browser origins allowed to call POST /v1/widget/session.
 }
 
 // CreatedAuthConnection is generated from the OpenAPI component of the same name.
@@ -938,7 +993,8 @@ type CreatedAuthConnection struct {
 	WebhookURL        *string            `json:"webhookUrl,omitempty"` // Webhook connectors: Clerk, Auth0, Supabase, Firebase, Cognito, Stytch, Kinde, WorkOS, generic.
 	DocsURL           *string            `json:"docsUrl,omitempty"`    // Webhook connectors: the setup guide for this provider.
 	MetadataKeys      map[string]string  `json:"metadataKeys,omitempty"`
-	ProgramID         *string            `json:"programId,omitempty"` // Signed-protocol connections (atlas, custom).
+	ProgramID         *string            `json:"programId,omitempty"`    // Signed-protocol connections (atlas, custom).
+	ProgramBound      *bool              `json:"programBound,omitempty"` // Made by a program-scoped key: signed calls reach only this program.
 	InstanceID        *string            `json:"instanceId,omitempty"`
 	AppID             *string            `json:"appId,omitempty"`
 	AutoEnrollUsers   *bool              `json:"autoEnrollUsers,omitempty"`
@@ -1410,8 +1466,9 @@ type RoiGrant struct {
 
 // RoiPatternEntrySubject is generated from the OpenAPI component of the same name.
 type RoiPatternEntrySubject struct {
-	CustomerRef *string `json:"customerRef,omitempty"`
-	PartnerID   *string `json:"partnerId,omitempty"`
+	CustomerRef     *string `json:"customerRef,omitempty"`
+	CustomerRefHash *string `json:"customerRefHash,omitempty"`
+	PartnerID       *string `json:"partnerId,omitempty"`
 }
 
 // RoiPatternEntry is generated from the OpenAPI component of the same name.
@@ -1720,6 +1777,25 @@ type CustomerAliasedEvent struct {
 	Livemode  bool                     `json:"livemode"` // false for events from test mode.
 	CreatedAt string                   `json:"createdAt"`
 	Data      CustomerAliasedEventData `json:"data"`
+}
+
+// BillingAccountOwnerChangedEventData: `data` of a `billing_account.owner_changed` event: An organization the app bills under has a new owner, a new id (`previousAccountRef` is the old one) or was deleted (`deleted`, no owner), set with `PUT /v1/billing/accounts/{accountRef}/owner`, `DELETE /v1/billing/accounts/{accountRef}` or by an auth platform. Its payments earn for `ownerCustomerRef`'s referral.
+type BillingAccountOwnerChangedEventData struct {
+	AccountRef               string  `json:"accountRef"`
+	OwnerCustomerRef         *string `json:"ownerCustomerRef"`
+	PreviousOwnerCustomerRef *string `json:"previousOwnerCustomerRef"`
+	PreviousAccountRef       *string `json:"previousAccountRef"`
+	Deleted                  bool    `json:"deleted"`
+}
+
+// BillingAccountOwnerChangedEvent: A billing account's owner changed: the `billing_account.owner_changed` delivery body.
+type BillingAccountOwnerChangedEvent struct {
+	ID        string                              `json:"id"` // The event id (`evt_…`); the same event delivered to several endpoints has the same id.
+	Topic     string                              `json:"topic"`
+	OrgID     string                              `json:"orgId"`
+	Livemode  bool                                `json:"livemode"` // false for events from test mode.
+	CreatedAt string                              `json:"createdAt"`
+	Data      BillingAccountOwnerChangedEventData `json:"data"`
 }
 
 // CommissionEarnedEventData: `data` of a `commission.earned` event: A payment (or a signup, trial or product-event bounty) earned a partner a commission line. Payment fields are null for bounties.
@@ -2045,6 +2121,47 @@ type BillingEventRecordedEvent struct {
 	Livemode  bool                          `json:"livemode"` // false for events from test mode.
 	CreatedAt string                        `json:"createdAt"`
 	Data      BillingEventRecordedEventData `json:"data"`
+}
+
+// BillingEventHeldEventData: `data` of a `billing_event.held` event: A payment over its connection's `maxAmountMinor`, or dated more than a day ahead, earned nothing and waits for POST /v1/billing/events/{id}/release.
+type BillingEventHeldEventData struct {
+	BillingEventID string `json:"billingEventId"` // The payment.
+	Reason         string `json:"reason"`
+	CustomerRef    string `json:"customerRef"`
+	InvoiceRef     string `json:"invoiceRef"`
+	Currency       string `json:"currency"`    // Lowercase ISO 4217 code.
+	AmountMinor    int64  `json:"amountMinor"` // Integer minor units (cents).
+}
+
+// BillingEventHeldEvent: A payment was held for review: the `billing_event.held` delivery body.
+type BillingEventHeldEvent struct {
+	ID        string                    `json:"id"` // The event id (`evt_…`); the same event delivered to several endpoints has the same id.
+	Topic     string                    `json:"topic"`
+	OrgID     string                    `json:"orgId"`
+	Livemode  bool                      `json:"livemode"` // false for events from test mode.
+	CreatedAt string                    `json:"createdAt"`
+	Data      BillingEventHeldEventData `json:"data"`
+}
+
+// BillingEventExpiredEventData: `data` of a `billing_event.expired` event: A refund or dispute waited 7 days for a payment that never arrived, and reversed nothing. A payment arriving later earns in full; adjust it by hand if the refund still applies.
+type BillingEventExpiredEventData struct {
+	BillingEventID string  `json:"billingEventId"` // The refund or dispute.
+	Type           string  `json:"type"`
+	CustomerRef    string  `json:"customerRef"`
+	InvoiceRef     *string `json:"invoiceRef"`
+	ChargeRef      *string `json:"chargeRef"`
+	Currency       string  `json:"currency"`    // Lowercase ISO 4217 code.
+	AmountMinor    int64   `json:"amountMinor"` // Integer minor units (cents).
+}
+
+// BillingEventExpiredEvent: A parked refund or dispute expired: the `billing_event.expired` delivery body.
+type BillingEventExpiredEvent struct {
+	ID        string                       `json:"id"` // The event id (`evt_…`); the same event delivered to several endpoints has the same id.
+	Topic     string                       `json:"topic"`
+	OrgID     string                       `json:"orgId"`
+	Livemode  bool                         `json:"livemode"` // false for events from test mode.
+	CreatedAt string                       `json:"createdAt"`
+	Data      BillingEventExpiredEventData `json:"data"`
 }
 
 // RoiPaybackReachedEventData: `data` of a `roi.payback_reached` event: Once per credit grant, the first time its recipient's profit after it covered its cost. A later refund that un-pays it doesn't fire it again.
@@ -2424,6 +2541,14 @@ type WebhookEndpointRecoveredEvent struct {
 	Livemode  bool                              `json:"livemode"` // false for events from test mode.
 	CreatedAt string                            `json:"createdAt"`
 	Data      WebhookEndpointRecoveredEventData `json:"data"`
+}
+
+// GetTOrgTokenConfigJsonResponse is generated from the OpenAPI component of the same name.
+type GetTOrgTokenConfigJsonResponse struct {
+	CookieWindowDays int64    `json:"cookieWindowDays"` // How long aff.js keeps the context, in days (1 to 400): the default it is served with.
+	CookieName       string   `json:"cookieName"`
+	LegacyCookieName string   `json:"legacyCookieName"` // The pre-rename cookie name, written alongside until 2027-01-31.
+	StorageKeys      []string `json:"storageKeys"`      // localStorage keys aff.js writes (same names and value as the cookies).
 }
 
 // PostTOrgTokenVisitResponse is generated from the OpenAPI component of the same name.
@@ -3050,6 +3175,13 @@ type GetOrgReferralParamsResponse struct {
 	Params  []string `json:"params"`
 }
 
+// GetProgramsHandleAvailabilityResponse is generated from the OpenAPI component of the same name.
+type GetProgramsHandleAvailabilityResponse struct {
+	Handle    string  `json:"handle"`
+	Available bool    `json:"available"`
+	Reason    *string `json:"reason,omitempty"` // `invalid`: not 3 to 48 of a-z, 0-9 and `-`; `taken`: another program (in any org) has it.
+}
+
 // GetProgramsResponse is generated from the OpenAPI component of the same name.
 type GetProgramsResponse struct {
 	Object     string    `json:"object"`
@@ -3508,6 +3640,33 @@ type GetBillingConnectionsResponse struct {
 	NextCursor *string             `json:"next_cursor"`
 }
 
+// PostBillingConnectionsIdEventsResponse is generated from the OpenAPI component of the same name.
+type PostBillingConnectionsIdEventsResponse struct {
+	Received int64                                `json:"received"`
+	Results  []PostBillingEventsIdReleaseResponse `json:"results"`
+}
+
+// PutBillingAccountsAccountRefOwnerResponse is generated from the OpenAPI component of the same name.
+type PutBillingAccountsAccountRefOwnerResponse struct {
+	AccountRef               string  `json:"accountRef"`
+	OwnerCustomerRef         *string `json:"ownerCustomerRef"` // Null after a deletion (or a rename of an account with no owner).
+	PreviousOwnerCustomerRef *string `json:"previousOwnerCustomerRef"`
+	Changed                  bool    `json:"changed"`
+	Relinked                 int64   `json:"relinked"`
+	ReprocessedPayments      int64   `json:"reprocessedPayments"`
+	RenamedFrom              *string `json:"renamedFrom"` // The previous id, on a rename.
+	Deleted                  bool    `json:"deleted"`
+}
+
+// GetBillingAccountsAccountRefResponse is generated from the OpenAPI component of the same name.
+type GetBillingAccountsAccountRefResponse struct {
+	AccountRef       string  `json:"accountRef"`
+	OwnerCustomerRef *string `json:"ownerCustomerRef"`
+	Since            string  `json:"since"`
+	RenamedTo        *string `json:"renamedTo"` // The id the account was renamed to; it follows that account.
+	Deleted          bool    `json:"deleted"`
+}
+
 // PutBillingConnectionsIdValueMappingResponse is generated from the OpenAPI component of the same name.
 type PutBillingConnectionsIdValueMappingResponse struct {
 	ID           string       `json:"id"`
@@ -3534,6 +3693,17 @@ type GetBillingEventsResponse struct {
 	Data       []BillingEvent `json:"data"`
 	HasMore    bool           `json:"has_more"` // Whether another page follows; pass next_cursor as starting_after to get it.
 	NextCursor *string        `json:"next_cursor"`
+}
+
+// PostBillingEventsIdReleaseResponse is generated from the OpenAPI component of the same name.
+type PostBillingEventsIdReleaseResponse struct {
+	Duplicate      bool    `json:"duplicate"`
+	BillingEventID *string `json:"billingEventId"`
+	Conversions    int64   `json:"conversions"`
+	LinesCreated   int64   `json:"linesCreated"`
+	Reversals      int64   `json:"reversals"`
+	Ignored        *string `json:"ignored,omitempty"` // Recorded as ignored_by_filter: earned nothing.
+	Held           *string `json:"held,omitempty"`    // Recorded as held: earns nothing until released.
 }
 
 // PostBillingInternalCustomersResponse is generated from the OpenAPI component of the same name.
@@ -4394,14 +4564,67 @@ type PostWebhookEndpointsIdReplayResponse struct {
 	Replayed   int64  `json:"replayed"`
 }
 
-// PostSandboxSimulateResponse is generated from the OpenAPI component of the same name.
-type PostSandboxSimulateResponse struct {
+// PostSandboxSimulateResponseValueOption1 is generated from the OpenAPI component of the same name.
+type PostSandboxSimulateResponseValueOption1 struct {
 	CustomerRef  string `json:"customerRef"`
 	Events       int64  `json:"events"`
 	Conversions  int64  `json:"conversions"`
 	LinesCreated int64  `json:"linesCreated"`
 	Reversals    int64  `json:"reversals"`
 }
+
+// PostSandboxSimulateResponseValueOption2StepsItemOption1 is generated from the OpenAPI component of the same name.
+type PostSandboxSimulateResponseValueOption2StepsItemOption1 struct {
+	Step        string   `json:"step"`
+	Ok          bool     `json:"ok"`
+	Via         string   `json:"via"`
+	CustomerRef string   `json:"customerRef"`
+	ReferralID  *string  `json:"referralId"`
+	PartnerID   *string  `json:"partnerId"`
+	Notes       []string `json:"notes"` // Why the sign-up was not credited, when it was not.
+}
+
+// PostSandboxSimulateResponseValueOption2StepsItemOption2ResultsItem is generated from the OpenAPI component of the same name.
+type PostSandboxSimulateResponseValueOption2StepsItemOption2ResultsItem struct {
+	Duplicate      bool    `json:"duplicate"`
+	BillingEventID *string `json:"billingEventId"`
+	Conversions    int64   `json:"conversions"`
+	LinesCreated   int64   `json:"linesCreated"`
+	Reversals      int64   `json:"reversals"`
+	Ignored        *string `json:"ignored,omitempty"`
+}
+
+// PostSandboxSimulateResponseValueOption2StepsItemOption2 is generated from the OpenAPI component of the same name.
+type PostSandboxSimulateResponseValueOption2StepsItemOption2 struct {
+	Step                string                                                               `json:"step"`
+	Ok                  bool                                                                 `json:"ok"`
+	BillingConnectionID string                                                               `json:"billingConnectionId"`
+	Provider            string                                                               `json:"provider"`
+	EventID             *string                                                              `json:"eventId"` // The payment.paid event id; null when the step did not run.
+	Results             []PostSandboxSimulateResponseValueOption2StepsItemOption2ResultsItem `json:"results"`
+	Notes               []string                                                             `json:"notes"` // Why the payment earned nothing (awaiting_secret, program mismatch, no rule…).
+}
+
+// PostSandboxSimulateResponseValueOption2CommissionsItem is generated from the OpenAPI component of the same name.
+type PostSandboxSimulateResponseValueOption2CommissionsItem struct {
+	ID                  string  `json:"id"`
+	Type                string  `json:"type"`
+	PartnerID           string  `json:"partnerId"`
+	AmountMinor         int64   `json:"amountMinor"`
+	Currency            string  `json:"currency"`
+	RelatedCommissionID *string `json:"relatedCommissionId"`
+}
+
+// PostSandboxSimulateResponseValueOption2 is generated from the OpenAPI component of the same name.
+type PostSandboxSimulateResponseValueOption2 struct {
+	Scenario    string                                                   `json:"scenario"`
+	Ok          bool                                                     `json:"ok"`          // Both steps succeeded: the sign-up was attributed and the payment earned a commission.
+	Steps       []json.RawMessage                                        `json:"steps"`       // The signup step, then the payment step.
+	Commissions []PostSandboxSimulateResponseValueOption2CommissionsItem `json:"commissions"` // Commission events the fixture created (earned, reversed…).
+}
+
+// PostSandboxSimulateResponse is generated from the OpenAPI component of the same name.
+type PostSandboxSimulateResponse = json.RawMessage
 
 // GetSandboxBillingFixturesResponseDataItem is generated from the OpenAPI component of the same name.
 type GetSandboxBillingFixturesResponseDataItem struct {
@@ -5635,10 +5858,11 @@ type PostPrivacyForgetResponseCustomersItem struct {
 
 // PostPrivacyForgetResponse is generated from the OpenAPI component of the same name.
 type PostPrivacyForgetResponse struct {
-	Ok        bool                                     `json:"ok"`
-	Pseudonym *string                                  `json:"pseudonym,omitempty"` // Erasure by customerRef.
-	Partners  []PostPrivacyForgetResponsePartnersItem  `json:"partners,omitempty"`
-	Customers []PostPrivacyForgetResponseCustomersItem `json:"customers,omitempty"`
+	Ok            bool                                     `json:"ok"`
+	Pseudonym     *string                                  `json:"pseudonym,omitempty"`     // Erasure by customerRef.
+	AlreadyErased *bool                                    `json:"alreadyErased,omitempty"` // True when this customerRef was erased by an earlier request: a retry succeeds.
+	Partners      []PostPrivacyForgetResponsePartnersItem  `json:"partners,omitempty"`
+	Customers     []PostPrivacyForgetResponseCustomersItem `json:"customers,omitempty"`
 }
 
 // PostPrivacyLookupResponse is generated from the OpenAPI component of the same name.
@@ -5937,9 +6161,11 @@ type GetAuthConnectionsIdExportResponse struct {
 	Partner  *PartnerExport `json:"partner"`
 }
 
-// PostAuthConnectionsIdPingResponseCapabilities: What the connection takes beyond sign-ups: `partners` is user-chosen referral codes through `/partners`.
+// PostAuthConnectionsIdPingResponseCapabilities: What the connection takes beyond sign-ups: `partners` is user-chosen referral codes through `/partners`; `origins` is setting its own `allowedOrigins` through `PUT …/origins`; `accounts` is organization owners through `/accounts`.
 type PostAuthConnectionsIdPingResponseCapabilities struct {
 	Partners bool `json:"partners"`
+	Origins  bool `json:"origins"`
+	Accounts bool `json:"accounts"`
 }
 
 // PostAuthConnectionsIdPingResponse is generated from the OpenAPI component of the same name.
@@ -5950,7 +6176,19 @@ type PostAuthConnectionsIdPingResponse struct {
 	OrgName         string                                        `json:"orgName"`
 	AutoEnrollUsers bool                                          `json:"autoEnrollUsers"`
 	ServerTime      string                                        `json:"serverTime"`
-	Capabilities    PostAuthConnectionsIdPingResponseCapabilities `json:"capabilities"` // What the connection takes beyond sign-ups: `partners` is user-chosen referral codes through `/partners`.
+	Capabilities    PostAuthConnectionsIdPingResponseCapabilities `json:"capabilities"` // What the connection takes beyond sign-ups: `partners` is user-chosen referral codes through `/partners`; `origins` is setting its own `allowedOrigins` through `PUT …/origins`; `accounts` is organization owners through `/accounts`.
+}
+
+// PutAuthConnectionsIdOriginsResponse is generated from the OpenAPI component of the same name.
+type PutAuthConnectionsIdOriginsResponse struct {
+	ID             string   `json:"id"`
+	AllowedOrigins []string `json:"allowedOrigins"`
+}
+
+// PatchAuthConnectionsIdOriginsResponse is generated from the OpenAPI component of the same name.
+type PatchAuthConnectionsIdOriginsResponse struct {
+	ID             string   `json:"id"`
+	AllowedOrigins []string `json:"allowedOrigins"`
 }
 
 // PostAuthConnectionsIdAliasesResponse is generated from the OpenAPI component of the same name.
@@ -5998,6 +6236,19 @@ type GetAuthConnectionsIdUsersCustomerRefReferralResponse struct {
 	Code       *string `json:"code"`
 	LinkURL    *string `json:"linkUrl"`
 	EnrolledAt string  `json:"enrolledAt"`
+}
+
+// PostAuthConnectionsIdAccountsResponse is generated from the OpenAPI component of the same name.
+type PostAuthConnectionsIdAccountsResponse struct {
+	Ok                       bool    `json:"ok"`
+	AccountRef               string  `json:"accountRef"`
+	OwnerCustomerRef         *string `json:"ownerCustomerRef"` // Null after a deletion (or a rename of an account with no owner).
+	PreviousOwnerCustomerRef *string `json:"previousOwnerCustomerRef"`
+	Changed                  bool    `json:"changed"`
+	Relinked                 int64   `json:"relinked"`
+	ReprocessedPayments      int64   `json:"reprocessedPayments"`
+	RenamedFrom              *string `json:"renamedFrom"` // The previous id, on a rename.
+	Deleted                  bool    `json:"deleted"`
 }
 
 // PostAuthConnectionsIdSignalsResponseReferralsItem is generated from the OpenAPI component of the same name.
@@ -6250,6 +6501,7 @@ type GetPublicProgramsHandleResponse struct {
 	Pitch            string                                  `json:"pitch"`
 	AutoApprove      bool                                    `json:"autoApprove"`
 	Commission       *GetOpenapiJsonResponse                 `json:"commission"`
+	Terms            *ProgramTerms                           `json:"terms"` // The program's terms (as `GET /v1/programs/{id}/terms`, with `?locale=`/`Accept-Language`); null when it has no rule yet.
 	Branding         GetPublicProgramsHandleResponseBranding `json:"branding"`
 }
 
@@ -8301,20 +8553,10 @@ type GetProgramsIdCreditRailLogResponse struct {
 	NextCursor *string                                      `json:"next_cursor"`
 }
 
-// PostWebhooksBillingConnectionIdResponseResultsItem is generated from the OpenAPI component of the same name.
-type PostWebhooksBillingConnectionIdResponseResultsItem struct {
-	Duplicate      bool    `json:"duplicate"`
-	BillingEventID *string `json:"billingEventId"`
-	Conversions    int64   `json:"conversions"`
-	LinesCreated   int64   `json:"linesCreated"`
-	Reversals      int64   `json:"reversals"`
-	Ignored        *string `json:"ignored,omitempty"` // Recorded as ignored_by_filter: earned nothing.
-}
-
 // PostWebhooksBillingConnectionIdResponse is generated from the OpenAPI component of the same name.
 type PostWebhooksBillingConnectionIdResponse struct {
-	Received int64                                                `json:"received"`
-	Results  []PostWebhooksBillingConnectionIdResponseResultsItem `json:"results"`
+	Received int64                                `json:"received"`
+	Results  []PostBillingEventsIdReleaseResponse `json:"results"`
 }
 
 // PostWebhooksAuthConnectionIdResponseResultsItem is generated from the OpenAPI component of the same name.
@@ -8759,25 +9001,26 @@ type PostProgramsBodyMobileAppOption1 struct {
 
 // PostProgramsBody is generated from the OpenAPI component of the same name.
 type PostProgramsBody struct {
-	Name                   string                            `json:"name"`
-	Slug                   string                            `json:"slug"`
-	AttributionModel       *string                           `json:"attributionModel,omitempty"`
-	CookieWindowDays       *int64                            `json:"cookieWindowDays,omitempty"`
-	SignupToConversionDays *int64                            `json:"signupToConversionDays,omitempty"`
-	TermsMd                *string                           `json:"termsMd,omitempty"`
-	Status                 *string                           `json:"status,omitempty"`
-	PublicHandle           *string                           `json:"publicHandle,omitempty"`
-	PublicPage             *PostProgramsBodyPublicPage       `json:"publicPage,omitempty"`
-	ProbabilisticPolicy    *string                           `json:"probabilisticPolicy,omitempty"`
-	SelfReferralPolicy     *string                           `json:"selfReferralPolicy,omitempty"`
-	SplitCommissions       *bool                             `json:"splitCommissions,omitempty"`
-	UTMTemplate            map[string]string                 `json:"utmTemplate,omitempty"`
-	AllowPaidSearch        *bool                             `json:"allowPaidSearch,omitempty"`
-	ChallengeLinks         *bool                             `json:"challengeLinks,omitempty"`
-	Settlement             *string                           `json:"settlement,omitempty"`
-	RiskPolicy             *PostProgramsBodyRiskPolicy       `json:"riskPolicy,omitempty"`
-	Widget                 *PostProgramsBodyWidget           `json:"widget,omitempty"`
-	MobileApp              *PostProgramsBodyMobileAppOption1 `json:"mobileApp,omitempty"`
+	Name                      string                            `json:"name"`
+	Slug                      string                            `json:"slug"`
+	AttributionModel          *string                           `json:"attributionModel,omitempty"`
+	CookieWindowDays          *int64                            `json:"cookieWindowDays,omitempty"`
+	SignupToConversionDays    *int64                            `json:"signupToConversionDays,omitempty"`
+	TermsMd                   *string                           `json:"termsMd,omitempty"`
+	Status                    *string                           `json:"status,omitempty"`
+	PublicHandle              *string                           `json:"publicHandle,omitempty"`
+	PublicPage                *PostProgramsBodyPublicPage       `json:"publicPage,omitempty"`
+	ProbabilisticPolicy       *string                           `json:"probabilisticPolicy,omitempty"`
+	SelfReferralPolicy        *string                           `json:"selfReferralPolicy,omitempty"`
+	SplitCommissions          *bool                             `json:"splitCommissions,omitempty"`
+	UTMTemplate               map[string]string                 `json:"utmTemplate,omitempty"`
+	AllowPaidSearch           *bool                             `json:"allowPaidSearch,omitempty"`
+	ChallengeLinks            *bool                             `json:"challengeLinks,omitempty"`
+	Settlement                *string                           `json:"settlement,omitempty"`
+	SignupPaymentGraceMinutes *int64                            `json:"signupPaymentGraceMinutes,omitempty"`
+	RiskPolicy                *PostProgramsBodyRiskPolicy       `json:"riskPolicy,omitempty"`
+	Widget                    *PostProgramsBodyWidget           `json:"widget,omitempty"`
+	MobileApp                 *PostProgramsBodyMobileAppOption1 `json:"mobileApp,omitempty"`
 }
 
 // PatchProgramsIdBodyPublicPage is generated from the OpenAPI component of the same name.
@@ -8864,43 +9107,45 @@ type PatchProgramsIdBodySettingsMobileAppOption1 struct {
 
 // PatchProgramsIdBodySettings is generated from the OpenAPI component of the same name.
 type PatchProgramsIdBodySettings struct {
-	PublicHandle        *string                                      `json:"publicHandle,omitempty"`
-	PublicPage          *PatchProgramsIdBodySettingsPublicPage       `json:"publicPage,omitempty"`
-	ProbabilisticPolicy *string                                      `json:"probabilisticPolicy,omitempty"`
-	SelfReferralPolicy  *string                                      `json:"selfReferralPolicy,omitempty"`
-	SplitCommissions    *bool                                        `json:"splitCommissions,omitempty"`
-	UTMTemplate         map[string]string                            `json:"utmTemplate,omitempty"`
-	AllowPaidSearch     *bool                                        `json:"allowPaidSearch,omitempty"`
-	ChallengeLinks      *bool                                        `json:"challengeLinks,omitempty"`
-	Settlement          *string                                      `json:"settlement,omitempty"`
-	RiskPolicy          *PatchProgramsIdBodySettingsRiskPolicy       `json:"riskPolicy,omitempty"`
-	Widget              *PatchProgramsIdBodySettingsWidget           `json:"widget,omitempty"`
-	MobileApp           *PatchProgramsIdBodySettingsMobileAppOption1 `json:"mobileApp,omitempty"`
+	PublicHandle              *string                                      `json:"publicHandle,omitempty"`
+	PublicPage                *PatchProgramsIdBodySettingsPublicPage       `json:"publicPage,omitempty"`
+	ProbabilisticPolicy       *string                                      `json:"probabilisticPolicy,omitempty"`
+	SelfReferralPolicy        *string                                      `json:"selfReferralPolicy,omitempty"`
+	SplitCommissions          *bool                                        `json:"splitCommissions,omitempty"`
+	UTMTemplate               map[string]string                            `json:"utmTemplate,omitempty"`
+	AllowPaidSearch           *bool                                        `json:"allowPaidSearch,omitempty"`
+	ChallengeLinks            *bool                                        `json:"challengeLinks,omitempty"`
+	Settlement                *string                                      `json:"settlement,omitempty"`
+	SignupPaymentGraceMinutes *int64                                       `json:"signupPaymentGraceMinutes,omitempty"`
+	RiskPolicy                *PatchProgramsIdBodySettingsRiskPolicy       `json:"riskPolicy,omitempty"`
+	Widget                    *PatchProgramsIdBodySettingsWidget           `json:"widget,omitempty"`
+	MobileApp                 *PatchProgramsIdBodySettingsMobileAppOption1 `json:"mobileApp,omitempty"`
 }
 
 // PatchProgramsIdBody is generated from the OpenAPI component of the same name.
 type PatchProgramsIdBody struct {
-	Name                   *string                              `json:"name,omitempty"`
-	Slug                   *string                              `json:"slug,omitempty"`
-	AttributionModel       *string                              `json:"attributionModel,omitempty"`
-	CookieWindowDays       *int64                               `json:"cookieWindowDays,omitempty"`
-	SignupToConversionDays *int64                               `json:"signupToConversionDays,omitempty"`
-	TermsMd                *string                              `json:"termsMd,omitempty"`
-	Status                 *string                              `json:"status,omitempty"`
-	PublicHandle           *string                              `json:"publicHandle,omitempty"`
-	PublicPage             *PatchProgramsIdBodyPublicPage       `json:"publicPage,omitempty"`
-	ProbabilisticPolicy    *string                              `json:"probabilisticPolicy,omitempty"`
-	SelfReferralPolicy     *string                              `json:"selfReferralPolicy,omitempty"`
-	SplitCommissions       *bool                                `json:"splitCommissions,omitempty"`
-	UTMTemplate            map[string]string                    `json:"utmTemplate,omitempty"`
-	AllowPaidSearch        *bool                                `json:"allowPaidSearch,omitempty"`
-	ChallengeLinks         *bool                                `json:"challengeLinks,omitempty"`
-	Settlement             *string                              `json:"settlement,omitempty"`
-	RiskPolicy             *PatchProgramsIdBodyRiskPolicy       `json:"riskPolicy,omitempty"`
-	Widget                 *PatchProgramsIdBodyWidget           `json:"widget,omitempty"`
-	MobileApp              *PatchProgramsIdBodyMobileAppOption1 `json:"mobileApp,omitempty"`
-	Settings               *PatchProgramsIdBodySettings         `json:"settings,omitempty"`
-	DestinationURL         *string                              `json:"destinationUrl,omitempty"`
+	Name                      *string                              `json:"name,omitempty"`
+	Slug                      *string                              `json:"slug,omitempty"`
+	AttributionModel          *string                              `json:"attributionModel,omitempty"`
+	CookieWindowDays          *int64                               `json:"cookieWindowDays,omitempty"`
+	SignupToConversionDays    *int64                               `json:"signupToConversionDays,omitempty"`
+	TermsMd                   *string                              `json:"termsMd,omitempty"`
+	Status                    *string                              `json:"status,omitempty"`
+	PublicHandle              *string                              `json:"publicHandle,omitempty"`
+	PublicPage                *PatchProgramsIdBodyPublicPage       `json:"publicPage,omitempty"`
+	ProbabilisticPolicy       *string                              `json:"probabilisticPolicy,omitempty"`
+	SelfReferralPolicy        *string                              `json:"selfReferralPolicy,omitempty"`
+	SplitCommissions          *bool                                `json:"splitCommissions,omitempty"`
+	UTMTemplate               map[string]string                    `json:"utmTemplate,omitempty"`
+	AllowPaidSearch           *bool                                `json:"allowPaidSearch,omitempty"`
+	ChallengeLinks            *bool                                `json:"challengeLinks,omitempty"`
+	Settlement                *string                              `json:"settlement,omitempty"`
+	SignupPaymentGraceMinutes *int64                               `json:"signupPaymentGraceMinutes,omitempty"`
+	RiskPolicy                *PatchProgramsIdBodyRiskPolicy       `json:"riskPolicy,omitempty"`
+	Widget                    *PatchProgramsIdBodyWidget           `json:"widget,omitempty"`
+	MobileApp                 *PatchProgramsIdBodyMobileAppOption1 `json:"mobileApp,omitempty"`
+	Settings                  *PatchProgramsIdBodySettings         `json:"settings,omitempty"`
+	DestinationURL            *string                              `json:"destinationUrl,omitempty"`
 }
 
 // PostProgramsIdReferrersBody is generated from the OpenAPI component of the same name.
@@ -8958,14 +9203,18 @@ type PostApiKeysBody struct {
 	Mode           *string  `json:"mode,omitempty"`
 	Owner          *string  `json:"owner,omitempty"`
 	ExpiresInDays  *int64   `json:"expiresInDays,omitempty"`
+	ExpiresAt      *string  `json:"expiresAt,omitempty"`
 	ProgramIds     []string `json:"programIds,omitempty"`
 }
 
 // PatchApiKeysIdBody is generated from the OpenAPI component of the same name.
 type PatchApiKeysIdBody struct {
+	Name          *string  `json:"name,omitempty"`
+	Scopes        []string `json:"scopes,omitempty"`
 	APIVersion    *string  `json:"apiVersion,omitempty"`
 	Owner         *string  `json:"owner,omitempty"`
 	ExpiresInDays *int64   `json:"expiresInDays,omitempty"`
+	ExpiresAt     *string  `json:"expiresAt,omitempty"`
 	ProgramIds    []string `json:"programIds,omitempty"`
 }
 
@@ -9055,6 +9304,7 @@ type PostReferralsAssociateBody struct {
 	AnonID         *string                            `json:"anonId,omitempty"`
 	ReferralToken  *string                            `json:"referralToken,omitempty"`
 	CouponCode     *string                            `json:"couponCode,omitempty"`
+	HandoffToken   *string                            `json:"handoffToken,omitempty"`
 	EmailHash      *string                            `json:"emailHash,omitempty"`
 	IP             *string                            `json:"ip,omitempty"`
 	UA             *string                            `json:"ua,omitempty"`
@@ -9062,6 +9312,13 @@ type PostReferralsAssociateBody struct {
 	OccurredAt     *string                            `json:"occurredAt,omitempty"`
 	EmailDomain    *string                            `json:"emailDomain,omitempty"`
 	Consent        *PostReferralsAssociateBodyConsent `json:"consent,omitempty"`
+}
+
+// PostReferralsHandoffTokensBody is generated from the OpenAPI component of the same name.
+type PostReferralsHandoffTokensBody struct {
+	AnonID  *string `json:"anonId,omitempty"`
+	ClickID *string `json:"clickId,omitempty"`
+	Code    *string `json:"code,omitempty"` // The referral (link or coupon) code from the landing URL.
 }
 
 // PatchReferralsIdBody is generated from the OpenAPI component of the same name.
@@ -9319,6 +9576,18 @@ type PatchBillingConnectionsIdBody struct {
 	Filter                 *PatchBillingConnectionsIdBodyFilterOption1 `json:"filter,omitempty"`
 	CustomerRefMetadataKey *string                                     `json:"customerRefMetadataKey,omitempty"`
 	ProgramIds             []string                                    `json:"programIds,omitempty"`
+	MaxAmountMinor         *int64                                      `json:"maxAmountMinor,omitempty"`
+}
+
+// PostBillingConnectionsIdEventsBody is generated from the OpenAPI component of the same name.
+type PostBillingConnectionsIdEventsBody struct {
+	Events []map[string]any `json:"events"`
+}
+
+// PutBillingAccountsAccountRefOwnerBody is generated from the OpenAPI component of the same name.
+type PutBillingAccountsAccountRefOwnerBody struct {
+	OwnerCustomerRef   *string `json:"ownerCustomerRef,omitempty"`
+	PreviousAccountRef *string `json:"previousAccountRef,omitempty"`
 }
 
 // PutBillingConnectionsIdValueMappingBody is generated from the OpenAPI component of the same name.
@@ -9591,11 +9860,17 @@ type PatchWebhookEndpointsIdBody struct {
 
 // PostSandboxSimulateBody is generated from the OpenAPI component of the same name.
 type PostSandboxSimulateBody struct {
-	ProgramID  string  `json:"programId"`
-	PartnerID  string  `json:"partnerId"`
-	Scenario   *string `json:"scenario,omitempty"`
-	PriceMinor *int64  `json:"priceMinor,omitempty"`
-	Months     *int64  `json:"months,omitempty"`
+	ProgramID           string  `json:"programId"`
+	PartnerID           *string `json:"partnerId,omitempty"`
+	Scenario            *string `json:"scenario,omitempty"`
+	PriceMinor          *int64  `json:"priceMinor,omitempty"`
+	Months              *int64  `json:"months,omitempty"`
+	Code                *string `json:"code,omitempty"`
+	AuthConnectionID    *string `json:"authConnectionId,omitempty"`
+	BillingConnectionID *string `json:"billingConnectionId,omitempty"`
+	CustomerRef         *string `json:"customerRef,omitempty"`
+	AmountMinor         *int64  `json:"amountMinor,omitempty"`
+	Currency            *string `json:"currency,omitempty"`
 }
 
 // PostSandboxBillingFixturesBodyOverrides is generated from the OpenAPI component of the same name.
@@ -10193,11 +10468,6 @@ type PostAuthConnectionsBody struct {
 	AllowedOrigins    []string                                  `json:"allowedOrigins,omitempty"`
 }
 
-// PutAuthConnectionsIdSecretBody is generated from the OpenAPI component of the same name.
-type PutAuthConnectionsIdSecretBody struct {
-	Secret string `json:"secret"`
-}
-
 // PatchAuthConnectionsIdBodyTokenVerificationOption1Claims is generated from the OpenAPI component of the same name.
 type PatchAuthConnectionsIdBodyTokenVerificationOption1Claims struct {
 	CustomerRef   *string `json:"customerRef,omitempty"`
@@ -10231,6 +10501,11 @@ type PatchAuthConnectionsIdBody struct {
 	AllowedOrigins          []string                                            `json:"allowedOrigins,omitempty"`
 }
 
+// PutAuthConnectionsIdSecretBody is generated from the OpenAPI component of the same name.
+type PutAuthConnectionsIdSecretBody struct {
+	Secret string `json:"secret"`
+}
+
 // PostAuthConnectionsIdSignupsBodyReferral is generated from the OpenAPI component of the same name.
 type PostAuthConnectionsIdSignupsBodyReferral struct {
 	Code       *string `json:"code,omitempty"`
@@ -10242,13 +10517,13 @@ type PostAuthConnectionsIdSignupsBodyReferral struct {
 
 // PostAuthConnectionsIdSignupsBodyRisk is generated from the OpenAPI component of the same name.
 type PostAuthConnectionsIdSignupsBodyRisk struct {
-	BotScore        *float64 `json:"botScore,omitempty"`
+	BotScore        *float64 `json:"botScore,omitempty"` // 0 (human) to 1 (certainly a bot). A value above 1 and up to 100 is read as a percentage (85 → 0.85); above 100 is refused.
 	DisposableEmail *bool    `json:"disposableEmail,omitempty"`
 	EmailVerified   *bool    `json:"emailVerified,omitempty"`
 	SelfReferral    *bool    `json:"selfReferral,omitempty"`
 	Velocity        *int64   `json:"velocity,omitempty"`
 	Reasons         []string `json:"reasons,omitempty"`
-	Score           *float64 `json:"score,omitempty"`
+	Score           *float64 `json:"score,omitempty"` // Overall risk, 0 (safe) to 1 (certainly fraudulent), compared with riskPolicy.holdRiskScore (default 0.8). A value above 1 and up to 100 (Atlas’s 0–100 scale) is read as a percentage (85 → 0.85); above 100 is refused.
 	Level           *string  `json:"level,omitempty"`
 	Dropped         *bool    `json:"dropped,omitempty"`
 }
@@ -10284,6 +10559,16 @@ type PostAuthConnectionsIdEraseBody struct {
 	CustomerRef string `json:"customerRef"`
 }
 
+// PutAuthConnectionsIdOriginsBody is generated from the OpenAPI component of the same name.
+type PutAuthConnectionsIdOriginsBody struct {
+	AllowedOrigins []string `json:"allowedOrigins"`
+}
+
+// PatchAuthConnectionsIdOriginsBody is generated from the OpenAPI component of the same name.
+type PatchAuthConnectionsIdOriginsBody struct {
+	AllowedOrigins []string `json:"allowedOrigins"`
+}
+
 // PostAuthConnectionsIdAliasesBody is generated from the OpenAPI component of the same name.
 type PostAuthConnectionsIdAliasesBody struct {
 	FromCustomerRef string `json:"fromCustomerRef"`
@@ -10306,6 +10591,14 @@ type PostAuthConnectionsIdWidgetTokensBody struct {
 	EmailVerified *bool   `json:"emailVerified,omitempty"`
 	DisplayName   *string `json:"displayName,omitempty"`
 	TtlSeconds    *int64  `json:"ttlSeconds,omitempty"`
+}
+
+// PostAuthConnectionsIdAccountsBody is generated from the OpenAPI component of the same name.
+type PostAuthConnectionsIdAccountsBody struct {
+	AccountRef         string  `json:"accountRef"`
+	OwnerCustomerRef   *string `json:"ownerCustomerRef,omitempty"`
+	PreviousAccountRef *string `json:"previousAccountRef,omitempty"`
+	Deleted            *bool   `json:"deleted,omitempty"`
 }
 
 // PostAuthConnectionsIdSignalsBody is generated from the OpenAPI component of the same name.
@@ -10494,13 +10787,14 @@ type PostOrgConsentPartnersCookiemunchStampsCheckBody struct {
 
 // PostOrgsOrgIdPrivacyExecutorKeyBody is generated from the OpenAPI component of the same name.
 type PostOrgsOrgIdPrivacyExecutorKeyBody struct {
-	Cbid       *string `json:"cbid,omitempty"`       // The Cookie Munch site the partner link is on. Without it, any live link to a site this org registered will do.
-	LinkID     *string `json:"linkId,omitempty"`     // The partner link it is minted under; checked with Cookie Munch.
-	Partner    *string `json:"partner,omitempty"`    // Always `referalli`.
-	ExternalID *string `json:"externalId,omitempty"` // The Referalli org id the link names; must equal the path.
-	OrgID      *string `json:"orgId,omitempty"`      // The Cookie Munch organisation that owns the site.
-	Nonce      *string `json:"nonce,omitempty"`      // Never reused; a seen nonce is refused.
-	Iat        *int64  `json:"iat,omitempty"`
+	Cbid       *string  `json:"cbid,omitempty"`       // The Cookie Munch site the partner link is on. Without it, any live link to a site this org registered will do.
+	LinkID     *string  `json:"linkId,omitempty"`     // The partner link it is minted under; checked with Cookie Munch.
+	Partner    *string  `json:"partner,omitempty"`    // Always `referalli`.
+	ExternalID *string  `json:"externalId,omitempty"` // The Referalli org id the link names; must equal the path.
+	OrgID      *string  `json:"orgId,omitempty"`      // The Cookie Munch organisation that owns the site.
+	Nonce      *string  `json:"nonce,omitempty"`      // Never reused; a seen nonce is refused.
+	Iat        *int64   `json:"iat,omitempty"`
+	ProgramIds []string `json:"programIds,omitempty"` // Limit the key to these programs of the org: it then answers only for people in them. Without it, the key reaches the whole org. Each set of programs has its own key, so minting one leaves the others working.
 }
 
 // PutOrgHostedPagesBodyConsent is generated from the OpenAPI component of the same name.

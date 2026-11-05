@@ -7,48 +7,51 @@ import "encoding/json"
 
 // Every webhook topic the API publishes.
 const (
-	TopicAccountCreditApplied     = "account_credit.applied"
-	TopicAccountCreditFailed      = "account_credit.failed"
-	TopicAccountCreditReversed    = "account_credit.reversed"
-	TopicAPIKeyExpiring           = "api_key.expiring"
-	TopicBillingEventRecorded     = "billing_event.recorded"
-	TopicClickRecorded            = "click.recorded"
-	TopicCommissionEarned         = "commission.earned"
-	TopicCommissionReversed       = "commission.reversed"
-	TopicCommissionSettled        = "commission.settled"
-	TopicCreditRedeemed           = "credit.redeemed"
-	TopicCustomerAliased          = "customer.aliased"
-	TopicDealSubmitted            = "deal.submitted"
-	TopicDisputeResolved          = "dispute.resolved"
-	TopicFraudCaseOpened          = "fraud.case_opened"
-	TopicFXRatesUpdated           = "fx.rates_updated"
-	TopicPartnerApplied           = "partner.applied"
-	TopicPartnerApproved          = "partner.approved"
-	TopicPartnerEnrolled          = "partner.enrolled"
-	TopicPartnerLevelUp           = "partner.level_up"
-	TopicPayoutCancelled          = "payout.cancelled"
-	TopicPayoutFailed             = "payout.failed"
-	TopicPayoutScheduled          = "payout.scheduled"
-	TopicPayoutSent               = "payout.sent"
-	TopicPayoutSubmitted          = "payout.submitted"
-	TopicPrivacyRequestCompleted  = "privacy.request_completed"
-	TopicRefereeRewardEarned      = "referee_reward.earned"
-	TopicReferralApproved         = "referral.approved"
-	TopicReferralCreated          = "referral.created"
-	TopicReferralHeld             = "referral.held"
-	TopicReferralPaused           = "referral.paused"
-	TopicReferralReassigned       = "referral.reassigned"
-	TopicReferralRejected         = "referral.rejected"
-	TopicReferralResumed          = "referral.resumed"
-	TopicReferralVoided           = "referral.voided"
-	TopicRoiPatternDetected       = "roi.pattern_detected"
-	TopicRoiPaybackReached        = "roi.payback_reached"
-	TopicStripeCreditApplied      = "stripe_credit.applied"
-	TopicStripeCreditFailed       = "stripe_credit.failed"
-	TopicTaxFormDelivered         = "tax.form_delivered"
-	TopicWebhookEndpointDisabled  = "webhook_endpoint.disabled"
-	TopicWebhookEndpointFailing   = "webhook_endpoint.failing"
-	TopicWebhookEndpointRecovered = "webhook_endpoint.recovered"
+	TopicAccountCreditApplied       = "account_credit.applied"
+	TopicAccountCreditFailed        = "account_credit.failed"
+	TopicAccountCreditReversed      = "account_credit.reversed"
+	TopicAPIKeyExpiring             = "api_key.expiring"
+	TopicBillingAccountOwnerChanged = "billing_account.owner_changed"
+	TopicBillingEventExpired        = "billing_event.expired"
+	TopicBillingEventHeld           = "billing_event.held"
+	TopicBillingEventRecorded       = "billing_event.recorded"
+	TopicClickRecorded              = "click.recorded"
+	TopicCommissionEarned           = "commission.earned"
+	TopicCommissionReversed         = "commission.reversed"
+	TopicCommissionSettled          = "commission.settled"
+	TopicCreditRedeemed             = "credit.redeemed"
+	TopicCustomerAliased            = "customer.aliased"
+	TopicDealSubmitted              = "deal.submitted"
+	TopicDisputeResolved            = "dispute.resolved"
+	TopicFraudCaseOpened            = "fraud.case_opened"
+	TopicFXRatesUpdated             = "fx.rates_updated"
+	TopicPartnerApplied             = "partner.applied"
+	TopicPartnerApproved            = "partner.approved"
+	TopicPartnerEnrolled            = "partner.enrolled"
+	TopicPartnerLevelUp             = "partner.level_up"
+	TopicPayoutCancelled            = "payout.cancelled"
+	TopicPayoutFailed               = "payout.failed"
+	TopicPayoutScheduled            = "payout.scheduled"
+	TopicPayoutSent                 = "payout.sent"
+	TopicPayoutSubmitted            = "payout.submitted"
+	TopicPrivacyRequestCompleted    = "privacy.request_completed"
+	TopicRefereeRewardEarned        = "referee_reward.earned"
+	TopicReferralApproved           = "referral.approved"
+	TopicReferralCreated            = "referral.created"
+	TopicReferralHeld               = "referral.held"
+	TopicReferralPaused             = "referral.paused"
+	TopicReferralReassigned         = "referral.reassigned"
+	TopicReferralRejected           = "referral.rejected"
+	TopicReferralResumed            = "referral.resumed"
+	TopicReferralVoided             = "referral.voided"
+	TopicRoiPatternDetected         = "roi.pattern_detected"
+	TopicRoiPaybackReached          = "roi.payback_reached"
+	TopicStripeCreditApplied        = "stripe_credit.applied"
+	TopicStripeCreditFailed         = "stripe_credit.failed"
+	TopicTaxFormDelivered           = "tax.form_delivered"
+	TopicWebhookEndpointDisabled    = "webhook_endpoint.disabled"
+	TopicWebhookEndpointFailing     = "webhook_endpoint.failing"
+	TopicWebhookEndpointRecovered   = "webhook_endpoint.recovered"
 )
 
 // Topics lists every webhook topic.
@@ -57,6 +60,9 @@ var Topics = []string{
 	TopicAccountCreditFailed,
 	TopicAccountCreditReversed,
 	TopicAPIKeyExpiring,
+	TopicBillingAccountOwnerChanged,
+	TopicBillingEventExpired,
+	TopicBillingEventHeld,
 	TopicBillingEventRecorded,
 	TopicClickRecorded,
 	TopicCommissionEarned,
@@ -136,6 +142,39 @@ func (e *WebhookEvent) AsAPIKeyExpiring() (ApiKeyExpiringEventData, error) {
 	var out ApiKeyExpiringEventData
 	if e.Topic != TopicAPIKeyExpiring {
 		return out, &WrongTopicError{Want: TopicAPIKeyExpiring, Got: e.Topic}
+	}
+	err := json.Unmarshal(e.Data, &out)
+	return out, err
+}
+
+// AsBillingAccountOwnerChanged decodes the data of a `billing_account.owner_changed` event (A billing account's owner changed).
+// It returns a *WrongTopicError for an event of another topic.
+func (e *WebhookEvent) AsBillingAccountOwnerChanged() (BillingAccountOwnerChangedEventData, error) {
+	var out BillingAccountOwnerChangedEventData
+	if e.Topic != TopicBillingAccountOwnerChanged {
+		return out, &WrongTopicError{Want: TopicBillingAccountOwnerChanged, Got: e.Topic}
+	}
+	err := json.Unmarshal(e.Data, &out)
+	return out, err
+}
+
+// AsBillingEventExpired decodes the data of a `billing_event.expired` event (A parked refund or dispute expired).
+// It returns a *WrongTopicError for an event of another topic.
+func (e *WebhookEvent) AsBillingEventExpired() (BillingEventExpiredEventData, error) {
+	var out BillingEventExpiredEventData
+	if e.Topic != TopicBillingEventExpired {
+		return out, &WrongTopicError{Want: TopicBillingEventExpired, Got: e.Topic}
+	}
+	err := json.Unmarshal(e.Data, &out)
+	return out, err
+}
+
+// AsBillingEventHeld decodes the data of a `billing_event.held` event (A payment was held for review).
+// It returns a *WrongTopicError for an event of another topic.
+func (e *WebhookEvent) AsBillingEventHeld() (BillingEventHeldEventData, error) {
+	var out BillingEventHeldEventData
+	if e.Topic != TopicBillingEventHeld {
+		return out, &WrongTopicError{Want: TopicBillingEventHeld, Got: e.Topic}
 	}
 	err := json.Unmarshal(e.Data, &out)
 	return out, err

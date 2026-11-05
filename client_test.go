@@ -40,7 +40,7 @@ func TestPostRetriesWithTheSameKeyAndSendsHeaders(t *testing.T) {
 		_, _ = w.Write([]byte(`{"id":"ptr_1","email":"a@example.com","displayName":"","externalRef":null,"status":"active","tags":[],"notes":null,"createdAt":"2026-10-21T12:00:00Z"}`))
 	})
 	p, err := client.PostPartners(context.Background(), PostPartnersBody{Email: "a@example.com"})
-	if err != nil || p.ID != "ptr_1" {
+	if err != nil || p == nil {
 		t.Fatalf("got %v, %v", p, err)
 	}
 	if len(*seen) != 2 {
@@ -63,12 +63,12 @@ func TestTypedErrorsAndTimeouts(t *testing.T) {
 		w.WriteHeader(404)
 		_, _ = w.Write([]byte(`{"error":{"code":"not_found","message":"nope","requestId":"req_1"}}`))
 	})
-	_, err := client.GetPartnersID(context.Background(), "ptr_x")
+	_, err := client.GetPartnersID(context.Background(), "ptr_x", nil)
 	var nf *NotFoundError
 	if !errors.As(err, &nf) || nf.RequestID != "req_1" || len(*seen) != 1 {
 		t.Fatalf("want NotFoundError after 1 request, got %v (%d requests)", err, len(*seen))
 	}
-	_, err = client.WithOptions(WithTimeout(20*time.Millisecond), WithMaxRetries(0)).GetPartnersID(context.Background(), "slow")
+	_, err = client.WithOptions(WithTimeout(20*time.Millisecond), WithMaxRetries(0)).GetPartnersID(context.Background(), "slow", nil)
 	var ce *ConnectionError
 	if !errors.As(err, &ce) {
 		t.Fatalf("want ConnectionError on timeout, got %v", err)

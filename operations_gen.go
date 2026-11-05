@@ -20,6 +20,7 @@ var Operations = func() map[string][2]string {
 		{"deleteApiKeysId", "DELETE", "/v1/api-keys/{id}"},
 		{"deleteAssetsId", "DELETE", "/v1/assets/{id}"},
 		{"deleteAuthConnectionsId", "DELETE", "/v1/auth/connections/{id}"},
+		{"deleteBillingAccountsAccountRef", "DELETE", "/v1/billing/accounts/{accountRef}"},
 		{"deleteBillingConnectionsId", "DELETE", "/v1/billing/connections/{id}"},
 		{"deleteBillingInternalCustomersCustomerRef", "DELETE", "/v1/billing/internal-customers/{customerRef}"},
 		{"deleteBrandingDomain", "DELETE", "/v1/branding/domain"},
@@ -58,10 +59,12 @@ var Operations = func() map[string][2]string {
 		{"getAssistantSuggestions", "GET", "/v1/assistant/suggestions"},
 		{"getAuditLogs", "GET", "/v1/audit-logs"},
 		{"getAuthConnections", "GET", "/v1/auth/connections"},
+		{"getAuthConnectionsId", "GET", "/v1/auth/connections/{id}"},
 		{"getAuthConnectionsIdExport", "GET", "/v1/auth/connections/{id}/export"},
 		{"getAuthConnectionsIdUsersCustomerRefReferral", "GET", "/v1/auth/connections/{id}/users/{customerRef}/referral"},
 		{"getAuthConnectionsProviders", "GET", "/v1/auth/connections/providers"},
 		{"getAuthProviders", "GET", "/v1/auth/providers"},
+		{"getBillingAccountsAccountRef", "GET", "/v1/billing/accounts/{accountRef}"},
 		{"getBillingConnections", "GET", "/v1/billing/connections"},
 		{"getBillingConnectionsId", "GET", "/v1/billing/connections/{id}"},
 		{"getBillingEvents", "GET", "/v1/billing/events"},
@@ -129,6 +132,7 @@ var Operations = func() map[string][2]string {
 		{"getOrgSsoConnectionsIdSamlMetadata", "GET", "/v1/org/sso/connections/{id}/saml-metadata"},
 		{"getOrgTaxProfile", "GET", "/v1/org/tax-profile"},
 		{"getOrgTrackingConsent", "GET", "/v1/org/tracking-consent"},
+		{"getOrgTrackingTokens", "GET", "/v1/org/tracking-tokens"},
 		{"getOutreach", "GET", "/v1/outreach"},
 		{"getPartnerAchievements", "GET", "/v1/partner/achievements"},
 		{"getPartnerAdvance", "GET", "/v1/partner/advance"},
@@ -193,6 +197,7 @@ var Operations = func() map[string][2]string {
 		{"getProfitabilityRebuildJobId", "GET", "/v1/profitability/rebuild/{jobId}"},
 		{"getProfitabilitySettings", "GET", "/v1/profitability/settings"},
 		{"getPrograms", "GET", "/v1/programs"},
+		{"getProgramsHandleAvailability", "GET", "/v1/programs/handle-availability"},
 		{"getProgramsId", "GET", "/v1/programs/{id}"},
 		{"getProgramsIdAutopricing", "GET", "/v1/programs/{id}/autopricing"},
 		{"getProgramsIdCreditRail", "GET", "/v1/programs/{id}/credit-rail"},
@@ -256,6 +261,7 @@ var Operations = func() map[string][2]string {
 		{"patchAdminStatusIncidentsId", "PATCH", "/v1/admin/status/incidents/{id}"},
 		{"patchApiKeysId", "PATCH", "/v1/api-keys/{id}"},
 		{"patchAuthConnectionsId", "PATCH", "/v1/auth/connections/{id}"},
+		{"patchAuthConnectionsIdOrigins", "PATCH", "/v1/auth/connections/{id}/origins"},
 		{"patchBillingConnectionsId", "PATCH", "/v1/billing/connections/{id}"},
 		{"patchOrg", "PATCH", "/v1/org"},
 		{"patchOrgMembersUserId", "PATCH", "/v1/org/members/{userId}"},
@@ -283,6 +289,7 @@ var Operations = func() map[string][2]string {
 		{"postAttributionReplay", "POST", "/v1/attribution/replay"},
 		{"postAuthBackchannelLogout", "POST", "/v1/auth/backchannel-logout"},
 		{"postAuthConnections", "POST", "/v1/auth/connections"},
+		{"postAuthConnectionsIdAccounts", "POST", "/v1/auth/connections/{id}/accounts"},
 		{"postAuthConnectionsIdAliases", "POST", "/v1/auth/connections/{id}/aliases"},
 		{"postAuthConnectionsIdErase", "POST", "/v1/auth/connections/{id}/erase"},
 		{"postAuthConnectionsIdPartners", "POST", "/v1/auth/connections/{id}/partners"},
@@ -298,8 +305,10 @@ var Operations = func() map[string][2]string {
 		{"postBillingActivate", "POST", "/v1/billing/activate"},
 		{"postBillingCheckout", "POST", "/v1/billing/checkout"},
 		{"postBillingConnections", "POST", "/v1/billing/connections"},
+		{"postBillingConnectionsIdEvents", "POST", "/v1/billing/connections/{id}/events"},
 		{"postBillingConnectionsIdRotateSecret", "POST", "/v1/billing/connections/{id}/rotate-secret"},
 		{"postBillingConnectionsIdValueMappingPreview", "POST", "/v1/billing/connections/{id}/value-mapping/preview"},
+		{"postBillingEventsIdRelease", "POST", "/v1/billing/events/{id}/release"},
 		{"postBillingInternalCustomers", "POST", "/v1/billing/internal-customers"},
 		{"postBillingPortal", "POST", "/v1/billing/portal"},
 		{"postBrandingDomain", "POST", "/v1/branding/domain"},
@@ -414,6 +423,7 @@ var Operations = func() map[string][2]string {
 		{"postPublicProgramsHandleJoin", "POST", "/v1/public/programs/{handle}/join"},
 		{"postQualityRecompute", "POST", "/v1/quality/recompute"},
 		{"postReferralsAssociate", "POST", "/v1/referrals/associate"},
+		{"postReferralsHandoffTokens", "POST", "/v1/referrals/handoff-tokens"},
 		{"postReferralsIdApprove", "POST", "/v1/referrals/{id}/approve"},
 		{"postReferralsIdReassign", "POST", "/v1/referrals/{id}/reassign"},
 		{"postReferralsIdVoid", "POST", "/v1/referrals/{id}/void"},
@@ -443,7 +453,9 @@ var Operations = func() map[string][2]string {
 		{"postWidgetTokens", "POST", "/v1/widget/tokens"},
 		{"postZapierConversions", "POST", "/v1/zapier/conversions"},
 		{"postZapierHooks", "POST", "/v1/zapier/hooks"},
+		{"putAuthConnectionsIdOrigins", "PUT", "/v1/auth/connections/{id}/origins"},
 		{"putAuthConnectionsIdSecret", "PUT", "/v1/auth/connections/{id}/secret"},
+		{"putBillingAccountsAccountRefOwner", "PUT", "/v1/billing/accounts/{accountRef}/owner"},
 		{"putBillingConnectionsIdCredentials", "PUT", "/v1/billing/connections/{id}/credentials"},
 		{"putBillingConnectionsIdSecret", "PUT", "/v1/billing/connections/{id}/secret"},
 		{"putBillingConnectionsIdValueMapping", "PUT", "/v1/billing/connections/{id}/value-mapping"},
@@ -513,11 +525,11 @@ func (p *DeleteAPIKeysIDParams) values() url.Values {
 
 // DeleteAPIKeysID calls Revoke an API key. DELETE /v1/api-keys/{id}.
 //
-// Revokes a key at once. `cascade=true` also revokes every key it minted (and theirs); `pair=true` also revokes its live/test twin. Returns the revoked ids. Needs an owner or admin session, or an API key with the `admin` scope. Audited.
+// Revokes a key at once. `cascade=true` also revokes every key it minted (and theirs); `pair=true` also revokes its live/test twin. Returns the revoked ids. Needs an owner or admin session, or an API key with the `admin` scope. A key holding `api_keys:mint` may also do this for keys it minted itself (403 for any other). Audited.
 //
-// **Auth:** an API key with `team:write`, or a session of any role.
+// **Auth:** an API key with `api_keys:mint`, or a session of any role.
 //
-// **Scopes:** `team:write`, `full`, `admin`.
+// **Scopes:** `api_keys:mint`, `admin`.
 //
 // cascade: true: also revoke every key this key minted, and theirs.
 // pair: true: also revoke its live/test twin.
@@ -554,6 +566,21 @@ func (c *Client) DeleteAssetsID(ctx context.Context, id string, opts ...RequestO
 func (c *Client) DeleteAuthConnectionsID(ctx context.Context, id string, opts ...RequestOption) (*Ok, error) {
 	var out Ok
 	if err := c.do(ctx, "DELETE", "/v1/auth/connections/"+url.PathEscape(id), nil, nil, &out, "json", opts); err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// DeleteBillingAccountsAccountRef calls Delete a billing account. DELETE /v1/billing/accounts/{accountRef}.
+//
+// The organization was deleted: it has no owner from now on, and its provider customers stop resolving to the old owner, so later payments under it earn nothing. Commissions already earned stay, and refunds still reverse them. Setting an owner again restores it for later payments (payments made while it was deleted are not replayed). Returns the same shape as `PUT …/owner` with `deleted: true` and `ownerCustomerRef: null`; deleting an account with nothing recorded (or already deleted) answers `changed: false`. Publishes `billing_account.owner_changed`. Needs `billing:write`. Audited.
+//
+// **Auth:** an API key with `billing:write`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `billing:write`, `full`, `admin`.
+func (c *Client) DeleteBillingAccountsAccountRef(ctx context.Context, accountRef string, opts ...RequestOption) (*PutBillingAccountsAccountRefOwnerResponse, error) {
+	var out PutBillingAccountsAccountRefOwnerResponse
+	if err := c.do(ctx, "DELETE", "/v1/billing/accounts/"+url.PathEscape(accountRef), nil, nil, &out, "json", opts); err != nil {
 		return nil, err
 	}
 	return &out, nil
@@ -1697,7 +1724,7 @@ func (p *GetAuthConnectionsParams) values() url.Values {
 
 // GetAuthConnections calls List auth connections. GET /v1/auth/connections.
 //
-// Auth-platform connections with provider, program, status, signature version and rotation state. Secrets are never returned.
+// Auth-platform connections with provider, program, status, signature version, rotation state and `lastSignupAt` (when it last filed a new sign-up; null when never). Secrets are never returned.
 //
 // **Auth:** an API key with `integrations:read`, or a session of any role.
 //
@@ -1726,6 +1753,21 @@ func (c *Client) GetAuthConnectionsEach(ctx context.Context, params *GetAuthConn
 		p.StartingAfter = cursor
 		return c.GetAuthConnections(ctx, &p, opts...)
 	})
+}
+
+// GetAuthConnectionsID calls Get an auth connection. GET /v1/auth/connections/{id}.
+//
+// One auth-platform connection, as in the list: provider, program, status, `allowedOrigins`, `tokenVerification` (without its secret), signature version and rotation state. Secrets are never returned. Unknown or deleted connections are 404.
+//
+// **Auth:** an API key with `integrations:read`, or a session of any role.
+//
+// **Scopes:** `integrations:read`, `integrations:write`, `connections:read`, `connections:write`, `read`, `full`, `admin`.
+func (c *Client) GetAuthConnectionsID(ctx context.Context, id string, opts ...RequestOption) (*AuthConnection, error) {
+	var out AuthConnection
+	if err := c.do(ctx, "GET", "/v1/auth/connections/"+url.PathEscape(id), nil, nil, &out, "json", opts); err != nil {
+		return nil, err
+	}
+	return &out, nil
 }
 
 // GetAuthConnectionsIDExportParams are the query parameters of GetAuthConnectionsIDExport.
@@ -1791,6 +1833,21 @@ func (c *Client) GetAuthConnectionsProviders(ctx context.Context, opts ...Reques
 func (c *Client) GetAuthProviders(ctx context.Context, opts ...RequestOption) (*GetAuthProvidersResponse, error) {
 	var out GetAuthProvidersResponse
 	if err := c.do(ctx, "GET", "/v1/auth/providers", nil, nil, &out, "json", opts); err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// GetBillingAccountsAccountRef calls Get a billing account's owner. GET /v1/billing/accounts/{accountRef}.
+//
+// What is recorded for a billing account: `{ accountRef, ownerCustomerRef, since, renamedTo, deleted }`. A renamed id answers with `renamedTo` (and `ownerCustomerRef: null`); it follows that account. `404` when nothing is recorded.
+//
+// **Auth:** an API key with `billing:read`, or a session of any role.
+//
+// **Scopes:** `billing:read`, `billing:write`, `read`, `full`, `admin`.
+func (c *Client) GetBillingAccountsAccountRef(ctx context.Context, accountRef string, opts ...RequestOption) (*GetBillingAccountsAccountRefResponse, error) {
+	var out GetBillingAccountsAccountRefResponse
+	if err := c.do(ctx, "GET", "/v1/billing/accounts/"+url.PathEscape(accountRef), nil, nil, &out, "json", opts); err != nil {
 		return nil, err
 	}
 	return &out, nil
@@ -1894,7 +1951,7 @@ func (p *GetBillingEventsParams) values() url.Values {
 
 // GetBillingEvents calls List billing events. GET /v1/billing/events.
 //
-// Payments, refunds and other billing events received from every connection, newest first. Filter with `customerRef`, or `status=ignored_by_filter` for the events a product filter or the internal-customer list set aside (recorded, never processed). `ignoredReason: "no_referral_in_scope"` (with `status: "processed"`) marks a payment on a connection limited to some programs from a customer referred only in other programs: it earned nothing.
+// Payments, refunds and other billing events received from every connection, newest first. Filter with `customerRef`, or `status=ignored_by_filter` for the events a product filter or the internal-customer list set aside (recorded, never processed), or `status=parked` for the refunds and disputes waiting for their payment: applied when it arrives, or dropped after 7 days with a `billing_event.expired` webhook event. `ignoredReason: "no_referral_in_scope"` (with `status: "processed"`) marks a payment on a connection limited to some programs from a customer referred only in other programs: it earned nothing.
 //
 // **Auth:** an API key with `billing:read`, or a session of any role.
 //
@@ -2244,6 +2301,7 @@ type GetCommissionsParams struct {
 	ProgramID     *string `json:"programId,omitempty"`
 	Type          *string `json:"type,omitempty"`
 	ReferralID    *string `json:"referralId,omitempty"`
+	CustomerRef   *string `json:"customerRef,omitempty"`
 	Limit         *int64  `json:"limit,omitempty"`
 	StartingAfter *string `json:"starting_after,omitempty"`
 	EndingBefore  *string `json:"ending_before,omitempty"`
@@ -2260,6 +2318,7 @@ func (p *GetCommissionsParams) values() url.Values {
 	setQuery(v, "programId", p.ProgramID)
 	setQuery(v, "type", p.Type)
 	setQuery(v, "referralId", p.ReferralID)
+	setQuery(v, "customerRef", p.CustomerRef)
 	setQuery(v, "limit", p.Limit)
 	setQuery(v, "starting_after", p.StartingAfter)
 	setQuery(v, "ending_before", p.EndingBefore)
@@ -3307,11 +3366,11 @@ func (c *Client) GetMarketplaceListingEach(ctx context.Context, params *GetMarke
 
 // GetMe calls Get the current caller. GET /v1/me.
 //
-// Who is calling. With a user session: the user and their org memberships (no `x-org-id` needed). With an API key: `{ user: null, memberships: [], apiKey, org: { id, name } }`, where `apiKey` holds the key (name, prefix, scopes, pinned `apiVersion`, `livemode`, owner, expiry, `programIds`). The mode is `apiKey.livemode`; there is no top-level `livemode`.
+// Who is calling. With a user session: the user and their org memberships (no `x-org-id` needed). With an API key: `{ user: null, memberships: [], apiKey, org: { id, name } }`, where `apiKey` holds the key (name, prefix, scopes, pinned `apiVersion`, `livemode`, owner, expiry, `programIds`). The mode is `apiKey.livemode`; there is no top-level `livemode`. Any key may call it, whatever its scopes.
 //
-// **Auth:** an API key with `team:read`, or a session of any role.
+// **Auth:** an API key with `null`, or a session of any role.
 //
-// **Scopes:** `team:read`, `team:write`, `read`, `full`, `admin`.
+// **Scopes:** .
 func (c *Client) GetMe(ctx context.Context, opts ...RequestOption) (*GetMeResponse, error) {
 	var out GetMeResponse
 	if err := c.do(ctx, "GET", "/v1/me", nil, nil, &out, "json", opts); err != nil {
@@ -3823,6 +3882,21 @@ func (c *Client) GetOrgTaxProfile(ctx context.Context, opts ...RequestOption) (*
 func (c *Client) GetOrgTrackingConsent(ctx context.Context, opts ...RequestOption) (*GetOrgTrackingConsentResponse, error) {
 	var out GetOrgTrackingConsentResponse
 	if err := c.do(ctx, "GET", "/v1/org/tracking-consent", nil, nil, &out, "json", opts); err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// GetOrgTrackingTokens calls Both modes' tracking tokens. GET /v1/org/tracking-tokens.
+//
+// The org's public tracking values for live and test mode, labelled: `{ mode, live, test }`, each with `orgId`, `trackingToken`, `scriptUrl` (aff.js), `linkBaseUrl` (the verified link domain, else Referalli's origin) and `linkTemplate` (`…/go/{token}/{code}`). `mode` is the caller's. Any key reads both, live or test; nothing else crosses modes. The test org is created on first use.
+//
+// **Auth:** an API key with `org:read`, or a session of any role.
+//
+// **Scopes:** `org:read`, `org:write`, `read`, `full`, `admin`.
+func (c *Client) GetOrgTrackingTokens(ctx context.Context, opts ...RequestOption) (*TrackingTokens, error) {
+	var out TrackingTokens
+	if err := c.do(ctx, "GET", "/v1/org/tracking-tokens", nil, nil, &out, "json", opts); err != nil {
 		return nil, err
 	}
 	return &out, nil
@@ -5896,6 +5970,35 @@ func (c *Client) GetProgramsEach(ctx context.Context, params *GetProgramsParams,
 	})
 }
 
+// GetProgramsHandleAvailabilityParams are the query parameters of GetProgramsHandleAvailability.
+type GetProgramsHandleAvailabilityParams struct {
+	Handle *string `json:"handle,omitempty"`
+}
+
+func (p *GetProgramsHandleAvailabilityParams) values() url.Values {
+	v := url.Values{}
+	if p == nil {
+		return v
+	}
+	setQuery(v, "handle", p.Handle)
+	return v
+}
+
+// GetProgramsHandleAvailability calls Check a public handle. GET /v1/programs/handle-availability.
+//
+// Whether `handle` can be set as a program's `publicHandle`, using the same rules as `POST`/`PATCH /v1/programs`: `available: false` with `reason: "invalid"` when it is not 3 to 48 characters of `a-z`, `0-9` and `-`, or `reason: "taken"` when any program (in any org, including your own) already has it. Handles are claimed only by setting them, so a free handle can still be taken before you do; the setter's `409` names `details.field: "publicHandle"`.
+//
+// **Auth:** an API key with `programs:read`, or a session of any role.
+//
+// **Scopes:** `programs:read`, `programs:write`, `read`, `full`, `admin`.
+func (c *Client) GetProgramsHandleAvailability(ctx context.Context, params *GetProgramsHandleAvailabilityParams, opts ...RequestOption) (*GetProgramsHandleAvailabilityResponse, error) {
+	var out GetProgramsHandleAvailabilityResponse
+	if err := c.do(ctx, "GET", "/v1/programs/handle-availability", params.values(), nil, &out, "json", opts); err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
 // GetProgramsID calls Get a program. GET /v1/programs/{id}.
 //
 // One program with its settings (defaults filled in) and public page.
@@ -6299,16 +6402,30 @@ func (c *Client) GetProgramsIDStripeCreditsLogEach(ctx context.Context, id strin
 	})
 }
 
+// GetProgramsIDTermsParams are the query parameters of GetProgramsIDTerms.
+type GetProgramsIDTermsParams struct {
+	Locale *string `json:"locale,omitempty"`
+}
+
+func (p *GetProgramsIDTermsParams) values() url.Values {
+	v := url.Values{}
+	if p == nil {
+		return v
+	}
+	setQuery(v, "locale", p.Locale)
+	return v
+}
+
 // GetProgramsIDTerms calls Get a program's terms. GET /v1/programs/{id}/terms.
 //
-// The program's commission terms for product copy, from its latest commission rule version (`ruleVersion`): the `base` (`percentBps`, or `amountMinor` and `currency`), how long it recurs, the hold, and `summary.en`, an English sentence built deterministically from the rule, such as "20% of every payment for 12 months" or "$50.00 for the first payment only". Bounties are added (", plus $5.00 per signup"); rule conditions add "(conditions apply)"; overrides, tiers or new-vs-expansion rates set `ratesVary` and add "(rates vary)" rather than quote one rate. Partner-group rates and promotions are not included. Publishing a new rule version changes the terms on the next read. `404` when the program has no rule yet. Program-scoped keys read their own programs.
+// The program's commission terms for product copy, from its latest commission rule version (`ruleVersion`): the `base` (`percentBps`, or `amountMinor` and `currency`), how long it recurs, the hold, and `summary`, the same sentence in each partner-portal locale (`en`, `es`, `de`, `fr`, `pt`, `it`, `nl`, `sv`, `ja`, `zh`), built deterministically from the rule, such as "20% of every payment for 12 months" or "$50.00 for the first payment only". Bounties are added (", plus $5.00 per signup"); rule conditions add "(conditions apply)"; overrides, tiers or new-vs-expansion rates set `ratesVary` and add "(rates vary)" rather than quote one rate. With `?locale=de` or an `Accept-Language` header the response also names the chosen `locale` and its sentence as `text` (an unsupported language gets `en`). Bounty event names are kept as written. Partner-group rates and promotions are not included. Publishing a new rule version changes the terms on the next read. `404` when the program has no rule yet. Program-scoped keys read their own programs.
 //
 // **Auth:** an API key with `programs:read`, or a session of any role.
 //
 // **Scopes:** `programs:read`, `programs:write`, `read`, `full`, `admin`.
-func (c *Client) GetProgramsIDTerms(ctx context.Context, id string, opts ...RequestOption) (*ProgramTerms, error) {
+func (c *Client) GetProgramsIDTerms(ctx context.Context, id string, params *GetProgramsIDTermsParams, opts ...RequestOption) (*ProgramTerms, error) {
 	var out ProgramTerms
-	if err := c.do(ctx, "GET", "/v1/programs/"+url.PathEscape(id)+"/terms", nil, nil, &out, "json", opts); err != nil {
+	if err := c.do(ctx, "GET", "/v1/programs/"+url.PathEscape(id)+"/terms", params.values(), nil, &out, "json", opts); err != nil {
 		return nil, err
 	}
 	return &out, nil
@@ -6426,14 +6543,28 @@ func (c *Client) GetProspectsEach(ctx context.Context, params *GetProspectsParam
 	})
 }
 
+// GetPublicProgramsHandleParams are the query parameters of GetPublicProgramsHandle.
+type GetPublicProgramsHandleParams struct {
+	Locale *string `json:"locale,omitempty"`
+}
+
+func (p *GetPublicProgramsHandleParams) values() url.Values {
+	v := url.Values{}
+	if p == nil {
+		return v
+	}
+	setQuery(v, "locale", p.Locale)
+	return v
+}
+
 // GetPublicProgramsHandle calls Get a program's public page. GET /v1/public/programs/{handle}.
 //
-// What a program's public join page shows: the program and merchant names, pitch, cookie window, terms, base commission, branding and whether joining is approved at once. No authentication; only active live programs with a `publicHandle` are found.
+// What a program's public join page shows: the program and merchant names, pitch, cookie window, terms, base commission, branding and whether joining is approved at once. `terms` is the program's commission terms as `GET /v1/programs/{id}/terms` gives them (the rule's base, how long it recurs, hold and `summary` in each portal locale), or null when it has no rule yet; with `?locale=` or `Accept-Language` it also names the chosen `locale` and its sentence as `text`. No authentication; only active live programs with a `publicHandle` are found.
 //
 // **Auth:** none.
-func (c *Client) GetPublicProgramsHandle(ctx context.Context, handle string, opts ...RequestOption) (*GetPublicProgramsHandleResponse, error) {
+func (c *Client) GetPublicProgramsHandle(ctx context.Context, handle string, params *GetPublicProgramsHandleParams, opts ...RequestOption) (*GetPublicProgramsHandleResponse, error) {
 	var out GetPublicProgramsHandleResponse
-	if err := c.do(ctx, "GET", "/v1/public/programs/"+url.PathEscape(handle), nil, nil, &out, "json", opts); err != nil {
+	if err := c.do(ctx, "GET", "/v1/public/programs/"+url.PathEscape(handle), params.values(), nil, &out, "json", opts); err != nil {
 		return nil, err
 	}
 	return &out, nil
@@ -7933,11 +8064,11 @@ func (c *Client) PatchAdminStatusIncidentsID(ctx context.Context, id string, bod
 
 // PatchAPIKeysID calls Update an API key. PATCH /v1/api-keys/{id}.
 //
-// Changes a key's pinned `apiVersion`, `owner`, expiry (`expiresInDays` from now; `null` removes it) or `programIds` (`null` makes it org-wide); `apiVersion: "latest"` pins it to today's newest version. A new expiry re-arms the `api_key.expiring` notices. Revoked keys are 404. Needs an owner or admin session, or an API key with the `admin` scope. Audited.
+// Renames a key or changes its pinned `apiVersion`, `owner`, expiry (`expiresInDays` from now, or `expiresAt`, an ISO 8601 time at most 3650 days out, not both; `null` removes it) or `programIds` (`null` makes it org-wide); `apiVersion: "latest"` pins it to today's newest version. A new expiry re-arms the `api_key.expiring` notices. `name` renames it; `scopes` replaces its scopes. Revoked keys are 404. Needs an owner or admin session, or an API key with the `admin` scope. A key holding `api_keys:mint` may also do this for keys it minted itself (403 for any other), but only to narrow `scopes` and `programIds`, never widen them or make the key org-wide. Audited.
 //
-// **Auth:** an API key with `team:write`, or a session of any role.
+// **Auth:** an API key with `api_keys:mint`, or a session of any role.
 //
-// **Scopes:** `team:write`, `full`, `admin`.
+// **Scopes:** `api_keys:mint`, `admin`.
 func (c *Client) PatchAPIKeysID(ctx context.Context, id string, body PatchApiKeysIdBody, opts ...RequestOption) (*PatchApiKeysIdResponse, error) {
 	var out PatchApiKeysIdResponse
 	if err := c.do(ctx, "PATCH", "/v1/api-keys/"+url.PathEscape(id), nil, body, &out, "json", opts); err != nil {
@@ -7948,7 +8079,7 @@ func (c *Client) PatchAPIKeysID(ctx context.Context, id string, body PatchApiKey
 
 // PatchAuthConnectionsID calls Update an auth connection. PATCH /v1/auth/connections/{id}.
 //
-// Pauses or resumes a connection, renames it, changes `autoEnrollUsers` or the destination of auto-created links, turns `resolveBillingCustomers` on or off, or (signed-protocol connections) sets `signatureVersion`: `v2` to require request-line signatures, `v1+v2` to accept both again. `resolveBillingCustomers` (any provider, default false): a billing customer that arrives with no customerRef (no `referalli_customer_ref` metadata, no `customerRefMetadataKey` hit) in a program this connection serves (within the billing connection's `programIds`) is resolved through this connection's users: `referalli_user_id` or `<provider>_user_id` metadata naming a user it reported, else exactly one user whose current email is the customer's and verified. The billing link is recorded as metadata would record it; none or several matches record `ignoredReason: "identity_unresolved"` / `"identity_ambiguous"` on the billing event. Explicit metadata always wins. Matching uses only the org's own data. `tokenVerification` replaces the widget-session verifier (an HS256 secret is kept when `sharedSecret` is left out; `null` removes it) and `allowedOrigins` replaces the origin list.
+// Pauses or resumes a connection, renames it, changes `autoEnrollUsers` or the destination of auto-created links, turns `resolveBillingCustomers` on or off, or (signed-protocol connections) sets `signatureVersion`: `v2` to require request-line signatures, `v1+v2` to accept both again. `resolveBillingCustomers` (any provider, default false): a billing customer that arrives with no customerRef (no `referalli_customer_ref` metadata, no `customerRefMetadataKey` hit) in a program this connection serves (within the billing connection's `programIds`) is resolved through this connection's users: `referalli_user_id` or `<provider>_user_id` metadata naming a user it reported, else exactly one user whose current email is the customer's and verified. The billing link is recorded as metadata would record it; none or several matches record `ignoredReason: "identity_unresolved"` / `"identity_ambiguous"` on the billing event. Explicit metadata always wins. Matching uses only the org's own data. `tokenVerification` replaces the widget-session verifier (an HS256 secret is kept when `sharedSecret` is left out; `null` removes it) and `allowedOrigins` replaces the origin list. The auth platform itself can also call this path, signed with the connection secret and with only `allowedOrigins` in the body (no session), to set its origins; see `PUT /v1/auth/connections/{id}/origins`.
 //
 // **Auth:** an API key with `integrations:write`, or a session with role `owner`, `admin`.
 //
@@ -7956,6 +8087,19 @@ func (c *Client) PatchAPIKeysID(ctx context.Context, id string, body PatchApiKey
 func (c *Client) PatchAuthConnectionsID(ctx context.Context, id string, body PatchAuthConnectionsIdBody, opts ...RequestOption) (*PatchAuthConnectionsIdResponse, error) {
 	var out PatchAuthConnectionsIdResponse
 	if err := c.do(ctx, "PATCH", "/v1/auth/connections/"+url.PathEscape(id), nil, body, &out, "json", opts); err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// PatchAuthConnectionsIDOrigins calls Set a connection's allowed origins (signed protocol, PATCH). PATCH /v1/auth/connections/{id}/origins.
+//
+// The same as `PUT /v1/auth/connections/{id}/origins`. Signed with the connection secret in `x-referalli-signature: t=<unix>,v1=…,v2=…` (v2 also signs the request line; once a connection has seen v2 it requires it), with a unique `x-referalli-id` per call. The legacy header names from before the rename are also accepted, for existing integrations. Calls older than 5 minutes, reused ids (`409 replay`), paused connections (`423 connection_paused`) and unknown fields (`422`) are refused.
+//
+// **Auth:** none.
+func (c *Client) PatchAuthConnectionsIDOrigins(ctx context.Context, id string, body PatchAuthConnectionsIdOriginsBody, opts ...RequestOption) (*PatchAuthConnectionsIdOriginsResponse, error) {
+	var out PatchAuthConnectionsIdOriginsResponse
+	if err := c.do(ctx, "PATCH", "/v1/auth/connections/"+url.PathEscape(id)+"/origins", nil, body, &out, "json", opts); err != nil {
 		return nil, err
 	}
 	return &out, nil
@@ -8083,7 +8227,7 @@ func (c *Client) PatchPortalThemeDraft(ctx context.Context, body map[string]any,
 
 // PatchProgramsID calls Update a program. PATCH /v1/programs/{id}.
 //
-// Changes any program field or setting; omitted fields keep their value, and `publicPage` is merged. Changing `termsMd` records a new terms version. Setting `status` to `paused` or `archived` stops new attribution. `mobileApp` (iOS Team ID and bundle id, Android package and signing-certificate fingerprints) publishes the program's apps in the universal-links and App Links files on the org's link hosts. `destinationUrl` moves the program's default link destination: every link still on the old default (the widget's or a sign-in connection's) is repointed in the same call, custom destinations stay, and links already shared follow at click time; `{code}` in it becomes the link's code. Audited.
+// Changes any program field or setting; omitted fields keep their value, and `publicPage` is merged. Changing `termsMd` records a new terms version. Setting `status` to `paused` or `archived` stops new attribution. `signupPaymentGraceMinutes` (0 to 1440, default 5) is how long before the referral's sign-up time a payment still earns. `mobileApp` (iOS Team ID and bundle id, Android package and signing-certificate fingerprints) publishes the program's apps in the universal-links and App Links files on the org's link hosts. `destinationUrl` moves the program's default link destination: every link still on the old default (the widget's or a sign-in connection's) is repointed in the same call, custom destinations stay, and links already shared follow at click time; `{code}` in it becomes the link's code. A `publicHandle` another program has is `409 conflict` with `details: { field: 'publicHandle' }`. Audited.
 //
 // **Auth:** an API key with `programs:write`, or a session with role `owner`, `admin`.
 //
@@ -8260,11 +8404,11 @@ func (c *Client) PostAnomaliesScan(ctx context.Context, opts ...RequestOption) (
 
 // PostAPIKeys calls Create an API key. POST /v1/api-keys.
 //
-// Mints a secret key (`rk_live_…` / `rk_test_…`), shown only in this response (and in its `Idempotency-Key` replay: a retry with the same key and body within 24 hours returns this response again, secret included, without minting another). `scopes` defaults to `full`; a key can't grant scopes it doesn't hold. `mode` picks live, test or a matching pair of both (`both` returns `{ pairId, live, test }`); a test-mode caller can mint test keys only. `publishable: true` mints a browser-safe `rk_pub_` key limited to `programs:read` and `events:write` from `allowedOrigins`. `apiVersion` pins the key to a version, or `latest` (the default) to the newest version at the time of the call; the pin never moves on its own (a key keeps answering in that version after newer ones ship) until you `PATCH` it or send a `referalli-version` header. A key pinned to `2026-10-21` gets every list as a capped plain array instead of the paginated envelope. `programIds` limits the key to those programs (their partners, links, referrals, commissions, enrollments, webhook endpoints whose `programIds` are all within the key's, with their deliveries, and billing connections likewise); a program-scoped key gets 403 `program_scoped_key` on org-wide endpoints (keys, team, org settings, the rest of billing, payouts, the event feed, analytics, creating programs). An `api_keys:mint` key may also call this (and no other key endpoint): it can't mint `admin` or `api_keys:mint` keys or scopes it doesn't hold, and a program-scoped one must send `programIds` within its own (`403` otherwise). Needs an owner or admin session, or an API key with the `admin` scope. Audited.
+// Expiry is `expiresInDays` or `expiresAt` (ISO 8601, at most 3650 days out), not both. Mints a secret key (`rk_live_…` / `rk_test_…`), shown only in this response (and in its `Idempotency-Key` replay: a retry with the same key and body within 24 hours returns this response again, secret included, without minting another). `scopes` defaults to `full`; a key can't grant scopes it doesn't hold. `mode` picks live, test or a matching pair of both (`both` returns `{ pairId, live, test }`); a test-mode caller can mint test keys only. `publishable: true` mints a browser-safe `rk_pub_` key limited to `programs:read` and `events:write` from `allowedOrigins`. `apiVersion` pins the key to a version, or `latest` (the default) to the newest version at the time of the call; the pin never moves on its own (a key keeps answering in that version after newer ones ship) until you `PATCH` it or send a `referalli-version` header. A key pinned to `2026-10-21` gets every list as a capped plain array instead of the paginated envelope. `programIds` limits the key to those programs (their partners, links, referrals, commissions, enrollments, webhook endpoints whose `programIds` are all within the key's, with their deliveries, billing connections likewise, auth connections of those programs, and privacy lookup, export, forget and requests for people in those programs); a program-scoped key gets 403 `program_scoped_key` on org-wide endpoints (keys, team, org settings, the rest of billing, payouts, the event feed, analytics, creating programs). An `api_keys:mint` key may also call this (and no other key endpoint): it can't mint `admin` or `api_keys:mint` keys or scopes it doesn't hold, and a program-scoped one must send `programIds` within its own (`403` otherwise). Needs an owner or admin session, or an API key with the `admin` scope. Audited.
 //
-// **Auth:** an API key with `team:write`, or a session of any role.
+// **Auth:** an API key with `api_keys:mint`, or a session of any role.
 //
-// **Scopes:** `team:write`, `api_keys:mint`, `full`, `admin`.
+// **Scopes:** `api_keys:mint`, `admin`.
 func (c *Client) PostAPIKeys(ctx context.Context, body PostApiKeysBody, opts ...RequestOption) (*PostApiKeysResponse, error) {
 	var out PostApiKeysResponse
 	if err := c.do(ctx, "POST", "/v1/api-keys", nil, body, &out, "json", opts); err != nil {
@@ -8275,11 +8419,11 @@ func (c *Client) PostAPIKeys(ctx context.Context, body PostApiKeysBody, opts ...
 
 // PostAPIKeysIDRotate calls Rotate an API key. POST /v1/api-keys/{id}/rotate.
 //
-// Mints a replacement key with the same name, scopes, origins, version pin, owner, programs and lifetime (an expiring key's new expiry is the same length from now), returned once with `rotatedFrom: { id, expiresAt }`. The old key keeps working for `graceHours` (default 24, at most 168, 0 = stop now), then expires; it gets no `api_key.expiring` notice. An expired or revoked key can't be rotated (409 `api_key_expired` / 404). Needs an owner or admin session, or an API key with the `admin` scope. Audited.
+// Mints a replacement key with the same name, scopes, origins, version pin, owner, programs and lifetime (an expiring key's new expiry is the same length from now), returned once with `rotatedFrom: { id, expiresAt }`. The old key keeps working for `graceHours` (default 24, at most 168, 0 = stop now), then expires; it gets no `api_key.expiring` notice. An expired or revoked key can't be rotated (409 `api_key_expired` / 404). Needs an owner or admin session, or an API key with the `admin` scope. A key holding `api_keys:mint` may also do this for keys it minted itself (403 for any other). Audited.
 //
-// **Auth:** an API key with `team:write`, or a session of any role.
+// **Auth:** an API key with `api_keys:mint`, or a session of any role.
 //
-// **Scopes:** `team:write`, `full`, `admin`.
+// **Scopes:** `api_keys:mint`, `admin`.
 func (c *Client) PostAPIKeysIDRotate(ctx context.Context, id string, body PostApiKeysIdRotateBody, opts ...RequestOption) (*PostApiKeysIdRotateResponse, error) {
 	var out PostApiKeysIdRotateResponse
 	if err := c.do(ctx, "POST", "/v1/api-keys/"+url.PathEscape(id)+"/rotate", nil, body, &out, "json", opts); err != nil {
@@ -8346,6 +8490,19 @@ func (c *Client) PostAuthConnections(ctx context.Context, body PostAuthConnectio
 	return &out, nil
 }
 
+// PostAuthConnectionsIDAccounts calls Set an organization's owner (signed protocol). POST /v1/auth/connections/{id}/accounts.
+//
+// The `accounts` capability: an organization the app bills under (`accountRef`: its id in billing metadata, e.g. Atlas's `external_id`) is owned by `ownerCustomerRef` (a user the connection reports). Its payments earn for the owner's referral; send it again whenever ownership changes. When the organization's id changes, send the new id as `accountRef` with the old one as `previousAccountRef` (the owner carries over unless `ownerCustomerRef` is sent): the old id then follows the new one. When it is deleted, send `{ accountRef, deleted: true }`: it has no owner from then on, so its payments earn nothing (earned commissions stay; refunds still reverse them). Same as `PUT /v1/billing/accounts/{accountRef}/owner` and `DELETE /v1/billing/accounts/{accountRef}`; returns `{ ok, accountRef, ownerCustomerRef, previousOwnerCustomerRef, renamedFrom, deleted, changed, relinked, reprocessedPayments }`; a repeat answers `changed: false`. Publishes `billing_account.owner_changed`. Signed with the connection secret in `x-referalli-signature: t=<unix>,v1=…,v2=…` (v2 also signs the request line; once a connection has seen v2 it requires it), with a unique `x-referalli-id` per call. The legacy header names from before the rename are also accepted, for existing integrations. Calls older than 5 minutes, reused ids (`409 replay`), paused connections (`423 connection_paused`) and unknown fields (`422`) are refused.
+//
+// **Auth:** none.
+func (c *Client) PostAuthConnectionsIDAccounts(ctx context.Context, id string, body PostAuthConnectionsIdAccountsBody, opts ...RequestOption) (*PostAuthConnectionsIdAccountsResponse, error) {
+	var out PostAuthConnectionsIdAccountsResponse
+	if err := c.do(ctx, "POST", "/v1/auth/connections/"+url.PathEscape(id)+"/accounts", nil, body, &out, "json", opts); err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
 // PostAuthConnectionsIDAliases calls Change a user's id (signed protocol). POST /v1/auth/connections/{id}/aliases.
 //
 // The app stamped or changed a user's id after the sign-up was filed: referrals and identity move from `fromCustomerRef` to `toCustomerRef`. Publishes `customer.aliased`. Signed with the connection secret in `x-referalli-signature: t=<unix>,v1=…,v2=…` (v2 also signs the request line; once a connection has seen v2 it requires it), with a unique `x-referalli-id` per call. The legacy header names from before the rename are also accepted, for existing integrations. Calls older than 5 minutes, reused ids (`409 replay`), paused connections (`423 connection_paused`) and unknown fields (`422`) are refused.
@@ -8387,7 +8544,7 @@ func (c *Client) PostAuthConnectionsIDPartners(ctx context.Context, id string, b
 
 // PostAuthConnectionsIDPing calls Test an auth connection (signed protocol). POST /v1/auth/connections/{id}/ping.
 //
-// Proves the secret works: returns the connection, its program and org, the server time (to check clock skew) and `capabilities` (`{ partners: true }`: user-chosen referral codes through `/partners`). Signed with the connection secret in `x-referalli-signature: t=<unix>,v1=…,v2=…` (v2 also signs the request line; once a connection has seen v2 it requires it), with a unique `x-referalli-id` per call. The legacy header names from before the rename are also accepted, for existing integrations. Calls older than 5 minutes, reused ids (`409 replay`), paused connections (`423 connection_paused`) and unknown fields (`422`) are refused.
+// Proves the secret works: returns the connection, its program and org, the server time (to check clock skew) and `capabilities` (`{ partners: true, origins: true, accounts: true }`: user-chosen referral codes through `/partners`, setting `allowedOrigins` through `PUT …/origins` or a signed PATCH, and organization owners through `/accounts`). Signed with the connection secret in `x-referalli-signature: t=<unix>,v1=…,v2=…` (v2 also signs the request line; once a connection has seen v2 it requires it), with a unique `x-referalli-id` per call. The legacy header names from before the rename are also accepted, for existing integrations. Calls older than 5 minutes, reused ids (`409 replay`), paused connections (`423 connection_paused`) and unknown fields (`422`) are refused.
 //
 // **Auth:** a signature (see above); no API key.
 func (c *Client) PostAuthConnectionsIDPing(ctx context.Context, id string, body map[string]any, opts ...RequestOption) (*PostAuthConnectionsIdPingResponse, error) {
@@ -8553,6 +8710,21 @@ func (c *Client) PostBillingConnections(ctx context.Context, body PostBillingCon
 	return &out, nil
 }
 
+// PostBillingConnectionsIDEvents calls Send events to a generic connection. POST /v1/billing/connections/{id}/events.
+//
+// The generic connection's webhook body (`{ "events": [...] }`, up to 500) sent with an API key instead of the connection's HMAC signature, so your server needs no second secret. Runs the same processing as `POST /webhooks/billing/{id}`: paid invoices become conversions and commissions, refunds and disputes reverse them, and each event is idempotent by `providerEventId` (a resend answers `duplicate: true`), whichever of the two routes sent it first. Needs `billing:write`; a program-scoped key reaches only connections limited to its own programs. `404` for an unknown, deleted or paused connection; `409 conflict` for a connection that isn't `generic` (those take their provider's webhooks).
+//
+// **Auth:** an API key with `billing:write`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `billing:write`, `full`, `admin`.
+func (c *Client) PostBillingConnectionsIDEvents(ctx context.Context, id string, body PostBillingConnectionsIdEventsBody, opts ...RequestOption) (*PostBillingConnectionsIdEventsResponse, error) {
+	var out PostBillingConnectionsIdEventsResponse
+	if err := c.do(ctx, "POST", "/v1/billing/connections/"+url.PathEscape(id)+"/events", nil, body, &out, "json", opts); err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
 // PostBillingConnectionsIDRotateSecret calls Rotate the webhook signing secret. POST /v1/billing/connections/{id}/rotate-secret.
 //
 // Generates a new signing secret, returned once. The previous one keeps verifying until `previousSecretExpiresAt` (24 hours). Audited.
@@ -8578,6 +8750,21 @@ func (c *Client) PostBillingConnectionsIDRotateSecret(ctx context.Context, id st
 func (c *Client) PostBillingConnectionsIDValueMappingPreview(ctx context.Context, id string, body PostBillingConnectionsIdValueMappingPreviewBody, opts ...RequestOption) (*ValueMappingPreview, error) {
 	var out ValueMappingPreview
 	if err := c.do(ctx, "POST", "/v1/billing/connections/"+url.PathEscape(id)+"/value-mapping/preview", nil, body, &out, "json", opts); err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// PostBillingEventsIDRelease calls Release a held payment. POST /v1/billing/events/{id}/release.
+//
+// A payment over its connection's `maxAmountMinor` (default 1,000,000,000 minor units), or dated more than a day ahead, is recorded with `status: "held"` and earns nothing. Releasing it says it is real: it earns as it would have on arrival, and any refund that waited for it applies.
+//
+// **Auth:** an API key with `billing:write`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `billing:write`, `full`, `admin`.
+func (c *Client) PostBillingEventsIDRelease(ctx context.Context, id string, opts ...RequestOption) (*PostBillingEventsIdReleaseResponse, error) {
+	var out PostBillingEventsIdReleaseResponse
+	if err := c.do(ctx, "POST", "/v1/billing/events/"+url.PathEscape(id)+"/release", nil, nil, &out, "json", opts); err != nil {
 		return nil, err
 	}
 	return &out, nil
@@ -9377,7 +9564,7 @@ func (c *Client) PostOrgs(ctx context.Context, body PostOrgsBody, opts ...Reques
 
 // PostOrgsOrgIDPrivacyExecutorKey calls Mint an executor key under a Cookie Munch partner link. POST /v1/orgs/{orgId}/privacy/executor-key.
 //
-// Called by Cookie Munch, not by you (CMU-X25): mints (or rotates) this org's cm-standard-v2 executor key so Cookie Munch's `referalli` executor preset can connect without a pasted key. The request must be signed by Cookie Munch's partner key exactly like its consent deliveries: `CookieMunch-Partner-Signature: t=<unix seconds>,kid=<key id>,ed25519=<base64url>` over `<t>.<raw body>`, with the key named in `https://api.cookiemunch.net/v1/partner/jwks.json` (300 s window; each signed request and each body `nonce` works once, a replay is 409; `partner` must be `referalli` and `externalId` the org in the path). Referalli then confirms the partner link with Cookie Munch over its own partner token (`GET /v1/partner/links`): it must be `active` or `waiting_on_partner`, name this org as `externalId`, sit on a site this org registered (`PUT /v1/org/consent-partners/cookiemunch`), and match `cbid`/`linkId` when sent; otherwise 403 `no_grant`. 201 `{secret, executorUrl, contract, orgId, linkId, cbid, rotated}`: `secret` is shown once and is the bearer key for `executorUrl` (`https://referalli.com/api`, the cm-standard-v2 baseUrl: calls go to `<executorUrl>/privacy/*`), where it reaches only this org's referred customers and partners. The old key stops working at once. Audited (`privacy.executor_key_minted`).
+// Called by Cookie Munch, not by you (CMU-X25): mints (or rotates) this org's cm-standard-v2 executor key, limited to `programIds` when sent so Cookie Munch's `referalli` executor preset can connect without a pasted key. The request must be signed by Cookie Munch's partner key exactly like its consent deliveries: `CookieMunch-Partner-Signature: t=<unix seconds>,kid=<key id>,ed25519=<base64url>` over `<t>.<raw body>`, with the key named in `https://api.cookiemunch.net/v1/partner/jwks.json` (300 s window; each signed request and each body `nonce` works once, a replay is 409; `partner` must be `referalli` and `externalId` the org in the path). Referalli then confirms the partner link with Cookie Munch over its own partner token (`GET /v1/partner/links`): it must be `active` or `waiting_on_partner`, name this org as `externalId`, sit on a site this org registered (`PUT /v1/org/consent-partners/cookiemunch`), and match `cbid`/`linkId` when sent; otherwise 403 `no_grant`. 201 `{secret, executorUrl, contract, orgId, linkId, cbid, rotated}`: `secret` is shown once and is the bearer key for `executorUrl` (`https://referalli.com/api`, the cm-standard-v2 baseUrl: calls go to `<executorUrl>/privacy/*`), where it reaches only this org's referred customers and partners. The old key stops working at once. Audited (`privacy.executor_key_minted`).
 //
 // **Auth:** none.
 func (c *Client) PostOrgsOrgIDPrivacyExecutorKey(ctx context.Context, orgId string, body PostOrgsOrgIdPrivacyExecutorKeyBody, opts ...RequestOption) (*PostOrgsOrgIdPrivacyExecutorKeyResponse, error) {
@@ -10038,7 +10225,7 @@ func (c *Client) PostProfitabilityRebuild(ctx context.Context, opts ...RequestOp
 
 // PostPrograms calls Create a program. POST /v1/programs.
 //
-// Creates an affiliate program: its attribution model, cookie window, how long after sign-up a conversion still counts (`signupToConversionDays`, 1 to 1095, default 365; `cookieWindowDays` is 1 to 400, default 60), terms, public page and settings. `slug` is unique per org. Terms are versioned so partners can be asked to accept new ones. Over the plan's program limit this is `402 payment_required`.
+// Creates an affiliate program: its attribution model, cookie window, how long after sign-up a conversion still counts (`signupToConversionDays`, 1 to 1095, default 365; `cookieWindowDays` is 1 to 400, default 60), terms, public page and settings (`signupPaymentGraceMinutes`, 0 to 1440, default 5: how long before the referral's sign-up time a payment still earns). `slug` is unique per org. Terms are versioned so partners can be asked to accept new ones. `publicHandle` is unique across every org (check it first with `GET /v1/programs/handle-availability`). A taken `slug` or `publicHandle` is `409 conflict` with `details.field` naming it (`slug` or `publicHandle`). Over the plan's program limit this is `402 payment_required`.
 //
 // **Auth:** an API key with `programs:write`, or a session with role `owner`, `admin`.
 //
@@ -10246,7 +10433,7 @@ func (c *Client) PostQualityRecompute(ctx context.Context, opts ...RequestOption
 
 // PostReferralsAssociate calls Attribute a new customer. POST /v1/referrals/associate.
 //
-// The key server-side call: tell Referalli a customer signed up, with whatever you know about where they came from (`referralToken`/`ref_click_id`, `anonId`, `couponCode`, `emailHash`, IP and user agent). The attribution engine picks the partner under the program's model and windows. `referral` is `null` when no partner matched (not an error); `reasoning.notes` says why. Repeating `idempotencyKey` returns the existing referral. `occurredAt` records a late call at the real sign-up time (up to 5 minutes of clock skew is tolerated) and backfills payments since. `emailDomain` lets burner-email sign-ups be held for review. Publishes `referral.created` (or `referral.held`).
+// The key server-side call: tell Referalli a customer signed up, with whatever you know about where they came from (`referralToken`/`ref_click_id`, `anonId`, `couponCode`, `emailHash`, IP and user agent). The attribution engine picks the partner under the program's model and windows. `referral` is `null` when no partner matched (not an error); `reasoning.notes` says why. Repeating `idempotencyKey` returns the existing referral. `occurredAt` records a late call at the real sign-up time (up to 5 minutes of clock skew is tolerated) and backfills payments since. `emailDomain` lets burner-email sign-ups be held for review. `handoffToken` (from `POST /t/{orgToken}/handoff` or `POST /v1/referrals/handoff-tokens`) fills `anonId`, `referralToken` and `couponCode` where they are not sent; a malformed, expired or other org's token is `400 invalid_handoff_token`. Publishes `referral.created` (or `referral.held`).
 //
 // **Auth:** an API key with `referrals:write`, or a session of any role.
 //
@@ -10254,6 +10441,21 @@ func (c *Client) PostQualityRecompute(ctx context.Context, opts ...RequestOption
 func (c *Client) PostReferralsAssociate(ctx context.Context, body PostReferralsAssociateBody, opts ...RequestOption) (*AssociateResponse, error) {
 	var out AssociateResponse
 	if err := c.do(ctx, "POST", "/v1/referrals/associate", nil, body, &out, "json", opts); err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// PostReferralsHandoffTokens calls Mint a hand-off token. POST /v1/referrals/handoff-tokens.
+//
+// The server-side twin of `POST /t/{orgToken}/handoff`: signs `anonId`, `clickId` and/or `code` (at least one) into a token valid for 24 hours, for this org only, to pass later to `POST /v1/referrals/associate` as `handoffToken`. Use it when the server that saw the landing (`?ref_click_id=`) is not the one that files the sign-up.
+//
+// **Auth:** an API key with `referrals:write`, or a session of any role.
+//
+// **Scopes:** `referrals:write`, `full`, `admin`.
+func (c *Client) PostReferralsHandoffTokens(ctx context.Context, body PostReferralsHandoffTokensBody, opts ...RequestOption) (*HandoffToken, error) {
+	var out HandoffToken
+	if err := c.do(ctx, "POST", "/v1/referrals/handoff-tokens", nil, body, &out, "json", opts); err != nil {
 		return nil, err
 	}
 	return &out, nil
@@ -10381,7 +10583,7 @@ func (c *Client) PostSandboxBillingFixtures(ctx context.Context, body PostSandbo
 
 // PostSandboxSimulate calls Simulate billing history. POST /v1/sandbox/simulate.
 //
-// Generates deterministic billing history through the real commission pipeline, so you can see commissions flow without a provider: a new sandbox customer referred to the partner, `months` (default 3) of subscription payments at `priceMinor`, then for `scenario: "refund"` a half refund of the first invoice or for `churn` a cancellation. Returns the customer and what was created. Audited.
+// Generates deterministic billing history through the real commission pipeline, so you can see commissions flow without a provider: a new sandbox customer referred to the partner, `months` (default 3) of subscription payments at `priceMinor`, then for `scenario: "refund"` a half refund of the first invoice or for `churn` a cancellation. Returns the customer and what was created. `scenario: "signup_and_pay"` (test mode only, `409 test_mode_only` otherwise) proves the whole loop instead: a sign-up of `customerRef` (default a new `cus_sandbox_…`) referred by `partnerId` (a click on their link) or by `code` (a link or coupon code), filed through auth connection `authConnectionId` exactly as its signed `POST /v1/auth/connections/{id}/signups` would file it (auto-enroll included) or, without one, as `POST /v1/referrals/associate`; then a provider-neutral `payment.paid` of `amountMinor` (default 4900) in `currency` (default USD) through billing connection `billingConnectionId` (default the org's only active one, else `409`), run through the same pipeline as `POST /v1/sandbox/billing-fixtures`. Answers `{ scenario, ok, steps: [signup, payment], commissions }`; a step that could not succeed answers `ok: false` with `notes` saying why (sign-up not credited, auth connection paused or in another program, billing connection `awaiting_secret`, paused or limited to other programs, payment ignored, program without a commission rule) rather than an error. Audited.
 //
 // **Auth:** an API key with `billing:write`, or a session with role `owner`, `admin`.
 //
@@ -10702,6 +10904,19 @@ func (c *Client) PostZapierHooks(ctx context.Context, body PostZapierHooksBody, 
 	return &out, nil
 }
 
+// PutAuthConnectionsIDOrigins calls Set a connection's allowed origins (signed protocol). PUT /v1/auth/connections/{id}/origins.
+//
+// The `origins` capability: the auth platform replaces this connection's own `allowedOrigins` (the browser origins that may call `POST /v1/widget/session`) when its app's origins change. Exact origins only (`https://app.example.com`, no path or wildcard; `http` only for localhost), at most 50; the body takes nothing else. Returns `{ id, allowedOrigins }`. Audited. A connection-signed `PATCH /v1/auth/connections/{id}` with the same body does the same. Signed with the connection secret in `x-referalli-signature: t=<unix>,v1=…,v2=…` (v2 also signs the request line; once a connection has seen v2 it requires it), with a unique `x-referalli-id` per call. The legacy header names from before the rename are also accepted, for existing integrations. Calls older than 5 minutes, reused ids (`409 replay`), paused connections (`423 connection_paused`) and unknown fields (`422`) are refused.
+//
+// **Auth:** none.
+func (c *Client) PutAuthConnectionsIDOrigins(ctx context.Context, id string, body PutAuthConnectionsIdOriginsBody, opts ...RequestOption) (*PutAuthConnectionsIdOriginsResponse, error) {
+	var out PutAuthConnectionsIdOriginsResponse
+	if err := c.do(ctx, "PUT", "/v1/auth/connections/"+url.PathEscape(id)+"/origins", nil, body, &out, "json", opts); err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
 // PutAuthConnectionsIDSecret calls Set a vendor-issued secret. PUT /v1/auth/connections/{id}/secret.
 //
 // For webhook connectors whose vendor issues the signing secret (Clerk, Stytch, WorkOS) or key set (Kinde's JWKS document): replaces the connection's secret. The previous one keeps verifying for 24 hours. Signed-protocol connections rotate instead. Audited.
@@ -10712,6 +10927,21 @@ func (c *Client) PostZapierHooks(ctx context.Context, body PostZapierHooksBody, 
 func (c *Client) PutAuthConnectionsIDSecret(ctx context.Context, id string, body PutAuthConnectionsIdSecretBody, opts ...RequestOption) (*PutAuthConnectionsIdSecretResponse, error) {
 	var out PutAuthConnectionsIdSecretResponse
 	if err := c.do(ctx, "PUT", "/v1/auth/connections/"+url.PathEscape(id)+"/secret", nil, body, &out, "json", opts); err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// PutBillingAccountsAccountRefOwner calls Set a billing account's owner. PUT /v1/billing/accounts/{accountRef}/owner.
+//
+// For products that bill an organization (a team, a workspace) rather than a person. `accountRef` is the id your billing events carry for the organization (the `customerRef` of a generic event, or the metadata value a connection's `customerRefMetadataKey` reads, e.g. `organization_id`); `ownerCustomerRef` is the user whose referral its payments earn for. From then on the account's payments earn for the owner's referral (unless a referral is filed under the account itself). The first owner set replays the account's earlier payments for that owner's referral. Changing the owner re-points the account's provider customers, so later payments earn for the new owner's referral; payments made before the change stay with the previous owner's referral. When the organization's id changed, call it under the new id with `previousAccountRef` (the old one) instead of, or as well as, `ownerCustomerRef`: the old id then follows the new one (payments still arriving under it earn for the new id's owner), and the owner carries over unless named. Returns `{ accountRef, ownerCustomerRef, previousOwnerCustomerRef, renamedFrom, deleted, changed, relinked, reprocessedPayments }`; the same call again answers `changed: false`. Publishes `billing_account.owner_changed`. Auth platforms with the `accounts` capability (Atlas) send this for you through `POST /v1/auth/connections/{id}/accounts`. Needs `billing:write`. Audited.
+//
+// **Auth:** an API key with `billing:write`, or a session with role `owner`, `admin`.
+//
+// **Scopes:** `billing:write`, `full`, `admin`.
+func (c *Client) PutBillingAccountsAccountRefOwner(ctx context.Context, accountRef string, body PutBillingAccountsAccountRefOwnerBody, opts ...RequestOption) (*PutBillingAccountsAccountRefOwnerResponse, error) {
+	var out PutBillingAccountsAccountRefOwnerResponse
+	if err := c.do(ctx, "PUT", "/v1/billing/accounts/"+url.PathEscape(accountRef)+"/owner", nil, body, &out, "json", opts); err != nil {
 		return nil, err
 	}
 	return &out, nil
@@ -11396,6 +11626,8 @@ func (c *Client) Call(ctx context.Context, operationID string, path map[string]s
 		return c.DeleteAssetsID(ctx, path["id"], opts...)
 	case "deleteAuthConnectionsId":
 		return c.DeleteAuthConnectionsID(ctx, path["id"], opts...)
+	case "deleteBillingAccountsAccountRef":
+		return c.DeleteBillingAccountsAccountRef(ctx, path["accountRef"], opts...)
 	case "deleteBillingConnectionsId":
 		return c.DeleteBillingConnectionsID(ctx, path["id"], opts...)
 	case "deleteBillingInternalCustomersCustomerRef":
@@ -11532,6 +11764,8 @@ func (c *Client) Call(ctx context.Context, operationID string, path map[string]s
 			return nil, err
 		}
 		return c.GetAuthConnections(ctx, &p, opts...)
+	case "getAuthConnectionsId":
+		return c.GetAuthConnectionsID(ctx, path["id"], opts...)
 	case "getAuthConnectionsIdExport":
 		var p GetAuthConnectionsIDExportParams
 		if err := decodeQuery(query, &p); err != nil {
@@ -11544,6 +11778,8 @@ func (c *Client) Call(ctx context.Context, operationID string, path map[string]s
 		return c.GetAuthConnectionsProviders(ctx, opts...)
 	case "getAuthProviders":
 		return c.GetAuthProviders(ctx, opts...)
+	case "getBillingAccountsAccountRef":
+		return c.GetBillingAccountsAccountRef(ctx, path["accountRef"], opts...)
 	case "getBillingConnections":
 		var p GetBillingConnectionsParams
 		if err := decodeQuery(query, &p); err != nil {
@@ -11806,6 +12042,8 @@ func (c *Client) Call(ctx context.Context, operationID string, path map[string]s
 		return c.GetOrgTaxProfile(ctx, opts...)
 	case "getOrgTrackingConsent":
 		return c.GetOrgTrackingConsent(ctx, opts...)
+	case "getOrgTrackingTokens":
+		return c.GetOrgTrackingTokens(ctx, opts...)
 	case "getOutreach":
 		var p GetOutreachParams
 		if err := decodeQuery(query, &p); err != nil {
@@ -12074,6 +12312,12 @@ func (c *Client) Call(ctx context.Context, operationID string, path map[string]s
 			return nil, err
 		}
 		return c.GetPrograms(ctx, &p, opts...)
+	case "getProgramsHandleAvailability":
+		var p GetProgramsHandleAvailabilityParams
+		if err := decodeQuery(query, &p); err != nil {
+			return nil, err
+		}
+		return c.GetProgramsHandleAvailability(ctx, &p, opts...)
 	case "getProgramsId":
 		return c.GetProgramsID(ctx, path["id"], opts...)
 	case "getProgramsIdAutopricing":
@@ -12123,7 +12367,11 @@ func (c *Client) Call(ctx context.Context, operationID string, path map[string]s
 		}
 		return c.GetProgramsIDStripeCreditsLog(ctx, path["id"], &p, opts...)
 	case "getProgramsIdTerms":
-		return c.GetProgramsIDTerms(ctx, path["id"], opts...)
+		var p GetProgramsIDTermsParams
+		if err := decodeQuery(query, &p); err != nil {
+			return nil, err
+		}
+		return c.GetProgramsIDTerms(ctx, path["id"], &p, opts...)
 	case "getProgramsIdTermsAcceptances":
 		var p GetProgramsIDTermsAcceptancesParams
 		if err := decodeQuery(query, &p); err != nil {
@@ -12137,7 +12385,11 @@ func (c *Client) Call(ctx context.Context, operationID string, path map[string]s
 		}
 		return c.GetProspects(ctx, &p, opts...)
 	case "getPublicProgramsHandle":
-		return c.GetPublicProgramsHandle(ctx, path["handle"], opts...)
+		var p GetPublicProgramsHandleParams
+		if err := decodeQuery(query, &p); err != nil {
+			return nil, err
+		}
+		return c.GetPublicProgramsHandle(ctx, path["handle"], &p, opts...)
 	case "getReferrals":
 		var p GetReferralsParams
 		if err := decodeQuery(query, &p); err != nil {
@@ -12344,6 +12596,12 @@ func (c *Client) Call(ctx context.Context, operationID string, path map[string]s
 			return nil, err
 		}
 		return c.PatchAuthConnectionsID(ctx, path["id"], b, opts...)
+	case "patchAuthConnectionsIdOrigins":
+		var b PatchAuthConnectionsIdOriginsBody
+		if err := decodeInto(body, &b); err != nil {
+			return nil, err
+		}
+		return c.PatchAuthConnectionsIDOrigins(ctx, path["id"], b, opts...)
 	case "patchBillingConnectionsId":
 		var b PatchBillingConnectionsIdBody
 		if err := decodeInto(body, &b); err != nil {
@@ -12490,6 +12748,12 @@ func (c *Client) Call(ctx context.Context, operationID string, path map[string]s
 			return nil, err
 		}
 		return c.PostAuthConnections(ctx, b, opts...)
+	case "postAuthConnectionsIdAccounts":
+		var b PostAuthConnectionsIdAccountsBody
+		if err := decodeInto(body, &b); err != nil {
+			return nil, err
+		}
+		return c.PostAuthConnectionsIDAccounts(ctx, path["id"], b, opts...)
 	case "postAuthConnectionsIdAliases":
 		var b PostAuthConnectionsIdAliasesBody
 		if err := decodeInto(body, &b); err != nil {
@@ -12568,6 +12832,12 @@ func (c *Client) Call(ctx context.Context, operationID string, path map[string]s
 			return nil, err
 		}
 		return c.PostBillingConnections(ctx, b, opts...)
+	case "postBillingConnectionsIdEvents":
+		var b PostBillingConnectionsIdEventsBody
+		if err := decodeInto(body, &b); err != nil {
+			return nil, err
+		}
+		return c.PostBillingConnectionsIDEvents(ctx, path["id"], b, opts...)
 	case "postBillingConnectionsIdRotateSecret":
 		return c.PostBillingConnectionsIDRotateSecret(ctx, path["id"], opts...)
 	case "postBillingConnectionsIdValueMappingPreview":
@@ -12576,6 +12846,8 @@ func (c *Client) Call(ctx context.Context, operationID string, path map[string]s
 			return nil, err
 		}
 		return c.PostBillingConnectionsIDValueMappingPreview(ctx, path["id"], b, opts...)
+	case "postBillingEventsIdRelease":
+		return c.PostBillingEventsIDRelease(ctx, path["id"], opts...)
 	case "postBillingInternalCustomers":
 		var b PostBillingInternalCustomersBody
 		if err := decodeInto(body, &b); err != nil {
@@ -13096,6 +13368,12 @@ func (c *Client) Call(ctx context.Context, operationID string, path map[string]s
 			return nil, err
 		}
 		return c.PostReferralsAssociate(ctx, b, opts...)
+	case "postReferralsHandoffTokens":
+		var b PostReferralsHandoffTokensBody
+		if err := decodeInto(body, &b); err != nil {
+			return nil, err
+		}
+		return c.PostReferralsHandoffTokens(ctx, b, opts...)
 	case "postReferralsIdApprove":
 		return c.PostReferralsIDApprove(ctx, path["id"], opts...)
 	case "postReferralsIdReassign":
@@ -13242,12 +13520,24 @@ func (c *Client) Call(ctx context.Context, operationID string, path map[string]s
 			return nil, err
 		}
 		return c.PostZapierHooks(ctx, b, opts...)
+	case "putAuthConnectionsIdOrigins":
+		var b PutAuthConnectionsIdOriginsBody
+		if err := decodeInto(body, &b); err != nil {
+			return nil, err
+		}
+		return c.PutAuthConnectionsIDOrigins(ctx, path["id"], b, opts...)
 	case "putAuthConnectionsIdSecret":
 		var b PutAuthConnectionsIdSecretBody
 		if err := decodeInto(body, &b); err != nil {
 			return nil, err
 		}
 		return c.PutAuthConnectionsIDSecret(ctx, path["id"], b, opts...)
+	case "putBillingAccountsAccountRefOwner":
+		var b PutBillingAccountsAccountRefOwnerBody
+		if err := decodeInto(body, &b); err != nil {
+			return nil, err
+		}
+		return c.PutBillingAccountsAccountRefOwner(ctx, path["accountRef"], b, opts...)
 	case "putBillingConnectionsIdCredentials":
 		var b PutBillingConnectionsIdCredentialsBody
 		if err := decodeInto(body, &b); err != nil {
